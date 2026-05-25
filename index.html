@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1a1025">
+<title>Science Play OS</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f0a18;
+  --bg2: #1a1025;
+  --bg3: #241832;
+  --card: #1e1430;
+  --card-hover: #281a3d;
+  --border: #2d1f42;
+  --text: #f1eef5;
+  --text2: #a89bb8;
+  --text3: #6b5a80;
+  --purple: #8b5cf6;
+  --purple-dim: #6d3fd4;
+  --purple-bg: rgba(139,92,246,0.1);
+  --green: #10b981;
+  --green-bg: rgba(16,185,129,0.1);
+  --red: #ef4444;
+  --red-bg: rgba(239,68,68,0.1);
+  --yellow: #f59e0b;
+  --yellow-bg: rgba(245,158,11,0.1);
+  --blue: #3b82f6;
+  --blue-bg: rgba(59,130,246,0.1);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+  --nav-h: 64px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 8px);
+}
+
+/* ===== AUTH SCREEN ===== */
+.auth-screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(160deg, var(--bg) 0%, var(--bg2) 50%, #1a0f2e 100%);
+}
+.auth-logo { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+.auth-logo span { color: var(--purple); }
+.auth-sub { color: var(--text2); margin-bottom: 32px; font-size: 14px; }
+.auth-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px 24px;
+  width: 100%;
+  max-width: 380px;
+}
+.auth-card h2 { font-size: 18px; margin-bottom: 20px; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  color: var(--text);
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  border-color: var(--purple);
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.btn-primary { background: var(--purple); color: white; width: 100%; }
+.btn-primary:hover { background: var(--purple-dim); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-sm { padding: 8px 14px; font-size: 13px; }
+.btn-ghost { background: transparent; color: var(--purple); border: 1px solid var(--border); }
+.btn-ghost:hover { background: var(--purple-bg); }
+.btn-danger { background: var(--red-bg); color: var(--red); }
+.btn-success { background: var(--green-bg); color: var(--green); }
+.auth-error { color: var(--red); font-size: 13px; margin-top: 12px; display: none; }
+.auth-toggle { margin-top: 16px; text-align: center; font-size: 13px; color: var(--text2); }
+.auth-toggle a { color: var(--purple); cursor: pointer; text-decoration: none; }
+
+/* ===== TOP BAR ===== */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  backdrop-filter: blur(12px);
+}
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.topbar-logo { font-size: 16px; font-weight: 800; }
+.topbar-logo span { color: var(--purple); }
+.topbar-user {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--purple-bg);
+  color: var(--purple);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700;
+  cursor: pointer;
+}
+
+/* ===== BOTTOM NAV (MOBILE) ===== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding: 8px 0 calc(8px + var(--safe-bottom));
+  backdrop-filter: blur(12px);
+}
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 0;
+  cursor: pointer;
+  color: var(--text3);
+  font-size: 10px;
+  font-weight: 500;
+  transition: color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-item.active { color: var(--purple); }
+.nav-item svg { width: 22px; height: 22px; }
+
+/* ===== PAGES ===== */
+.page { display: none; padding: 16px; max-width: 800px; margin: 0 auto; }
+.page.active { display: block; }
+
+/* ===== CARDS ===== */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+  transition: background 0.2s;
+}
+.card:active { background: var(--card-hover); }
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.card-title { font-size: 15px; font-weight: 600; }
+.card-subtitle { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.card-meta { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+.card-meta-item { font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 4px; }
+
+/* ===== BADGES ===== */
+.badge {
+  display: inline-flex;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.badge-purple { background: var(--purple-bg); color: var(--purple); }
+.badge-green { background: var(--green-bg); color: var(--green); }
+.badge-red { background: var(--red-bg); color: var(--red); }
+.badge-yellow { background: var(--yellow-bg); color: var(--yellow); }
+.badge-blue { background: var(--blue-bg); color: var(--blue); }
+
+/* ===== KPI ROW ===== */
+.kpi-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+.kpi-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+.kpi-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.kpi-value { font-size: 22px; font-weight: 700; }
+.kpi-value.green { color: var(--green); }
+.kpi-value.red { color: var(--red); }
+.kpi-value.purple { color: var(--purple); }
+
+/* ===== SECTION ===== */
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  padding-left: 2px;
+}
+
+/* ===== TASK ITEM ===== */
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.task-check {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--border);
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: all 0.2s;
+}
+.task-check.done { background: var(--green); border-color: var(--green); }
+.task-body { flex: 1; min-width: 0; }
+.task-title { font-size: 14px; font-weight: 500; }
+.task-title.done { text-decoration: line-through; color: var(--text3); }
+.task-info { font-size: 12px; color: var(--text2); margin-top: 3px; display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 200;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--bg2);
+  border-radius: var(--radius) var(--radius) 0 0;
+  width: 100%;
+  max-width: 500px;
+  max-height: 85dvh;
+  overflow-y: auto;
+  padding: 24px 20px calc(24px + var(--safe-bottom));
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+.modal-actions .btn { flex: 1; }
+
+/* ===== FAB ===== */
+.fab {
+  position: fixed;
+  bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px);
+  right: 16px;
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: var(--purple);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 4px 20px rgba(139,92,246,0.4);
+  cursor: pointer;
+  z-index: 50;
+  border: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--text2);
+}
+.empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.5; }
+.empty-state p { font-size: 14px; margin-bottom: 16px; }
+
+/* ===== PROGRESS BAR ===== */
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--bg);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--purple);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+/* ===== DRE TABLE ===== */
+.dre-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.dre-row.total { font-weight: 700; border-bottom: 2px solid var(--border); }
+.dre-row .label { color: var(--text2); flex: 1; }
+.dre-row .value { font-weight: 600; text-align: right; }
+.dre-row .value.positive { color: var(--green); }
+.dre-row .value.negative { color: var(--red); }
+
+/* ===== SCROLLABLE TABS ===== */
+.tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  background: var(--bg);
+  color: var(--text2);
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.tab.active { background: var(--purple-bg); color: var(--purple); border-color: var(--purple); }
+
+/* ===== DROPDOWN/MENU ===== */
+.dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  min-width: 160px;
+  box-shadow: var(--shadow);
+  z-index: 150;
+  display: none;
+}
+.dropdown.active { display: block; }
+.dropdown-item {
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.dropdown-item:hover { background: var(--bg); }
+
+/* ===== RESPONSIVE ===== */
+@media (min-width: 768px) {
+  .kpi-row { grid-template-columns: repeat(4, 1fr); }
+  .bottom-nav { max-width: 500px; left: 50%; transform: translateX(-50%); border-radius: var(--radius) var(--radius) 0 0; }
+  .page { padding: 24px; }
+  .modal { border-radius: var(--radius); max-height: 80vh; margin-bottom: 10vh; }
+}
+
+/* ===== PULL TO REFRESH INDICATOR ===== */
+.refresh-indicator {
+  text-align: center;
+  padding: 12px;
+  color: var(--purple);
+  font-size: 12px;
+  display: none;
+}
+
+/* ===== LOADING ===== */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--purple);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- ===== AUTH SCREEN ===== -->
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-logo">Science Play <span>OS</span></div>
+  <div class="auth-sub">Command Center</div>
+  <div class="auth-card">
+    <h2 id="auth-title">Entrar</h2>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="auth-email" placeholder="seu@email.com">
+    </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" id="auth-pass" placeholder="••••••••">
+    </div>
+    <div class="form-group" id="auth-name-group" style="display:none">
+      <label>Seu Nome</label>
+      <input type="text" id="auth-name" placeholder="Nome completo">
+    </div>
+    <button class="btn btn-primary" id="auth-btn" onclick="handleAuth()">Entrar</button>
+    <div class="auth-error" id="auth-error"></div>
+    <div class="auth-toggle">
+      <span id="auth-toggle-text">Primeiro acesso?</span>
+      <a id="auth-toggle-link" onclick="toggleAuth()">Criar conta</a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== APP SHELL ===== -->
+<div id="app" style="display:none">
+  <!-- Top Bar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo">SP <span>OS</span></div>
+    </div>
+    <div class="topbar-user" id="user-avatar" onclick="toggleUserMenu()"></div>
+  </div>
+
+  <!-- Pages -->
+  <div id="page-home" class="page active">
+    <div id="home-content"></div>
+  </div>
+
+  <div id="page-events" class="page">
+    <div id="events-content"></div>
+  </div>
+
+  <div id="page-tasks" class="page">
+    <div id="tasks-content"></div>
+  </div>
+
+  <div id="page-finance" class="page">
+    <div id="finance-content"></div>
+  </div>
+
+  <div id="page-team" class="page">
+    <div id="team-content"></div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" data-page="home" onclick="goPage('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Home</span>
+    </div>
+    <div class="nav-item" data-page="events" onclick="goPage('events')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span>Eventos</span>
+    </div>
+    <div class="nav-item" data-page="tasks" onclick="goPage('tasks')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <span>Tarefas</span>
+    </div>
+    <div class="nav-item" data-page="finance" onclick="goPage('finance')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <span>Financeiro</span>
+    </div>
+    <div class="nav-item" data-page="team" onclick="goPage('team')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Time</span>
+    </div>
+  </nav>
+
+  <!-- FAB -->
+  <button class="fab" id="fab" onclick="fabAction()">+</button>
+</div>
+
+<!-- ===== MODAL ===== -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal-content" onclick="event.stopPropagation()"></div>
+</div>
+
+<!-- SUPABASE SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<script>
+// ============================================================
+// CONFIG — SUBSTITUIR COM SUAS CREDENCIAIS SUPABASE
+// ============================================================
+const SUPABASE_URL = 'https://vapsolcgnrnfmddcikca.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhcHNvbGNnbnJuZm1kZGNpa2NhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NTEwNzcsImV4cCI6MjA5NTMyNzA3N30.Z-4A1SRTknjaSazD6K2MAjSiQmtXevgrRjzugpFHn1c';
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ============================================================
+// STATE
+// ============================================================
+let currentUser = null;
+let currentPage = 'home';
+let state = {
+  events: [],
+  tasks: [],
+  sales: [],
+  costs: [],
+  revenues: [],
+  products: [],
+  profiles: [],
+  categories: []
+};
+
+// ============================================================
+// AUTH
+// ============================================================
+let isSignUp = false;
+
+function toggleAuth() {
+  isSignUp = !isSignUp;
+  document.getElementById('auth-title').textContent = isSignUp ? 'Criar Conta' : 'Entrar';
+  document.getElementById('auth-btn').textContent = isSignUp ? 'Cadastrar' : 'Entrar';
+  document.getElementById('auth-name-group').style.display = isSignUp ? 'block' : 'none';
+  document.getElementById('auth-toggle-text').textContent = isSignUp ? 'Já tem conta?' : 'Primeiro acesso?';
+  document.getElementById('auth-toggle-link').textContent = isSignUp ? 'Entrar' : 'Criar conta';
+  document.getElementById('auth-error').style.display = 'none';
+}
+
+async function handleAuth() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pass = document.getElementById('auth-pass').value;
+  const btn = document.getElementById('auth-btn');
+  const errEl = document.getElementById('auth-error');
+
+  if (!email || !pass) { showAuthError('Preencha email e senha'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Carregando...';
+
+  try {
+    let result;
+    if (isSignUp) {
+      const name = document.getElementById('auth-name').value.trim() || email.split('@')[0];
+      result = await supabase.auth.signUp({ email, password: pass, options: { data: { name } } });
+    } else {
+      result = await supabase.auth.signInWithPassword({ email, password: pass });
+    }
+
+    if (result.error) throw result.error;
+
+    if (isSignUp && !result.data.session) {
+      showAuthError('Verifique seu email para confirmar o cadastro.');
+      btn.disabled = false;
+      btn.textContent = 'Cadastrar';
+      return;
+    }
+
+    currentUser = result.data.user;
+    await initApp();
+  } catch (err) {
+    showAuthError(err.message || 'Erro de autenticação');
+    btn.disabled = false;
+    btn.textContent = isSignUp ? 'Cadastrar' : 'Entrar';
+  }
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+// ============================================================
+// APP INIT
+// ============================================================
+async function initApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+
+  // Set user avatar
+  const profile = await getProfile();
+  const initials = (profile?.name || currentUser.email).substring(0,2).toUpperCase();
+  document.getElementById('user-avatar').textContent = initials;
+
+  // Load data
+  await loadAllData();
+
+  // Setup realtime
+  setupRealtime();
+
+  // Render
+  renderCurrentPage();
+}
+
+async function getProfile() {
+  const { data } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
+  return data;
+}
+
+async function loadAllData() {
+  const [events, tasks, sales, costs, revenues, products, profiles, categories] = await Promise.all([
+    supabase.from('events').select('*').order('date', { ascending: true }),
+    supabase.from('tasks').select('*').order('due_date', { ascending: true }),
+    supabase.from('sales').select('*').order('sale_date', { ascending: false }),
+    supabase.from('costs').select('*').order('created_at', { ascending: false }),
+    supabase.from('revenues').select('*'),
+    supabase.from('products').select('*'),
+    supabase.from('profiles').select('*'),
+    supabase.from('cost_categories').select('*').order('sort_order')
+  ]);
+
+  state.events = events.data || [];
+  state.tasks = tasks.data || [];
+  state.sales = sales.data || [];
+  state.costs = costs.data || [];
+  state.revenues = revenues.data || [];
+  state.products = products.data || [];
+  state.profiles = profiles.data || [];
+  state.categories = categories.data || [];
+}
+
+// ============================================================
+// REALTIME
+// ============================================================
+function setupRealtime() {
+  supabase.channel('db-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, () => refreshData('events'))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => refreshData('tasks'))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'sales' }, () => refreshData('sales'))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'costs' }, () => refreshData('costs'))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'updates' }, () => refreshData('updates'))
+    .subscribe();
+}
+
+async function refreshData(table) {
+  const { data } = await supabase.from(table).select('*').order(table === 'events' ? 'date' : 'created_at', { ascending: table === 'events' });
+  state[table] = data || [];
+  renderCurrentPage();
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function goPage(page) {
+  currentPage = page;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(`page-${page}`).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === page));
+  renderCurrentPage();
+}
+
+function renderCurrentPage() {
+  switch(currentPage) {
+    case 'home': renderHome(); break;
+    case 'events': renderEvents(); break;
+    case 'tasks': renderTasks(); break;
+    case 'finance': renderFinance(); break;
+    case 'team': renderTeam(); break;
+  }
+}
+
+// ============================================================
+// RENDER: HOME (COMMAND CENTER)
+// ============================================================
+function renderHome() {
+  const el = document.getElementById('home-content');
+  const now = new Date();
+  const upcoming = state.events.filter(e => new Date(e.date) >= now).slice(0, 3);
+  const pendingTasks = state.tasks.filter(t => !t.done);
+  const overdue = pendingTasks.filter(t => t.due_date && new Date(t.due_date) < now);
+
+  const totalRevenue = state.sales.reduce((s, v) => s + (v.payment_status === 'aprovado' ? Number(v.amount) : 0), 0);
+  const totalCosts = state.costs.reduce((s, v) => s + Number(v.amount), 0);
+
+  el.innerHTML = `
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-label">Receita Total</div>
+        <div class="kpi-value green">${formatCurrency(totalRevenue)}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Custos Total</div>
+        <div class="kpi-value red">${formatCurrency(totalCosts)}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Resultado</div>
+        <div class="kpi-value ${totalRevenue - totalCosts >= 0 ? 'green' : 'red'}">${formatCurrency(totalRevenue - totalCosts)}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Tarefas Pendentes</div>
+        <div class="kpi-value purple">${pendingTasks.length}</div>
+      </div>
+    </div>
+
+    ${overdue.length > 0 ? `
+      <div class="section-title" style="color:var(--red)">&#9888; ${overdue.length} Tarefa${overdue.length > 1 ? 's' : ''} Atrasada${overdue.length > 1 ? 's' : ''}</div>
+      ${overdue.slice(0, 5).map(t => renderTaskItem(t)).join('')}
+    ` : ''}
+
+    <div class="section-title" style="margin-top:20px">Próximos Eventos</div>
+    ${upcoming.length > 0 ? upcoming.map(e => `
+      <div class="card" onclick="openEvent('${e.id}')">
+        <div class="card-header">
+          <div>
+            <div class="card-title">${e.name}</div>
+            <div class="card-subtitle">${e.city || ''} ${e.venue ? '• ' + e.venue : ''}</div>
+          </div>
+          <span class="badge badge-purple">${daysUntil(e.date)}</span>
+        </div>
+        <div class="card-meta">
+          <span class="card-meta-item">&#128197; ${formatDate(e.date)}</span>
+          <span class="card-meta-item">&#127915; ${e.type}</span>
+          ${e.revenue_goal ? `<span class="card-meta-item">&#127919; Meta: ${formatCurrency(e.revenue_goal)}</span>` : ''}
+        </div>
+        ${renderEventProgress(e)}
+      </div>
+    `).join('') : '<div class="empty-state"><p>Nenhum evento cadastrado ainda</p><button class="btn btn-ghost btn-sm" onclick="openEventModal()">+ Criar Evento</button></div>'}
+
+    <div class="section-title" style="margin-top:20px">Tarefas da Semana</div>
+    ${pendingTasks.filter(t => isThisWeek(t.due_date)).slice(0, 8).map(t => renderTaskItem(t)).join('') || '<p style="color:var(--text3);font-size:13px">Nenhuma tarefa esta semana</p>'}
+  `;
+}
+
+function renderEventProgress(event) {
+  const eventSales = state.sales.filter(s => s.event_id === event.id && s.payment_status === 'aprovado');
+  const revenue = eventSales.reduce((s, v) => s + Number(v.amount), 0);
+  const pct = event.revenue_goal > 0 ? Math.min(100, (revenue / event.revenue_goal) * 100) : 0;
+  if (!event.revenue_goal) return '';
+  return `<div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">${formatCurrency(revenue)} / ${formatCurrency(event.revenue_goal)} (${Math.round(pct)}%)</div>`;
+}
+
+// ============================================================
+// RENDER: EVENTS
+// ============================================================
+function renderEvents() {
+  const el = document.getElementById('events-content');
+  const now = new Date();
+  const upcoming = state.events.filter(e => new Date(e.date) >= now);
+  const past = state.events.filter(e => new Date(e.date) < now);
+
+  el.innerHTML = `
+    <div class="section-title">Eventos Ativos (${upcoming.length})</div>
+    ${upcoming.map(e => renderEventCard(e)).join('') || '<div class="empty-state"><p>Nenhum evento futuro</p></div>'}
+    ${past.length > 0 ? `
+      <div class="section-title" style="margin-top:24px">Realizados (${past.length})</div>
+      ${past.map(e => renderEventCard(e, true)).join('')}
+    ` : ''}
+  `;
+}
+
+function renderEventCard(e, past = false) {
+  const eventSales = state.sales.filter(s => s.event_id === e.id && s.payment_status === 'aprovado');
+  const revenue = eventSales.reduce((s, v) => s + Number(v.amount), 0);
+  const eventCosts = state.costs.filter(c => c.event_id === e.id);
+  const costs = eventCosts.reduce((s, v) => s + Number(v.amount), 0);
+  const result = revenue - costs;
+
+  return `
+    <div class="card" onclick="openEvent('${e.id}')">
+      <div class="card-header">
+        <div>
+          <div class="card-title">${e.name}</div>
+          <div class="card-subtitle">${formatDate(e.date)} • ${e.city || ''}</div>
+        </div>
+        <span class="badge ${past ? (result >= 0 ? 'badge-green' : 'badge-red') : 'badge-purple'}">
+          ${past ? formatCurrency(result) : daysUntil(e.date)}
+        </span>
+      </div>
+      <div class="card-meta">
+        <span class="card-meta-item">&#128176; ${formatCurrency(revenue)}</span>
+        <span class="card-meta-item">&#128200; ${eventSales.length} vendas</span>
+        ${past ? `<span class="card-meta-item">Margem: ${revenue > 0 ? Math.round((result/revenue)*100) : 0}%</span>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+// ============================================================
+// RENDER: TASKS
+// ============================================================
+function renderTasks() {
+  const el = document.getElementById('tasks-content');
+  const pending = state.tasks.filter(t => !t.done);
+  const done = state.tasks.filter(t => t.done);
+
+  const byEvent = {};
+  pending.forEach(t => {
+    const evName = state.events.find(e => e.id === t.event_id)?.name || 'Sem evento';
+    if (!byEvent[evName]) byEvent[evName] = [];
+    byEvent[evName].push(t);
+  });
+
+  el.innerHTML = `
+    <div class="tabs" id="task-filter">
+      <div class="tab active" onclick="filterTasks('all')">Todas (${pending.length})</div>
+      <div class="tab" onclick="filterTasks('overdue')">Atrasadas</div>
+      <div class="tab" onclick="filterTasks('today')">Hoje</div>
+      <div class="tab" onclick="filterTasks('week')">Semana</div>
+    </div>
+    <div id="tasks-list">
+      ${Object.entries(byEvent).map(([evName, tasks]) => `
+        <div class="section-title">${evName}</div>
+        ${tasks.map(t => renderTaskItem(t)).join('')}
+      `).join('') || '<div class="empty-state"><p>Nenhuma tarefa pendente</p></div>'}
+    </div>
+    ${done.length > 0 ? `<div class="section-title" style="margin-top:24px;opacity:0.5">Concluídas (${done.length})</div>` : ''}
+  `;
+}
+
+function renderTaskItem(t) {
+  const isOverdue = t.due_date && new Date(t.due_date) < new Date() && !t.done;
+  const assignee = state.profiles.find(p => p.id === t.assigned_to)?.name || '';
+  return `
+    <div class="task-item">
+      <div class="task-check ${t.done ? 'done' : ''}" onclick="toggleTask('${t.id}', ${!t.done})"></div>
+      <div class="task-body">
+        <div class="task-title ${t.done ? 'done' : ''}">${t.title}</div>
+        <div class="task-info">
+          ${t.due_date ? `<span style="${isOverdue ? 'color:var(--red)' : ''}">${formatDate(t.due_date)}</span>` : ''}
+          ${t.department ? `<span class="badge badge-blue">${t.department}</span>` : ''}
+          ${assignee ? `<span>${assignee}</span>` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function toggleTask(id, done) {
+  await supabase.from('tasks').update({ done, completed_at: done ? new Date().toISOString() : null }).eq('id', id);
+  const task = state.tasks.find(t => t.id === id);
+  if (task) task.done = done;
+  renderCurrentPage();
+}
+
+// ============================================================
+// RENDER: FINANCE
+// ============================================================
+function renderFinance() {
+  const el = document.getElementById('finance-content');
+
+  el.innerHTML = `
+    <div class="tabs">
+      ${state.events.map((e, i) => `<div class="tab ${i === 0 ? 'active' : ''}" onclick="showEventDRE('${e.id}', this)">${e.name}</div>`).join('')}
+    </div>
+    <div id="dre-content">${state.events.length > 0 ? renderDRE(state.events[0].id) : '<div class="empty-state"><p>Cadastre um evento para ver o DRE</p></div>'}</div>
+  `;
+}
+
+function showEventDRE(eventId, tabEl) {
+  document.querySelectorAll('#page-finance .tab').forEach(t => t.classList.remove('active'));
+  if (tabEl) tabEl.classList.add('active');
+  document.getElementById('dre-content').innerHTML = renderDRE(eventId);
+}
+
+function renderDRE(eventId) {
+  const eventSales = state.sales.filter(s => s.event_id === eventId && s.payment_status === 'aprovado');
+  const eventRevenues = state.revenues.filter(r => r.event_id === eventId);
+  const eventCosts = state.costs.filter(c => c.event_id === eventId);
+
+  const receitaVendas = eventSales.reduce((s, v) => s + Number(v.amount), 0);
+  const receitaExtra = eventRevenues.reduce((s, v) => s + Number(v.amount), 0);
+  const receitaBruta = receitaVendas + receitaExtra;
+
+  // Group costs by category
+  const costsByCategory = {};
+  eventCosts.forEach(c => {
+    const cat = state.categories.find(cat => cat.id === c.category_id)?.name || 'Outros';
+    if (!costsByCategory[cat]) costsByCategory[cat] = 0;
+    costsByCategory[cat] += Number(c.amount);
+  });
+  const custoTotal = eventCosts.reduce((s, v) => s + Number(v.amount), 0);
+  const resultado = receitaBruta - custoTotal;
+  const margem = receitaBruta > 0 ? ((resultado / receitaBruta) * 100).toFixed(1) : 0;
+
+  return `
+    <div class="kpi-row" style="margin-bottom:20px">
+      <div class="kpi-card">
+        <div class="kpi-label">Receita</div>
+        <div class="kpi-value green">${formatCurrency(receitaBruta)}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Custos</div>
+        <div class="kpi-value red">${formatCurrency(custoTotal)}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Resultado</div>
+        <div class="kpi-value ${resultado >= 0 ? 'green' : 'red'}">${formatCurrency(resultado)}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Margem</div>
+        <div class="kpi-value ${resultado >= 0 ? 'green' : 'red'}">${margem}%</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Receitas</div>
+      <div class="dre-row">
+        <span class="label">Vendas de Ingressos (${eventSales.length})</span>
+        <span class="value positive">${formatCurrency(receitaVendas)}</span>
+      </div>
+      ${eventRevenues.map(r => `
+        <div class="dre-row">
+          <span class="label">${r.description}</span>
+          <span class="value positive">${formatCurrency(r.amount)}</span>
+        </div>
+      `).join('')}
+      <div class="dre-row total">
+        <span class="label">RECEITA BRUTA</span>
+        <span class="value positive">${formatCurrency(receitaBruta)}</span>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <div class="section-title">Custos</div>
+      ${Object.entries(costsByCategory).map(([cat, val]) => `
+        <div class="dre-row">
+          <span class="label">${cat}</span>
+          <span class="value negative">-${formatCurrency(val)}</span>
+        </div>
+      `).join('') || '<p style="color:var(--text3);font-size:13px">Nenhum custo registrado</p>'}
+      <div class="dre-row total">
+        <span class="label">CUSTO TOTAL</span>
+        <span class="value negative">-${formatCurrency(custoTotal)}</span>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <div class="dre-row total">
+        <span class="label">RESULTADO DO EVENTO</span>
+        <span class="value ${resultado >= 0 ? 'positive' : 'negative'}">${formatCurrency(resultado)}</span>
+      </div>
+    </div>
+  `;
+}
+
+// ============================================================
+// RENDER: TEAM
+// ============================================================
+function renderTeam() {
+  const el = document.getElementById('team-content');
+  el.innerHTML = `
+    <div class="section-title">Equipe (${state.profiles.length})</div>
+    ${state.profiles.map(p => {
+      const tasks = state.tasks.filter(t => t.assigned_to === p.id);
+      const pending = tasks.filter(t => !t.done).length;
+      const done = tasks.filter(t => t.done).length;
+      return `
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">${p.name}</div>
+              <div class="card-subtitle">${p.department || 'Sem departamento'} • ${p.role}</div>
+            </div>
+          </div>
+          <div class="card-meta">
+            <span class="card-meta-item">&#9989; ${done} feitas</span>
+            <span class="card-meta-item" style="${pending > 0 ? 'color:var(--yellow)' : ''}">&#9203; ${pending} pendentes</span>
+          </div>
+        </div>
+      `;
+    }).join('') || '<div class="empty-state"><p>Nenhum membro cadastrado</p></div>'}
+  `;
+}
+
+// ============================================================
+// EVENT DETAIL
+// ============================================================
+function openEvent(eventId) {
+  const event = state.events.find(e => e.id === eventId);
+  if (!event) return;
+
+  const eventTasks = state.tasks.filter(t => t.event_id === eventId);
+  const done = eventTasks.filter(t => t.done).length;
+  const total = eventTasks.length;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  const modal = document.getElementById('modal-content');
+  modal.innerHTML = `
+    <div class="modal-title">${event.name}</div>
+    <div class="card-meta" style="margin-bottom:16px">
+      <span class="card-meta-item">&#128197; ${formatDate(event.date)}</span>
+      <span class="card-meta-item">&#128205; ${event.city || '—'}</span>
+      <span class="badge badge-purple">${event.type}</span>
+    </div>
+
+    <div class="section-title">Progresso Checklist (${pct}%)</div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <p style="font-size:12px;color:var(--text3);margin:6px 0 16px">${done}/${total} tarefas concluídas</p>
+
+    <div class="section-title">Ações</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button class="btn btn-ghost btn-sm" onclick="closeModalAndGo('tasks')">Ver Tarefas</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeModalAndGo('finance')">Ver DRE</button>
+      <button class="btn btn-ghost btn-sm" onclick="openEventModal('${eventId}')">Editar Evento</button>
+      <button class="btn btn-ghost btn-sm" onclick="openSaleModal('${eventId}')">+ Venda</button>
+      <button class="btn btn-ghost btn-sm" onclick="openCostModal('${eventId}')">+ Custo</button>
+      <button class="btn btn-ghost btn-sm" onclick="openTaskModal('${eventId}')">+ Tarefa</button>
+    </div>
+  `;
+  openModal();
+}
+
+function closeModalAndGo(page) {
+  closeModal();
+  goPage(page);
+}
+
+// ============================================================
+// MODALS: CREATE/EDIT
+// ============================================================
+
+// --- EVENT MODAL ---
+function openEventModal(editId) {
+  const event = editId ? state.events.find(e => e.id === editId) : null;
+  const modal = document.getElementById('modal-content');
+  modal.innerHTML = `
+    <div class="modal-title">${event ? 'Editar Evento' : 'Novo Evento'}</div>
+    <div class="form-group"><label>Nome</label><input id="m-ev-name" value="${event?.name || ''}"></div>
+    <div class="form-group"><label>Tipo</label>
+      <select id="m-ev-type">
+        <option value="congresso" ${event?.type==='congresso'?'selected':''}>Congresso</option>
+        <option value="imersao" ${event?.type==='imersao'?'selected':''}>Imersão</option>
+        <option value="mentoria" ${event?.type==='mentoria'?'selected':''}>Mentoria</option>
+        <option value="workshop" ${event?.type==='workshop'?'selected':''}>Workshop</option>
+        <option value="masterclass" ${event?.type==='masterclass'?'selected':''}>Masterclass</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Data</label><input type="date" id="m-ev-date" value="${event?.date || ''}"></div>
+    <div class="form-group"><label>Cidade</label><input id="m-ev-city" value="${event?.city || ''}"></div>
+    <div class="form-group"><label>Venue</label><input id="m-ev-venue" value="${event?.venue || ''}"></div>
+    <div class="form-group"><label>Meta de Receita (R$)</label><input type="number" id="m-ev-goal" value="${event?.revenue_goal || ''}"></div>
+    <div class="form-group"><label>Owner</label>
+      <select id="m-ev-owner">
+        <option value="">Selecione</option>
+        ${state.profiles.map(p => `<option value="${p.id}" ${event?.owner_id===p.id?'selected':''}>${p.name}</option>`).join('')}
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEvent('${editId || ''}')">Salvar</button>
+    </div>
+  `;
+  openModal();
+}
+
+async function saveEvent(editId) {
+  const data = {
+    name: document.getElementById('m-ev-name').value,
+    type: document.getElementById('m-ev-type').value,
+    date: document.getElementById('m-ev-date').value,
+    city: document.getElementById('m-ev-city').value,
+    venue: document.getElementById('m-ev-venue').value,
+    revenue_goal: Number(document.getElementById('m-ev-goal').value) || 0,
+    owner_id: document.getElementById('m-ev-owner').value || null
+  };
+
+  if (!data.name || !data.date) { alert('Nome e data são obrigatórios'); return; }
+
+  if (editId) {
+    await supabase.from('events').update(data).eq('id', editId);
+  } else {
+    await supabase.from('events').insert(data);
+  }
+
+  await loadAllData();
+  closeModal();
+  renderCurrentPage();
+}
+
+// --- SALE MODAL ---
+function openSaleModal(eventId) {
+  const products = state.products.filter(p => p.event_id === eventId);
+  const modal = document.getElementById('modal-content');
+  modal.innerHTML = `
+    <div class="modal-title">Registrar Venda</div>
+    <div class="form-group"><label>Produto/Ingresso</label>
+      <select id="m-sale-product">
+        <option value="">Avulso</option>
+        ${products.map(p => `<option value="${p.id}">${p.name} - R$${p.price}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group"><label>Nome do Comprador</label><input id="m-sale-buyer"></div>
+    <div class="form-group"><label>Valor (R$)</label><input type="number" id="m-sale-amount" step="0.01"></div>
+    <div class="form-group"><label>Taxa Plataforma (R$)</label><input type="number" id="m-sale-fee" step="0.01" value="0"></div>
+    <div class="form-group"><label>Data da Venda</label><input type="date" id="m-sale-date" value="${new Date().toISOString().split('T')[0]}"></div>
+    <div class="form-group"><label>Lote</label><input id="m-sale-lot"></div>
+    <input type="hidden" id="m-sale-event" value="${eventId}">
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveSale()">Salvar</button>
+    </div>
+  `;
+  openModal();
+}
+
+async function saveSale() {
+  const data = {
+    event_id: document.getElementById('m-sale-event').value,
+    product_id: document.getElementById('m-sale-product').value || null,
+    buyer_name: document.getElementById('m-sale-buyer').value,
+    amount: Number(document.getElementById('m-sale-amount').value),
+    platform_fee: Number(document.getElementById('m-sale-fee').value) || 0,
+    net_amount: Number(document.getElementById('m-sale-amount').value) - Number(document.getElementById('m-sale-fee').value || 0),
+    sale_date: document.getElementById('m-sale-date').value,
+    lot: document.getElementById('m-sale-lot').value
+  };
+
+  if (!data.amount) { alert('Informe o valor'); return; }
+
+  await supabase.from('sales').insert(data);
+  await loadAllData();
+  closeModal();
+  renderCurrentPage();
+}
+
+// --- COST MODAL ---
+function openCostModal(eventId) {
+  const modal = document.getElementById('modal-content');
+  modal.innerHTML = `
+    <div class="modal-title">Registrar Custo</div>
+    <div class="form-group"><label>Categoria</label>
+      <select id="m-cost-cat">
+        ${state.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group"><label>Descrição</label><input id="m-cost-desc"></div>
+    <div class="form-group"><label>Fornecedor</label><input id="m-cost-supplier"></div>
+    <div class="form-group"><label>Pessoa</label><input id="m-cost-person"></div>
+    <div class="form-group"><label>Valor (R$)</label><input type="number" id="m-cost-amount" step="0.01"></div>
+    <div class="form-group"><label>Status</label>
+      <select id="m-cost-status">
+        <option value="previsto">Previsto</option>
+        <option value="confirmado">Confirmado</option>
+        <option value="pago">Pago</option>
+      </select>
+    </div>
+    <input type="hidden" id="m-cost-event" value="${eventId}">
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveCost()">Salvar</button>
+    </div>
+  `;
+  openModal();
+}
+
+async function saveCost() {
+  const data = {
+    event_id: document.getElementById('m-cost-event').value,
+    category_id: document.getElementById('m-cost-cat').value,
+    description: document.getElementById('m-cost-desc').value,
+    supplier: document.getElementById('m-cost-supplier').value,
+    person: document.getElementById('m-cost-person').value,
+    amount: Number(document.getElementById('m-cost-amount').value),
+    status: document.getElementById('m-cost-status').value
+  };
+
+  if (!data.description || !data.amount) { alert('Descrição e valor são obrigatórios'); return; }
+
+  await supabase.from('costs').insert(data);
+  await loadAllData();
+  closeModal();
+  renderCurrentPage();
+}
+
+// --- TASK MODAL ---
+function openTaskModal(eventId) {
+  const modal = document.getElementById('modal-content');
+  modal.innerHTML = `
+    <div class="modal-title">Nova Tarefa</div>
+    <div class="form-group"><label>Título</label><input id="m-task-title"></div>
+    <div class="form-group"><label>Evento</label>
+      <select id="m-task-event">
+        ${state.events.map(e => `<option value="${e.id}" ${e.id===eventId?'selected':''}>${e.name}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group"><label>Departamento</label>
+      <select id="m-task-dept">
+        <option value="">—</option>
+        <option value="PROD">PROD</option>
+        <option value="MKT">MKT</option>
+        <option value="FIN">FIN</option>
+        <option value="ADM">ADM</option>
+        <option value="ATD">ATD</option>
+        <option value="VND">VND</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Responsável</label>
+      <select id="m-task-assign">
+        <option value="">—</option>
+        ${state.profiles.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group"><label>Prazo</label><input type="date" id="m-task-due"></div>
+    <div class="form-group"><label>Prioridade</label>
+      <select id="m-task-priority">
+        <option value="normal">Normal</option>
+        <option value="alta">Alta</option>
+        <option value="urgente">Urgente</option>
+        <option value="baixa">Baixa</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveTask()">Salvar</button>
+    </div>
+  `;
+  openModal();
+}
+
+async function saveTask() {
+  const data = {
+    event_id: document.getElementById('m-task-event').value,
+    title: document.getElementById('m-task-title').value,
+    department: document.getElementById('m-task-dept').value || null,
+    assigned_to: document.getElementById('m-task-assign').value || null,
+    due_date: document.getElementById('m-task-due').value || null,
+    priority: document.getElementById('m-task-priority').value
+  };
+
+  if (!data.title) { alert('Título é obrigatório'); return; }
+
+  await supabase.from('tasks').insert(data);
+  await loadAllData();
+  closeModal();
+  renderCurrentPage();
+}
+
+// ============================================================
+// FAB ACTION (contextual)
+// ============================================================
+function fabAction() {
+  switch(currentPage) {
+    case 'events': openEventModal(); break;
+    case 'tasks': openTaskModal(state.events[0]?.id); break;
+    case 'finance': if(state.events[0]) openCostModal(state.events[0].id); break;
+    default: openEventModal();
+  }
+}
+
+// ============================================================
+// MODAL HELPERS
+// ============================================================
+function openModal() {
+  document.getElementById('modal-overlay').classList.add('active');
+}
+function closeModal(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById('modal-overlay').classList.remove('active');
+}
+
+// ============================================================
+// USER MENU
+// ============================================================
+function toggleUserMenu() {
+  const modal = document.getElementById('modal-content');
+  modal.innerHTML = `
+    <div class="modal-title">Minha Conta</div>
+    <p style="color:var(--text2);font-size:14px;margin-bottom:20px">${currentUser.email}</p>
+    <button class="btn btn-danger" style="width:100%" onclick="logout()">Sair</button>
+  `;
+  openModal();
+}
+
+async function logout() {
+  await supabase.auth.signOut();
+  location.reload();
+}
+
+// ============================================================
+// UTILITIES
+// ============================================================
+function formatCurrency(v) {
+  return 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+function formatDate(d) {
+  if (!d) return '—';
+  const dt = new Date(d + 'T12:00:00');
+  return dt.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+}
+function daysUntil(d) {
+  const diff = Math.ceil((new Date(d) - new Date()) / 86400000);
+  if (diff === 0) return 'Hoje';
+  if (diff === 1) return 'Amanhã';
+  if (diff < 0) return `${Math.abs(diff)}d atrás`;
+  return `${diff}d`;
+}
+function isThisWeek(d) {
+  if (!d) return false;
+  const now = new Date();
+  const date = new Date(d);
+  const diff = (date - now) / 86400000;
+  return diff >= -1 && diff <= 7;
+}
+
+// ============================================================
+// INIT: Check session on load
+// ============================================================
+(async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) {
+    currentUser = session.user;
+    await initApp();
+  }
+})();
+</script>
+</body>
+</html>
