@@ -2,91 +2,115 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#1a1025">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#1A0F26">
 <title>Science Play OS</title>
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root {
-  --bg: #0f0a18;
-  --bg2: #1a1025;
-  --bg3: #241832;
-  --card: #1e1430;
-  --card-hover: #281a3d;
-  --border: #2d1f42;
-  --text: #f1eef5;
-  --text2: #a89bb8;
-  --text3: #6b5a80;
-  --purple: #8b5cf6;
-  --purple-dim: #6d3fd4;
-  --purple-bg: rgba(139,92,246,0.1);
-  --green: #10b981;
-  --green-bg: rgba(16,185,129,0.1);
-  --red: #ef4444;
-  --red-bg: rgba(239,68,68,0.1);
-  --yellow: #f59e0b;
-  --yellow-bg: rgba(245,158,11,0.1);
-  --blue: #3b82f6;
-  --blue-bg: rgba(59,130,246,0.1);
+  --sb-bg: #1A0F26;
+  --sb-hover: #2A1840;
+  --sb-active: #3D2260;
+  --sb-text: #C4B5D4;
+  --sb-text-active: #FFFFFF;
+  --sb-width: 260px;
+  --bg: #FAF9FB;
+  --bg-card: #FFFFFF;
+  --bg-muted: #F3F1F6;
+  --border: #E8E4EF;
+  --border-light: #F0EDF5;
+  --text: #1A0F26;
+  --text-secondary: #6B5A80;
+  --text-muted: #9B8DB0;
+  --purple: #7C3AED;
+  --purple-light: #EDE9FE;
+  --purple-dark: #5B21B6;
+  --green: #059669;
+  --green-light: #D1FAE5;
+  --red: #DC2626;
+  --red-light: #FEE2E2;
+  --yellow: #D97706;
+  --yellow-light: #FEF3C7;
+  --blue: #2563EB;
+  --blue-light: #DBEAFE;
   --radius: 12px;
   --radius-sm: 8px;
-  --shadow: 0 4px 24px rgba(0,0,0,0.3);
-  --nav-h: 64px;
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 3px rgba(26,15,38,0.06);
+  --shadow: 0 4px 12px rgba(26,15,38,0.08);
+  --shadow-lg: 0 12px 40px rgba(26,15,38,0.12);
+  --transition: 0.2s ease;
 }
-* { margin:0; padding:0; box-sizing:border-box; }
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--bg);
   color: var(--text);
-  min-height: 100dvh;
+  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
-  padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 8px);
 }
 
 /* ===== AUTH SCREEN ===== */
 .auth-screen {
-  min-height: 100dvh;
+  min-height: 100vh;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
+  background: linear-gradient(135deg, var(--sb-bg) 0%, #2D1B4E 50%, #3D2260 100%);
   padding: 24px;
-  background: linear-gradient(160deg, var(--bg) 0%, var(--bg2) 50%, #1a0f2e 100%);
 }
-.auth-logo { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
-.auth-logo span { color: var(--purple); }
-.auth-sub { color: var(--text2); margin-bottom: 32px; font-size: 14px; }
-.auth-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 32px 24px;
+.auth-container {
   width: 100%;
-  max-width: 380px;
+  max-width: 400px;
+  text-align: center;
 }
-.auth-card h2 { font-size: 18px; margin-bottom: 20px; }
-.form-group { margin-bottom: 16px; }
-.form-group label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+.auth-logo {
+  font-size: 32px;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 6px;
+}
+.auth-logo span { color: var(--purple); opacity: 0.9; }
+.auth-sub { color: var(--sb-text); font-size: 14px; margin-bottom: 40px; letter-spacing: 2px; text-transform: uppercase; }
+.auth-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 40px 32px;
+  box-shadow: var(--shadow-lg);
+}
+.auth-card h2 { font-size: 20px; font-weight: 700; margin-bottom: 24px; color: var(--text); }
+.form-group { margin-bottom: 16px; text-align: left; }
+.form-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
 .form-group input, .form-group select, .form-group textarea {
   width: 100%;
-  background: var(--bg);
-  border: 1px solid var(--border);
+  padding: 12px 16px;
+  border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  color: var(--text);
   font-size: 15px;
   font-family: inherit;
+  color: var(--text);
+  background: var(--bg);
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color var(--transition), box-shadow var(--transition);
 }
 .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
   border-color: var(--purple);
+  box-shadow: 0 0 0 3px var(--purple-light);
 }
 .btn {
   display: inline-flex;
@@ -99,144 +123,248 @@ body {
   font-weight: 600;
   border: none;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition);
   font-family: inherit;
 }
-.btn-primary { background: var(--purple); color: white; width: 100%; }
-.btn-primary:hover { background: var(--purple-dim); }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background: var(--purple); color: white; width: 100%; padding: 14px; font-size: 15px; }
+.btn-primary:hover { background: var(--purple-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(124,58,237,0.3); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 .btn-sm { padding: 8px 14px; font-size: 13px; }
-.btn-ghost { background: transparent; color: var(--purple); border: 1px solid var(--border); }
-.btn-ghost:hover { background: var(--purple-bg); }
-.btn-danger { background: var(--red-bg); color: var(--red); }
-.btn-success { background: var(--green-bg); color: var(--green); }
-.auth-error { color: var(--red); font-size: 13px; margin-top: 12px; display: none; }
-.auth-toggle { margin-top: 16px; text-align: center; font-size: 13px; color: var(--text2); }
-.auth-toggle a { color: var(--purple); cursor: pointer; text-decoration: none; }
+.btn-ghost { background: transparent; color: var(--purple); border: 1.5px solid var(--border); }
+.btn-ghost:hover { background: var(--purple-light); border-color: var(--purple); }
+.btn-danger { background: var(--red-light); color: var(--red); }
+.btn-danger:hover { background: var(--red); color: white; }
+.btn-success { background: var(--green-light); color: var(--green); }
+.auth-error { color: var(--red); font-size: 13px; margin-top: 12px; display: none; text-align: center; }
+.auth-note { margin-top: 20px; font-size: 12px; color: var(--text-muted); text-align: center; }
 
-/* ===== TOP BAR ===== */
-.topbar {
+/* ===== LAYOUT: SIDEBAR + MAIN ===== */
+.shell { display: flex; min-height: 100vh; }
+
+/* SIDEBAR */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--sb-width);
+  background: var(--sb-bg);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  transition: transform 0.3s ease;
+}
+.sb-header {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.sb-logo { font-size: 20px; font-weight: 800; color: white; }
+.sb-logo span { color: #A78BFA; }
+.sb-label { font-size: 10px; color: var(--sb-text); text-transform: uppercase; letter-spacing: 2px; margin-top: 4px; }
+
+.sb-nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
+.sb-section { margin-bottom: 24px; }
+.sb-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--sb-text);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 0 12px;
+  margin-bottom: 8px;
+}
+.sb-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--sb-text);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  margin-bottom: 2px;
+}
+.sb-item:hover { background: var(--sb-hover); color: white; }
+.sb-item.active { background: var(--sb-active); color: var(--sb-text-active); }
+.sb-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+.sb-item .badge-count {
+  margin-left: auto;
+  background: var(--purple);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+
+.sb-footer {
+  padding: 16px 12px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.sb-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.sb-user:hover { background: var(--sb-hover); }
+.sb-avatar {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: var(--sb-active);
+  color: #A78BFA;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700;
+}
+.sb-user-info { flex: 1; min-width: 0; }
+.sb-user-name { font-size: 13px; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-user-role { font-size: 11px; color: var(--sb-text); }
+
+/* MAIN CONTENT */
+.main {
+  margin-left: var(--sb-width);
+  flex: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.main-header {
   position: sticky;
   top: 0;
-  z-index: 100;
-  background: var(--bg2);
-  border-bottom: 1px solid var(--border);
-  padding: 12px 16px;
+  z-index: 50;
+  background: rgba(250,249,251,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-light);
+  padding: 16px 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  backdrop-filter: blur(12px);
 }
-.topbar-left { display: flex; align-items: center; gap: 12px; }
-.topbar-logo { font-size: 16px; font-weight: 800; }
-.topbar-logo span { color: var(--purple); }
-.topbar-user {
-  width: 32px; height: 32px;
-  border-radius: 50%;
-  background: var(--purple-bg);
-  color: var(--purple);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 700;
-  cursor: pointer;
-}
+.main-header-title { font-size: 22px; font-weight: 700; }
+.main-header-actions { display: flex; gap: 10px; align-items: center; }
+.main-body { padding: 32px; flex: 1; }
 
-/* ===== BOTTOM NAV (MOBILE) ===== */
-.bottom-nav {
+/* MOBILE TOGGLE */
+.mobile-toggle {
+  display: none;
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  background: var(--bg2);
-  border-top: 1px solid var(--border);
-  display: flex;
-  padding: 8px 0 calc(8px + var(--safe-bottom));
-  backdrop-filter: blur(12px);
-}
-.nav-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 0;
+  top: 16px;
+  left: 16px;
+  z-index: 200;
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: var(--sb-bg);
+  color: white;
+  border: none;
   cursor: pointer;
-  color: var(--text3);
-  font-size: 10px;
-  font-weight: 500;
-  transition: color 0.2s;
-  -webkit-tap-highlight-color: transparent;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: var(--shadow);
 }
-.nav-item.active { color: var(--purple); }
-.nav-item svg { width: 22px; height: 22px; }
+.mobile-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 90;
+}
 
-/* ===== PAGES ===== */
-.page { display: none; padding: 16px; max-width: 800px; margin: 0 auto; }
-.page.active { display: block; }
+/* ===== KPI CARDS ===== */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+.kpi-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+.kpi-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 12px;
+  font-size: 18px;
+}
+.kpi-icon.green { background: var(--green-light); }
+.kpi-icon.red { background: var(--red-light); }
+.kpi-icon.purple { background: var(--purple-light); }
+.kpi-icon.blue { background: var(--blue-light); }
+.kpi-label { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-bottom: 4px; }
+.kpi-value { font-size: 24px; font-weight: 700; }
+.kpi-value.green { color: var(--green); }
+.kpi-value.red { color: var(--red); }
+.kpi-value.purple { color: var(--purple); }
+.kpi-value.blue { color: var(--blue); }
 
 /* ===== CARDS ===== */
 .card {
-  background: var(--card);
-  border: 1px solid var(--border);
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius);
-  padding: 16px;
-  margin-bottom: 12px;
-  transition: background 0.2s;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition), transform var(--transition);
 }
-.card:active { background: var(--card-hover); }
-.card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-.card-title { font-size: 15px; font-weight: 600; }
-.card-subtitle { font-size: 12px; color: var(--text2); margin-top: 2px; }
-.card-meta { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
-.card-meta-item { font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 4px; }
+.card:hover { box-shadow: var(--shadow); }
+.card-clickable { cursor: pointer; }
+.card-clickable:hover { transform: translateY(-2px); }
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.card-title { font-size: 15px; font-weight: 600; color: var(--text); }
+.card-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+.card-meta { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
+.card-meta-item { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
 
 /* ===== BADGES ===== */
 .badge {
   display: inline-flex;
-  padding: 3px 8px;
+  padding: 4px 10px;
   border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
 }
-.badge-purple { background: var(--purple-bg); color: var(--purple); }
-.badge-green { background: var(--green-bg); color: var(--green); }
-.badge-red { background: var(--red-bg); color: var(--red); }
-.badge-yellow { background: var(--yellow-bg); color: var(--yellow); }
-.badge-blue { background: var(--blue-bg); color: var(--blue); }
+.badge-purple { background: var(--purple-light); color: var(--purple); }
+.badge-green { background: var(--green-light); color: var(--green); }
+.badge-red { background: var(--red-light); color: var(--red); }
+.badge-yellow { background: var(--yellow-light); color: var(--yellow); }
+.badge-blue { background: var(--blue-light); color: var(--blue); }
 
-/* ===== KPI ROW ===== */
-.kpi-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
-.kpi-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px;
-}
-.kpi-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-.kpi-value { font-size: 22px; font-weight: 700; }
-.kpi-value.green { color: var(--green); }
-.kpi-value.red { color: var(--red); }
-.kpi-value.purple { color: var(--purple); }
-
-/* ===== SECTION ===== */
+/* ===== SECTION TITLES ===== */
 .section-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text2);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 12px;
-  padding-left: 2px;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
 }
 
-/* ===== TASK ITEM ===== */
+/* ===== PROGRESS BAR ===== */
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--bg-muted);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.progress-fill { height: 100%; background: var(--purple); border-radius: 3px; transition: width 0.4s ease; }
+
+/* ===== TASK LIST ===== */
 .task-item {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border);
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-light);
 }
+.task-item:last-child { border-bottom: none; }
 .task-check {
   width: 22px; height: 22px;
   border-radius: 6px;
@@ -244,182 +372,141 @@ body {
   cursor: pointer;
   flex-shrink: 0;
   margin-top: 1px;
-  transition: all 0.2s;
+  transition: all var(--transition);
 }
+.task-check:hover { border-color: var(--purple); }
 .task-check.done { background: var(--green); border-color: var(--green); }
 .task-body { flex: 1; min-width: 0; }
-.task-title { font-size: 14px; font-weight: 500; }
-.task-title.done { text-decoration: line-through; color: var(--text3); }
-.task-info { font-size: 12px; color: var(--text2); margin-top: 3px; display: flex; gap: 8px; flex-wrap: wrap; }
-
-/* ===== MODAL ===== */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.7);
-  z-index: 200;
-  display: none;
-  align-items: flex-end;
-  justify-content: center;
-  backdrop-filter: blur(4px);
-}
-.modal-overlay.active { display: flex; }
-.modal {
-  background: var(--bg2);
-  border-radius: var(--radius) var(--radius) 0 0;
-  width: 100%;
-  max-width: 500px;
-  max-height: 85dvh;
-  overflow-y: auto;
-  padding: 24px 20px calc(24px + var(--safe-bottom));
-  animation: slideUp 0.3s ease;
-}
-@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-.modal-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
-.modal-actions { display: flex; gap: 10px; margin-top: 20px; }
-.modal-actions .btn { flex: 1; }
-
-/* ===== FAB ===== */
-.fab {
-  position: fixed;
-  bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px);
-  right: 16px;
-  width: 52px; height: 52px;
-  border-radius: 50%;
-  background: var(--purple);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  box-shadow: 0 4px 20px rgba(139,92,246,0.4);
-  cursor: pointer;
-  z-index: 50;
-  border: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* ===== EMPTY STATE ===== */
-.empty-state {
-  text-align: center;
-  padding: 48px 24px;
-  color: var(--text2);
-}
-.empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.5; }
-.empty-state p { font-size: 14px; margin-bottom: 16px; }
-
-/* ===== PROGRESS BAR ===== */
-.progress-bar {
-  width: 100%;
-  height: 6px;
-  background: var(--bg);
-  border-radius: 3px;
-  overflow: hidden;
-  margin-top: 8px;
-}
-.progress-fill {
-  height: 100%;
-  background: var(--purple);
-  border-radius: 3px;
-  transition: width 0.4s ease;
-}
+.task-title { font-size: 14px; font-weight: 500; color: var(--text); }
+.task-title.done { text-decoration: line-through; color: var(--text-muted); }
+.task-info { font-size: 12px; color: var(--text-muted); margin-top: 4px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 
 /* ===== DRE TABLE ===== */
+.dre-table { width: 100%; }
 .dre-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-light);
   font-size: 14px;
 }
-.dre-row.total { font-weight: 700; border-bottom: 2px solid var(--border); }
-.dre-row .label { color: var(--text2); flex: 1; }
+.dre-row:last-child { border-bottom: none; }
+.dre-row.total { font-weight: 700; border-bottom: 2px solid var(--border); padding: 14px 0; }
+.dre-row .label { color: var(--text-secondary); flex: 1; }
 .dre-row .value { font-weight: 600; text-align: right; }
 .dre-row .value.positive { color: var(--green); }
 .dre-row .value.negative { color: var(--red); }
 
-/* ===== SCROLLABLE TABS ===== */
+/* ===== TABS ===== */
 .tabs {
   display: flex;
   gap: 4px;
   overflow-x: auto;
-  padding-bottom: 12px;
-  margin-bottom: 16px;
-  -webkit-overflow-scrolling: touch;
+  padding-bottom: 16px;
+  margin-bottom: 20px;
   scrollbar-width: none;
 }
 .tabs::-webkit-scrollbar { display: none; }
 .tab {
-  padding: 8px 14px;
+  padding: 8px 16px;
   border-radius: 20px;
   font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
-  background: var(--bg);
-  color: var(--text2);
-  border: 1px solid var(--border);
-  transition: all 0.2s;
-  -webkit-tap-highlight-color: transparent;
+  background: var(--bg-muted);
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+  transition: all var(--transition);
 }
-.tab.active { background: var(--purple-bg); color: var(--purple); border-color: var(--purple); }
+.tab:hover { background: var(--purple-light); color: var(--purple); }
+.tab.active { background: var(--purple-light); color: var(--purple); border-color: var(--purple); font-weight: 600; }
 
-/* ===== DROPDOWN/MENU ===== */
-.dropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 8px;
-  min-width: 160px;
-  box-shadow: var(--shadow);
-  z-index: 150;
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26,15,38,0.5);
+  z-index: 300;
   display: none;
-}
-.dropdown.active { display: block; }
-.dropdown-item {
-  padding: 10px 12px;
-  border-radius: 6px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.dropdown-item:hover { background: var(--bg); }
-
-/* ===== RESPONSIVE ===== */
-@media (min-width: 768px) {
-  .kpi-row { grid-template-columns: repeat(4, 1fr); }
-  .bottom-nav { max-width: 500px; left: 50%; transform: translateX(-50%); border-radius: var(--radius) var(--radius) 0 0; }
-  .page { padding: 24px; }
-  .modal { border-radius: var(--radius); max-height: 80vh; margin-bottom: 10vh; }
-}
-
-/* ===== PULL TO REFRESH INDICATOR ===== */
-.refresh-indicator {
-  text-align: center;
-  padding: 12px;
-  color: var(--purple);
-  font-size: 12px;
-  display: none;
-}
-
-/* ===== LOADING ===== */
-.loading {
-  display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px;
+  backdrop-filter: blur(4px);
+  padding: 24px;
 }
-.spinner {
-  width: 32px; height: 32px;
-  border: 3px solid var(--border);
-  border-top-color: var(--purple);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+.modal-overlay.active { display: flex; }
+.modal {
+  background: white;
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 500px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 32px;
+  box-shadow: var(--shadow-lg);
+  animation: fadeIn 0.2s ease;
 }
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+.modal-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; color: var(--text); }
+.modal-actions { display: flex; gap: 10px; margin-top: 24px; }
+.modal-actions .btn { flex: 1; }
+
+/* ===== CHARTS ===== */
+.chart-container { position: relative; height: 280px; margin-top: 16px; }
+
+/* ===== GRID LAYOUTS ===== */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+/* ===== EMPTY STATE ===== */
+.empty-state { text-align: center; padding: 48px 24px; color: var(--text-muted); }
+.empty-state p { font-size: 14px; margin-bottom: 16px; }
+
+/* ===== EVENT HERO ===== */
+.event-hero {
+  background: linear-gradient(135deg, var(--sb-bg) 0%, #3D2260 100%);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  color: white;
+  margin-bottom: 24px;
+}
+.event-hero-title { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+.event-hero-meta { font-size: 13px; color: var(--sb-text); display: flex; gap: 16px; flex-wrap: wrap; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .mobile-toggle { display: flex; }
+  .mobile-overlay.active { display: block; }
+  .main { margin-left: 0; }
+  .main-header { padding: 16px 20px; padding-left: 64px; }
+  .main-body { padding: 20px; }
+  .main-header-title { font-size: 18px; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .kpi-card { padding: 14px; }
+  .kpi-value { font-size: 20px; }
+  .modal { margin: 0; max-height: 100vh; border-radius: var(--radius) var(--radius) 0 0; align-self: flex-end; }
+}
+
+@media (max-width: 480px) {
+  .main-header { padding: 12px 16px; padding-left: 60px; }
+  .main-body { padding: 16px; }
+  .kpi-grid { gap: 8px; }
+  .kpi-card { padding: 12px; }
+  .kpi-value { font-size: 18px; }
+  .card { padding: 16px; }
+}
+
+/* Loading */
+.loading { display: flex; align-items: center; justify-content: center; padding: 60px; }
+.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--purple); border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
@@ -427,81 +514,93 @@ body {
 
 <!-- ===== AUTH SCREEN ===== -->
 <div id="auth-screen" class="auth-screen">
-  <div class="auth-logo">Science Play <span>OS</span></div>
-  <div class="auth-sub">Command Center</div>
-  <div class="auth-card">
-    <h2 id="auth-title">Entrar</h2>
-    <div class="form-group">
-      <label>Email</label>
-      <input type="email" id="auth-email" placeholder="seu@email.com">
+  <div class="auth-container">
+    <div class="auth-logo">Science Play <span>OS</span></div>
+    <div class="auth-sub">Command Center</div>
+    <div class="auth-card">
+      <h2>Entrar</h2>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="auth-email" placeholder="seu@email.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label>Senha</label>
+        <input type="password" id="auth-pass" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary" id="auth-btn" onclick="handleAuth()">Entrar</button>
+      <div class="auth-error" id="auth-error"></div>
+      <p class="auth-note">Acesso restrito à equipe Science Play.<br>Solicite credenciais ao administrador.</p>
     </div>
-    <div class="form-group">
-      <label>Senha</label>
-      <input type="password" id="auth-pass" placeholder="••••••••">
-    </div>
-    <button class="btn btn-primary" id="auth-btn" onclick="handleAuth()">Entrar</button>
-    <div class="auth-error" id="auth-error"></div>
-    <p style="margin-top:16px;font-size:12px;color:var(--text3);text-align:center">Acesso restrito à equipe Science Play.<br>Solicite suas credenciais ao administrador.</p>
   </div>
 </div>
 
 <!-- ===== APP SHELL ===== -->
-<div id="app" style="display:none">
-  <!-- Top Bar -->
-  <div class="topbar">
-    <div class="topbar-left">
-      <div class="topbar-logo">SP <span>OS</span></div>
+<div id="app" class="shell" style="display:none">
+
+  <!-- Mobile Toggle -->
+  <button class="mobile-toggle" onclick="toggleSidebar()">&#9776;</button>
+  <div class="mobile-overlay" id="mobile-overlay" onclick="closeSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-header">
+      <div class="sb-logo">Science Play <span>OS</span></div>
+      <div class="sb-label">Command Center</div>
     </div>
-    <div class="topbar-user" id="user-avatar" onclick="toggleUserMenu()"></div>
-  </div>
 
-  <!-- Pages -->
-  <div id="page-home" class="page active">
-    <div id="home-content"></div>
-  </div>
+    <nav class="sb-nav">
+      <div class="sb-section">
+        <div class="sb-section-title">Menu</div>
+        <div class="sb-item active" data-page="home" onclick="goPage('home')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Dashboard
+        </div>
+        <div class="sb-item" data-page="events" onclick="goPage('events')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Eventos
+          <span class="badge-count" id="events-count"></span>
+        </div>
+        <div class="sb-item" data-page="tasks" onclick="goPage('tasks')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Tarefas
+          <span class="badge-count" id="tasks-count"></span>
+        </div>
+        <div class="sb-item" data-page="finance" onclick="goPage('finance')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Financeiro
+        </div>
+        <div class="sb-item" data-page="team" onclick="goPage('team')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Equipe
+        </div>
+      </div>
 
-  <div id="page-events" class="page">
-    <div id="events-content"></div>
-  </div>
+      <div class="sb-section" id="sb-events-list">
+        <div class="sb-section-title">Eventos Ativos</div>
+      </div>
+    </nav>
 
-  <div id="page-tasks" class="page">
-    <div id="tasks-content"></div>
-  </div>
-
-  <div id="page-finance" class="page">
-    <div id="finance-content"></div>
-  </div>
-
-  <div id="page-team" class="page">
-    <div id="team-content"></div>
-  </div>
-
-  <!-- Bottom Navigation -->
-  <nav class="bottom-nav">
-    <div class="nav-item active" data-page="home" onclick="goPage('home')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      <span>Home</span>
+    <div class="sb-footer">
+      <div class="sb-user" onclick="toggleUserMenu()">
+        <div class="sb-avatar" id="sb-avatar">BF</div>
+        <div class="sb-user-info">
+          <div class="sb-user-name" id="sb-user-name">Brunno Falcão</div>
+          <div class="sb-user-role" id="sb-user-role">admin</div>
+        </div>
+      </div>
     </div>
-    <div class="nav-item" data-page="events" onclick="goPage('events')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      <span>Eventos</span>
-    </div>
-    <div class="nav-item" data-page="tasks" onclick="goPage('tasks')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-      <span>Tarefas</span>
-    </div>
-    <div class="nav-item" data-page="finance" onclick="goPage('finance')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-      <span>Financeiro</span>
-    </div>
-    <div class="nav-item" data-page="team" onclick="goPage('team')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      <span>Time</span>
-    </div>
-  </nav>
+  </aside>
 
-  <!-- FAB -->
-  <button class="fab" id="fab" onclick="fabAction()">+</button>
+  <!-- Main Content -->
+  <main class="main">
+    <header class="main-header">
+      <h1 class="main-header-title" id="page-title">Dashboard</h1>
+      <div class="main-header-actions" id="page-actions"></div>
+    </header>
+    <div class="main-body" id="main-content">
+      <div class="loading"><div class="spinner"></div></div>
+    </div>
+  </main>
 </div>
 
 <!-- ===== MODAL ===== -->
@@ -514,7 +613,7 @@ body {
 
 <script>
 // ============================================================
-// CONFIG — SUBSTITUIR COM SUAS CREDENCIAIS SUPABASE
+// CONFIG
 // ============================================================
 const SUPABASE_URL = 'https://vapsolcgnrnfmddcikca.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhcHNvbGNnbnJuZm1kZGNpa2NhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NTEwNzcsImV4cCI6MjA5NTMyNzA3N30.Z-4A1SRTknjaSazD6K2MAjSiQmtXevgrRjzugpFHn1c';
@@ -526,6 +625,7 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ============================================================
 let currentUser = null;
 let currentPage = 'home';
+let selectedEventId = null;
 let state = {
   events: [],
   tasks: [],
@@ -538,9 +638,8 @@ let state = {
 };
 
 // ============================================================
-// AUTH (somente login — usuários criados pelo admin no Supabase)
+// AUTH
 // ============================================================
-
 async function handleAuth() {
   const email = document.getElementById('auth-email').value.trim();
   const pass = document.getElementById('auth-pass').value;
@@ -553,12 +652,8 @@ async function handleAuth() {
   hideAuthError();
 
   try {
-    console.log('[AUTH] Tentando login:', email);
     const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
-
     if (error) {
-      console.error('[AUTH] Erro:', error.message);
-      // Traduzir erros comuns
       const msgs = {
         'Invalid login credentials': 'Email ou senha incorretos.',
         'Email not confirmed': 'Email não confirmado. Peça ao admin para confirmar.',
@@ -566,8 +661,6 @@ async function handleAuth() {
       };
       throw new Error(msgs[error.message] || error.message);
     }
-
-    console.log('[AUTH] Login OK:', data.user.id);
     currentUser = data.user;
     await initApp();
   } catch (err) {
@@ -582,45 +675,34 @@ function showAuthError(msg) {
   el.textContent = msg;
   el.style.display = 'block';
 }
-
 function hideAuthError() {
   document.getElementById('auth-error').style.display = 'none';
 }
 
-// Permitir Enter pra submeter
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && document.getElementById('auth-screen').style.display !== 'none') {
-    handleAuth();
-  }
+  if (e.key === 'Enter' && document.getElementById('auth-screen').style.display !== 'none') handleAuth();
 });
 
 // ============================================================
 // APP INIT
 // ============================================================
 async function initApp() {
-  try {
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
 
-    // Set user avatar
-    const profile = await getProfile();
-    const initials = (profile?.name || currentUser.email).substring(0,2).toUpperCase();
-    document.getElementById('user-avatar').textContent = initials;
-    window._isAdmin = profile?.role === 'admin';
+  const profile = await getProfile();
+  const name = profile?.name || currentUser.email;
+  const initials = name.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+  document.getElementById('sb-avatar').textContent = initials;
+  document.getElementById('sb-user-name').textContent = name;
+  document.getElementById('sb-user-role').textContent = profile?.role || 'member';
+  window._isAdmin = profile?.role === 'admin';
 
-    // Load data
-    await loadAllData();
-
-    // Setup realtime
-    setupRealtime();
-
-    // Render
-    renderCurrentPage();
-    console.log('[APP] Inicializado. Admin:', window._isAdmin);
-  } catch (err) {
-    console.error('[APP] Erro ao inicializar:', err);
-    alert('Erro ao carregar dados. Verifique as tabelas no Supabase.');
-  }
+  await loadAllData();
+  setupRealtime();
+  updateSidebarCounts();
+  renderSidebarEvents();
+  renderCurrentPage();
 }
 
 async function getProfile() {
@@ -655,18 +737,59 @@ async function loadAllData() {
 // ============================================================
 function setupRealtime() {
   sb.channel('db-changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, () => refreshData('events'))
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => refreshData('tasks'))
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'sales' }, () => refreshData('sales'))
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'costs' }, () => refreshData('costs'))
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'updates' }, () => refreshData('updates'))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, () => refreshTable('events'))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => refreshTable('tasks'))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'sales' }, () => refreshTable('sales'))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'costs' }, () => refreshTable('costs'))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'updates' }, () => refreshTable('updates'))
     .subscribe();
 }
 
-async function refreshData(table) {
-  const { data } = await sb.from(table).select('*').order(table === 'events' ? 'date' : 'created_at', { ascending: table === 'events' });
+async function refreshTable(table) {
+  const order = table === 'events' ? 'date' : (table === 'sales' ? 'sale_date' : 'created_at');
+  const asc = table === 'events';
+  const { data } = await sb.from(table).select('*').order(order, { ascending: asc });
   state[table] = data || [];
+  updateSidebarCounts();
+  renderSidebarEvents();
   renderCurrentPage();
+}
+
+// ============================================================
+// SIDEBAR
+// ============================================================
+function updateSidebarCounts() {
+  const pendingTasks = state.tasks.filter(t => !t.done).length;
+  const evCount = document.getElementById('events-count');
+  const tkCount = document.getElementById('tasks-count');
+  evCount.textContent = state.events.length || '';
+  evCount.style.display = state.events.length ? 'inline' : 'none';
+  tkCount.textContent = pendingTasks || '';
+  tkCount.style.display = pendingTasks ? 'inline' : 'none';
+}
+
+function renderSidebarEvents() {
+  const container = document.getElementById('sb-events-list');
+  const now = new Date();
+  const upcoming = state.events.filter(e => new Date(e.date) >= now).slice(0, 6);
+  container.innerHTML = `
+    <div class="sb-section-title">Eventos Ativos</div>
+    ${upcoming.map(e => `
+      <div class="sb-item ${selectedEventId === e.id ? 'active' : ''}" onclick="openEventDetail('${e.id}')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>
+        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.name}</span>
+      </div>
+    `).join('')}
+  `;
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('mobile-overlay').classList.toggle('active');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('mobile-overlay').classList.remove('active');
 }
 
 // ============================================================
@@ -674,134 +797,304 @@ async function refreshData(table) {
 // ============================================================
 function goPage(page) {
   currentPage = page;
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(`page-${page}`).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === page));
+  selectedEventId = null;
+  document.querySelectorAll('.sb-item[data-page]').forEach(n => n.classList.toggle('active', n.dataset.page === page));
+  closeSidebar();
   renderCurrentPage();
 }
 
 function renderCurrentPage() {
+  const titles = { home: 'Dashboard', events: 'Eventos', tasks: 'Tarefas', finance: 'Financeiro', team: 'Equipe', eventDetail: '' };
+  document.getElementById('page-title').textContent = titles[currentPage] || '';
+  document.getElementById('page-actions').innerHTML = getPageActions();
+
+  const el = document.getElementById('main-content');
   switch(currentPage) {
-    case 'home': renderHome(); break;
-    case 'events': renderEvents(); break;
-    case 'tasks': renderTasks(); break;
-    case 'finance': renderFinance(); break;
-    case 'team': renderTeam(); break;
+    case 'home': renderHome(el); break;
+    case 'events': renderEvents(el); break;
+    case 'tasks': renderTasks(el); break;
+    case 'finance': renderFinance(el); break;
+    case 'team': renderTeam(el); break;
+    case 'eventDetail': renderEventDetail(el); break;
+  }
+}
+
+function getPageActions() {
+  switch(currentPage) {
+    case 'events': return '<button class="btn btn-primary btn-sm" onclick="openEventModal()">+ Novo Evento</button>';
+    case 'tasks': return '<button class="btn btn-primary btn-sm" onclick="openTaskModal()">+ Nova Tarefa</button>';
+    case 'team': return window._isAdmin ? '<button class="btn btn-primary btn-sm" onclick="openInviteModal()">+ Membro</button>' : '';
+    case 'eventDetail': return `
+      <button class="btn btn-ghost btn-sm" onclick="openSaleModal('${selectedEventId}')">+ Venda</button>
+      <button class="btn btn-ghost btn-sm" onclick="openCostModal('${selectedEventId}')">+ Custo</button>
+      <button class="btn btn-ghost btn-sm" onclick="openTaskModal('${selectedEventId}')">+ Tarefa</button>
+    `;
+    default: return '';
   }
 }
 
 // ============================================================
-// RENDER: HOME (COMMAND CENTER)
+// RENDER: DASHBOARD
 // ============================================================
-function renderHome() {
-  const el = document.getElementById('home-content');
+function renderHome(el) {
   const now = new Date();
-  const upcoming = state.events.filter(e => new Date(e.date) >= now).slice(0, 3);
   const pendingTasks = state.tasks.filter(t => !t.done);
   const overdue = pendingTasks.filter(t => t.due_date && new Date(t.due_date) < now);
+  const upcoming = state.events.filter(e => new Date(e.date) >= now).slice(0, 4);
 
-  const totalRevenue = state.sales.reduce((s, v) => s + (v.payment_status === 'aprovado' ? Number(v.amount) : 0), 0);
+  const totalRevenue = state.sales.filter(s => s.payment_status === 'aprovado').reduce((s, v) => s + Number(v.amount), 0);
   const totalCosts = state.costs.reduce((s, v) => s + Number(v.amount), 0);
+  const totalExtra = state.revenues.reduce((s, v) => s + Number(v.amount), 0);
+  const resultado = totalRevenue + totalExtra - totalCosts;
 
   el.innerHTML = `
-    <div class="kpi-row">
+    <div class="kpi-grid">
       <div class="kpi-card">
+        <div class="kpi-icon green">&#128176;</div>
         <div class="kpi-label">Receita Total</div>
-        <div class="kpi-value green">${formatCurrency(totalRevenue)}</div>
+        <div class="kpi-value green">${fmtCurrency(totalRevenue + totalExtra)}</div>
       </div>
       <div class="kpi-card">
+        <div class="kpi-icon red">&#128200;</div>
         <div class="kpi-label">Custos Total</div>
-        <div class="kpi-value red">${formatCurrency(totalCosts)}</div>
+        <div class="kpi-value red">${fmtCurrency(totalCosts)}</div>
       </div>
       <div class="kpi-card">
+        <div class="kpi-icon purple">&#127919;</div>
         <div class="kpi-label">Resultado</div>
-        <div class="kpi-value ${totalRevenue - totalCosts >= 0 ? 'green' : 'red'}">${formatCurrency(totalRevenue - totalCosts)}</div>
+        <div class="kpi-value ${resultado >= 0 ? 'green' : 'red'}">${fmtCurrency(resultado)}</div>
       </div>
       <div class="kpi-card">
+        <div class="kpi-icon blue">&#9745;</div>
         <div class="kpi-label">Tarefas Pendentes</div>
-        <div class="kpi-value purple">${pendingTasks.length}</div>
+        <div class="kpi-value blue">${pendingTasks.length}</div>
       </div>
     </div>
 
-    ${overdue.length > 0 ? `
-      <div class="section-title" style="color:var(--red)">&#9888; ${overdue.length} Tarefa${overdue.length > 1 ? 's' : ''} Atrasada${overdue.length > 1 ? 's' : ''}</div>
-      ${overdue.slice(0, 5).map(t => renderTaskItem(t)).join('')}
-    ` : ''}
-
-    <div class="section-title" style="margin-top:20px">Próximos Eventos</div>
-    ${upcoming.length > 0 ? upcoming.map(e => `
-      <div class="card" onclick="openEvent('${e.id}')">
-        <div class="card-header">
-          <div>
-            <div class="card-title">${e.name}</div>
-            <div class="card-subtitle">${e.city || ''} ${e.venue ? '• ' + e.venue : ''}</div>
-          </div>
-          <span class="badge badge-purple">${daysUntil(e.date)}</span>
-        </div>
-        <div class="card-meta">
-          <span class="card-meta-item">&#128197; ${formatDate(e.date)}</span>
-          <span class="card-meta-item">&#127915; ${e.type}</span>
-          ${e.revenue_goal ? `<span class="card-meta-item">&#127919; Meta: ${formatCurrency(e.revenue_goal)}</span>` : ''}
-        </div>
-        ${renderEventProgress(e)}
+    <div class="grid-2">
+      <div class="card">
+        <div class="section-title">Receita por Evento</div>
+        <div class="chart-container"><canvas id="chart-revenue"></canvas></div>
       </div>
-    `).join('') : '<div class="empty-state"><p>Nenhum evento cadastrado ainda</p><button class="btn btn-ghost btn-sm" onclick="openEventModal()">+ Criar Evento</button></div>'}
+      <div class="card">
+        <div class="section-title">${overdue.length > 0 ? `&#9888; ${overdue.length} Tarefa${overdue.length > 1 ? 's' : ''} Atrasada${overdue.length > 1 ? 's' : ''}` : 'Tarefas da Semana'}</div>
+        ${(overdue.length > 0 ? overdue : pendingTasks.filter(t => isThisWeek(t.due_date))).slice(0, 6).map(t => renderTaskItem(t)).join('') || '<p style="color:var(--text-muted);font-size:13px;padding:16px 0">Nenhuma tarefa pendente</p>'}
+      </div>
+    </div>
 
-    <div class="section-title" style="margin-top:20px">Tarefas da Semana</div>
-    ${pendingTasks.filter(t => isThisWeek(t.due_date)).slice(0, 8).map(t => renderTaskItem(t)).join('') || '<p style="color:var(--text3);font-size:13px">Nenhuma tarefa esta semana</p>'}
+    <div class="section-title" style="margin-top:28px">Próximos Eventos</div>
+    <div class="kpi-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))">
+      ${upcoming.map(e => {
+        const rev = state.sales.filter(s => s.event_id === e.id && s.payment_status === 'aprovado').reduce((s,v) => s + Number(v.amount), 0);
+        const pct = e.revenue_goal > 0 ? Math.min(100, (rev / e.revenue_goal) * 100) : 0;
+        return `
+        <div class="card card-clickable" onclick="openEventDetail('${e.id}')">
+          <div class="card-header">
+            <div>
+              <div class="card-title">${e.name}</div>
+              <div class="card-subtitle">${fmtDate(e.date)} &bull; ${e.city || '—'}</div>
+            </div>
+            <span class="badge badge-purple">${daysUntil(e.date)}</span>
+          </div>
+          ${e.revenue_goal ? `
+            <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px">${fmtCurrency(rev)} / ${fmtCurrency(e.revenue_goal)} (${Math.round(pct)}%)</div>
+          ` : ''}
+        </div>`;
+      }).join('') || '<div class="empty-state"><p>Nenhum evento futuro</p></div>'}
+    </div>
   `;
+
+  // Chart
+  setTimeout(() => renderRevenueChart(), 50);
 }
 
-function renderEventProgress(event) {
-  const eventSales = state.sales.filter(s => s.event_id === event.id && s.payment_status === 'aprovado');
-  const revenue = eventSales.reduce((s, v) => s + Number(v.amount), 0);
-  const pct = event.revenue_goal > 0 ? Math.min(100, (revenue / event.revenue_goal) * 100) : 0;
-  if (!event.revenue_goal) return '';
-  return `<div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-          <div style="font-size:11px;color:var(--text3);margin-top:4px">${formatCurrency(revenue)} / ${formatCurrency(event.revenue_goal)} (${Math.round(pct)}%)</div>`;
+function renderRevenueChart() {
+  const canvas = document.getElementById('chart-revenue');
+  if (!canvas) return;
+  const events = state.events.slice(-6);
+  const labels = events.map(e => e.name.length > 15 ? e.name.substring(0,15) + '…' : e.name);
+  const revenues = events.map(e => state.sales.filter(s => s.event_id === e.id && s.payment_status === 'aprovado').reduce((s,v) => s + Number(v.amount), 0));
+  const costs = events.map(e => state.costs.filter(c => c.event_id === e.id).reduce((s,v) => s + Number(v.amount), 0));
+
+  new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Receita', data: revenues, backgroundColor: '#D1FAE5', borderColor: '#059669', borderWidth: 1.5 },
+        { label: 'Custos', data: costs, backgroundColor: '#FEE2E2', borderColor: '#DC2626', borderWidth: 1.5 }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 11, family: 'Inter' } } } },
+      scales: {
+        y: { beginAtZero: true, ticks: { callback: v => 'R$' + (v/1000).toFixed(0) + 'k', font: { size: 11 } }, grid: { color: '#F0EDF5' } },
+        x: { ticks: { font: { size: 10 } }, grid: { display: false } }
+      }
+    }
+  });
 }
 
 // ============================================================
 // RENDER: EVENTS
 // ============================================================
-function renderEvents() {
-  const el = document.getElementById('events-content');
+function renderEvents(el) {
   const now = new Date();
   const upcoming = state.events.filter(e => new Date(e.date) >= now);
   const past = state.events.filter(e => new Date(e.date) < now);
 
   el.innerHTML = `
     <div class="section-title">Eventos Ativos (${upcoming.length})</div>
-    ${upcoming.map(e => renderEventCard(e)).join('') || '<div class="empty-state"><p>Nenhum evento futuro</p></div>'}
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:32px">
+      ${upcoming.map(e => renderEventCard(e)).join('') || '<div class="empty-state"><p>Nenhum evento futuro. Crie o primeiro!</p></div>'}
+    </div>
     ${past.length > 0 ? `
-      <div class="section-title" style="margin-top:24px">Realizados (${past.length})</div>
-      ${past.map(e => renderEventCard(e, true)).join('')}
+      <div class="section-title">Realizados (${past.length})</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px">
+        ${past.map(e => renderEventCard(e, true)).join('')}
+      </div>
     ` : ''}
   `;
 }
 
 function renderEventCard(e, past = false) {
-  const eventSales = state.sales.filter(s => s.event_id === e.id && s.payment_status === 'aprovado');
-  const revenue = eventSales.reduce((s, v) => s + Number(v.amount), 0);
-  const eventCosts = state.costs.filter(c => c.event_id === e.id);
-  const costs = eventCosts.reduce((s, v) => s + Number(v.amount), 0);
-  const result = revenue - costs;
+  const rev = state.sales.filter(s => s.event_id === e.id && s.payment_status === 'aprovado').reduce((s,v) => s + Number(v.amount), 0);
+  const cost = state.costs.filter(c => c.event_id === e.id).reduce((s,v) => s + Number(v.amount), 0);
+  const result = rev - cost;
+  const tasks = state.tasks.filter(t => t.event_id === e.id);
+  const done = tasks.filter(t => t.done).length;
 
   return `
-    <div class="card" onclick="openEvent('${e.id}')">
+    <div class="card card-clickable" onclick="openEventDetail('${e.id}')">
       <div class="card-header">
         <div>
           <div class="card-title">${e.name}</div>
-          <div class="card-subtitle">${formatDate(e.date)} • ${e.city || ''}</div>
+          <div class="card-subtitle">${fmtDate(e.date)} &bull; ${e.city || '—'} &bull; ${e.type}</div>
         </div>
         <span class="badge ${past ? (result >= 0 ? 'badge-green' : 'badge-red') : 'badge-purple'}">
-          ${past ? formatCurrency(result) : daysUntil(e.date)}
+          ${past ? fmtCurrency(result) : daysUntil(e.date)}
         </span>
       </div>
       <div class="card-meta">
-        <span class="card-meta-item">&#128176; ${formatCurrency(revenue)}</span>
-        <span class="card-meta-item">&#128200; ${eventSales.length} vendas</span>
-        ${past ? `<span class="card-meta-item">Margem: ${revenue > 0 ? Math.round((result/revenue)*100) : 0}%</span>` : ''}
+        <span class="card-meta-item">&#128176; ${fmtCurrency(rev)}</span>
+        <span class="card-meta-item">&#9745; ${done}/${tasks.length}</span>
+        ${past ? `<span class="card-meta-item">Margem: ${rev > 0 ? Math.round((result/rev)*100) : 0}%</span>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+// ============================================================
+// RENDER: EVENT DETAIL
+// ============================================================
+function openEventDetail(eventId) {
+  selectedEventId = eventId;
+  currentPage = 'eventDetail';
+  document.querySelectorAll('.sb-item').forEach(n => n.classList.remove('active'));
+  closeSidebar();
+  renderSidebarEvents();
+  renderCurrentPage();
+}
+
+function renderEventDetail(el) {
+  const event = state.events.find(e => e.id === selectedEventId);
+  if (!event) { goPage('events'); return; }
+
+  document.getElementById('page-title').textContent = event.name;
+
+  const eventSales = state.sales.filter(s => s.event_id === event.id && s.payment_status === 'aprovado');
+  const eventCosts = state.costs.filter(c => c.event_id === event.id);
+  const eventRevenues = state.revenues.filter(r => r.event_id === event.id);
+  const eventTasks = state.tasks.filter(t => t.event_id === event.id);
+
+  const receitaVendas = eventSales.reduce((s,v) => s + Number(v.amount), 0);
+  const receitaExtra = eventRevenues.reduce((s,v) => s + Number(v.amount), 0);
+  const receitaBruta = receitaVendas + receitaExtra;
+  const custoTotal = eventCosts.reduce((s,v) => s + Number(v.amount), 0);
+  const resultado = receitaBruta - custoTotal;
+  const margem = receitaBruta > 0 ? ((resultado / receitaBruta) * 100).toFixed(1) : 0;
+
+  const doneTasks = eventTasks.filter(t => t.done).length;
+  const pctTasks = eventTasks.length > 0 ? Math.round((doneTasks / eventTasks.length) * 100) : 0;
+
+  // Costs by category
+  const costsByCategory = {};
+  eventCosts.forEach(c => {
+    const cat = state.categories.find(cat => cat.id === c.category_id)?.name || 'Outros';
+    if (!costsByCategory[cat]) costsByCategory[cat] = 0;
+    costsByCategory[cat] += Number(c.amount);
+  });
+
+  el.innerHTML = `
+    <div class="event-hero">
+      <div class="event-hero-title">${event.name}</div>
+      <div class="event-hero-meta">
+        <span>&#128197; ${fmtDate(event.date)}</span>
+        <span>&#128205; ${event.city || '—'}</span>
+        <span>&#127915; ${event.type}</span>
+        <span>&#127919; Meta: ${fmtCurrency(event.revenue_goal || 0)}</span>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Receita Bruta</div>
+        <div class="kpi-value green">${fmtCurrency(receitaBruta)}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Custos</div>
+        <div class="kpi-value red">${fmtCurrency(custoTotal)}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Resultado</div>
+        <div class="kpi-value ${resultado >= 0 ? 'green' : 'red'}">${fmtCurrency(resultado)}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Margem</div>
+        <div class="kpi-value ${resultado >= 0 ? 'green' : 'red'}">${margem}%</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- DRE -->
+      <div class="card">
+        <div class="section-title">DRE do Evento</div>
+        <div class="dre-row">
+          <span class="label">Vendas de Ingressos (${eventSales.length})</span>
+          <span class="value positive">${fmtCurrency(receitaVendas)}</span>
+        </div>
+        ${eventRevenues.map(r => `
+          <div class="dre-row">
+            <span class="label">${r.description}</span>
+            <span class="value positive">${fmtCurrency(r.amount)}</span>
+          </div>
+        `).join('')}
+        <div class="dre-row total">
+          <span class="label">RECEITA BRUTA</span>
+          <span class="value positive">${fmtCurrency(receitaBruta)}</span>
+        </div>
+        <div style="margin-top:16px"></div>
+        ${Object.entries(costsByCategory).map(([cat, val]) => `
+          <div class="dre-row">
+            <span class="label">${cat}</span>
+            <span class="value negative">-${fmtCurrency(val)}</span>
+          </div>
+        `).join('') || '<p style="color:var(--text-muted);font-size:13px">Nenhum custo registrado</p>'}
+        <div class="dre-row total">
+          <span class="label">RESULTADO</span>
+          <span class="value ${resultado >= 0 ? 'positive' : 'negative'}">${fmtCurrency(resultado)}</span>
+        </div>
+      </div>
+
+      <!-- Checklist -->
+      <div class="card">
+        <div class="section-title">Checklist (${pctTasks}%)</div>
+        <div class="progress-bar" style="margin-bottom:16px"><div class="progress-fill" style="width:${pctTasks}%"></div></div>
+        ${eventTasks.filter(t => !t.done).slice(0, 8).map(t => renderTaskItem(t)).join('') || '<p style="color:var(--text-muted);font-size:13px">Todas as tarefas concluídas!</p>'}
+        ${eventTasks.length > 8 ? `<p style="font-size:12px;color:var(--purple);cursor:pointer;margin-top:12px" onclick="goPage('tasks')">Ver todas &rarr;</p>` : ''}
       </div>
     </div>
   `;
@@ -810,8 +1103,7 @@ function renderEventCard(e, past = false) {
 // ============================================================
 // RENDER: TASKS
 // ============================================================
-function renderTasks() {
-  const el = document.getElementById('tasks-content');
+function renderTasks(el) {
   const pending = state.tasks.filter(t => !t.done);
   const done = state.tasks.filter(t => t.done);
 
@@ -823,19 +1115,18 @@ function renderTasks() {
   });
 
   el.innerHTML = `
-    <div class="tabs" id="task-filter">
-      <div class="tab active" onclick="filterTasks('all')">Todas (${pending.length})</div>
-      <div class="tab" onclick="filterTasks('overdue')">Atrasadas</div>
-      <div class="tab" onclick="filterTasks('today')">Hoje</div>
-      <div class="tab" onclick="filterTasks('week')">Semana</div>
-    </div>
-    <div id="tasks-list">
+    <div class="card">
       ${Object.entries(byEvent).map(([evName, tasks]) => `
-        <div class="section-title">${evName}</div>
+        <div class="section-title" style="margin-top:16px">${evName} (${tasks.length})</div>
         ${tasks.map(t => renderTaskItem(t)).join('')}
       `).join('') || '<div class="empty-state"><p>Nenhuma tarefa pendente</p></div>'}
     </div>
-    ${done.length > 0 ? `<div class="section-title" style="margin-top:24px;opacity:0.5">Concluídas (${done.length})</div>` : ''}
+    ${done.length > 0 ? `
+      <div class="card" style="margin-top:16px;opacity:0.7">
+        <div class="section-title">Concluídas (${done.length})</div>
+        ${done.slice(0, 5).map(t => renderTaskItem(t)).join('')}
+      </div>
+    ` : ''}
   `;
 }
 
@@ -848,9 +1139,11 @@ function renderTaskItem(t) {
       <div class="task-body">
         <div class="task-title ${t.done ? 'done' : ''}">${t.title}</div>
         <div class="task-info">
-          ${t.due_date ? `<span style="${isOverdue ? 'color:var(--red)' : ''}">${formatDate(t.due_date)}</span>` : ''}
+          ${t.due_date ? `<span style="${isOverdue ? 'color:var(--red);font-weight:600' : ''}">${fmtDate(t.due_date)}</span>` : ''}
           ${t.department ? `<span class="badge badge-blue">${t.department}</span>` : ''}
           ${assignee ? `<span>${assignee}</span>` : ''}
+          ${t.priority === 'urgente' ? '<span class="badge badge-red">URGENTE</span>' : ''}
+          ${t.priority === 'alta' ? '<span class="badge badge-yellow">Alta</span>' : ''}
         </div>
       </div>
     </div>
@@ -860,16 +1153,15 @@ function renderTaskItem(t) {
 async function toggleTask(id, done) {
   await sb.from('tasks').update({ done, completed_at: done ? new Date().toISOString() : null }).eq('id', id);
   const task = state.tasks.find(t => t.id === id);
-  if (task) task.done = done;
+  if (task) { task.done = done; task.completed_at = done ? new Date().toISOString() : null; }
+  updateSidebarCounts();
   renderCurrentPage();
 }
 
 // ============================================================
 // RENDER: FINANCE
 // ============================================================
-function renderFinance() {
-  const el = document.getElementById('finance-content');
-
+function renderFinance(el) {
   el.innerHTML = `
     <div class="tabs">
       ${state.events.map((e, i) => `<div class="tab ${i === 0 ? 'active' : ''}" onclick="showEventDRE('${e.id}', this)">${e.name}</div>`).join('')}
@@ -879,7 +1171,7 @@ function renderFinance() {
 }
 
 function showEventDRE(eventId, tabEl) {
-  document.querySelectorAll('#page-finance .tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#main-content .tab').forEach(t => t.classList.remove('active'));
   if (tabEl) tabEl.classList.add('active');
   document.getElementById('dre-content').innerHTML = renderDRE(eventId);
 }
@@ -889,77 +1181,46 @@ function renderDRE(eventId) {
   const eventRevenues = state.revenues.filter(r => r.event_id === eventId);
   const eventCosts = state.costs.filter(c => c.event_id === eventId);
 
-  const receitaVendas = eventSales.reduce((s, v) => s + Number(v.amount), 0);
-  const receitaExtra = eventRevenues.reduce((s, v) => s + Number(v.amount), 0);
+  const receitaVendas = eventSales.reduce((s,v) => s + Number(v.amount), 0);
+  const receitaExtra = eventRevenues.reduce((s,v) => s + Number(v.amount), 0);
   const receitaBruta = receitaVendas + receitaExtra;
 
-  // Group costs by category
   const costsByCategory = {};
   eventCosts.forEach(c => {
     const cat = state.categories.find(cat => cat.id === c.category_id)?.name || 'Outros';
     if (!costsByCategory[cat]) costsByCategory[cat] = 0;
     costsByCategory[cat] += Number(c.amount);
   });
-  const custoTotal = eventCosts.reduce((s, v) => s + Number(v.amount), 0);
+  const custoTotal = eventCosts.reduce((s,v) => s + Number(v.amount), 0);
   const resultado = receitaBruta - custoTotal;
   const margem = receitaBruta > 0 ? ((resultado / receitaBruta) * 100).toFixed(1) : 0;
 
   return `
-    <div class="kpi-row" style="margin-bottom:20px">
-      <div class="kpi-card">
-        <div class="kpi-label">Receita</div>
-        <div class="kpi-value green">${formatCurrency(receitaBruta)}</div>
+    <div class="kpi-grid" style="margin-bottom:24px">
+      <div class="kpi-card"><div class="kpi-label">Receita</div><div class="kpi-value green">${fmtCurrency(receitaBruta)}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Custos</div><div class="kpi-value red">${fmtCurrency(custoTotal)}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Resultado</div><div class="kpi-value ${resultado >= 0 ? 'green' : 'red'}">${fmtCurrency(resultado)}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Margem</div><div class="kpi-value ${resultado >= 0 ? 'green' : 'red'}">${margem}%</div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="section-title">Receitas</div>
+        <div class="dre-row"><span class="label">Vendas de Ingressos (${eventSales.length})</span><span class="value positive">${fmtCurrency(receitaVendas)}</span></div>
+        ${eventRevenues.map(r => `<div class="dre-row"><span class="label">${r.description}</span><span class="value positive">${fmtCurrency(r.amount)}</span></div>`).join('')}
+        <div class="dre-row total"><span class="label">RECEITA BRUTA</span><span class="value positive">${fmtCurrency(receitaBruta)}</span></div>
       </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Custos</div>
-        <div class="kpi-value red">${formatCurrency(custoTotal)}</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Resultado</div>
-        <div class="kpi-value ${resultado >= 0 ? 'green' : 'red'}">${formatCurrency(resultado)}</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Margem</div>
-        <div class="kpi-value ${resultado >= 0 ? 'green' : 'red'}">${margem}%</div>
+      <div class="card">
+        <div class="section-title">Custos por Categoria</div>
+        ${Object.entries(costsByCategory).map(([cat, val]) => `<div class="dre-row"><span class="label">${cat}</span><span class="value negative">-${fmtCurrency(val)}</span></div>`).join('') || '<p style="color:var(--text-muted);font-size:13px">Nenhum custo</p>'}
+        <div class="dre-row total"><span class="label">CUSTO TOTAL</span><span class="value negative">-${fmtCurrency(custoTotal)}</span></div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="section-title">Receitas</div>
-      <div class="dre-row">
-        <span class="label">Vendas de Ingressos (${eventSales.length})</span>
-        <span class="value positive">${formatCurrency(receitaVendas)}</span>
-      </div>
-      ${eventRevenues.map(r => `
-        <div class="dre-row">
-          <span class="label">${r.description}</span>
-          <span class="value positive">${formatCurrency(r.amount)}</span>
-        </div>
-      `).join('')}
-      <div class="dre-row total">
-        <span class="label">RECEITA BRUTA</span>
-        <span class="value positive">${formatCurrency(receitaBruta)}</span>
-      </div>
-    </div>
-
-    <div class="card" style="margin-top:12px">
-      <div class="section-title">Custos</div>
-      ${Object.entries(costsByCategory).map(([cat, val]) => `
-        <div class="dre-row">
-          <span class="label">${cat}</span>
-          <span class="value negative">-${formatCurrency(val)}</span>
-        </div>
-      `).join('') || '<p style="color:var(--text3);font-size:13px">Nenhum custo registrado</p>'}
-      <div class="dre-row total">
-        <span class="label">CUSTO TOTAL</span>
-        <span class="value negative">-${formatCurrency(custoTotal)}</span>
-      </div>
-    </div>
-
-    <div class="card" style="margin-top:12px">
-      <div class="dre-row total">
-        <span class="label">RESULTADO DO EVENTO</span>
-        <span class="value ${resultado >= 0 ? 'positive' : 'negative'}">${formatCurrency(resultado)}</span>
+    <div class="card" style="margin-top:16px">
+      <div class="dre-row total" style="border:none">
+        <span class="label" style="font-size:16px">RESULTADO DO EVENTO</span>
+        <span class="value ${resultado >= 0 ? 'positive' : 'negative'}" style="font-size:20px">${fmtCurrency(resultado)}</span>
       </div>
     </div>
   `;
@@ -968,81 +1229,40 @@ function renderDRE(eventId) {
 // ============================================================
 // RENDER: TEAM
 // ============================================================
-function renderTeam() {
-  const el = document.getElementById('team-content');
+function renderTeam(el) {
   el.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <div class="section-title" style="margin-bottom:0">Equipe (${state.profiles.length})</div>
-      ${window._isAdmin ? '<button class="btn btn-ghost btn-sm" onclick="openInviteModal()">+ Membro</button>' : ''}
-    </div>
-    ${state.profiles.map(p => {
-      const tasks = state.tasks.filter(t => t.assigned_to === p.id);
-      const pending = tasks.filter(t => !t.done).length;
-      const done = tasks.filter(t => t.done).length;
-      return `
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">${p.name}</div>
-              <div class="card-subtitle">${p.department || 'Sem departamento'} • <span class="badge ${p.role === 'admin' ? 'badge-purple' : 'badge-blue'}">${p.role}</span></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">
+      ${state.profiles.map(p => {
+        const tasks = state.tasks.filter(t => t.assigned_to === p.id);
+        const pending = tasks.filter(t => !t.done).length;
+        const done = tasks.filter(t => t.done).length;
+        return `
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">${p.name}</div>
+                <div class="card-subtitle">${p.department || '—'} &bull; <span class="badge ${p.role === 'admin' ? 'badge-purple' : 'badge-blue'}">${p.role}</span></div>
+              </div>
+            </div>
+            <div class="card-meta">
+              <span class="card-meta-item">&#9989; ${done} feitas</span>
+              <span class="card-meta-item" style="${pending > 0 ? 'color:var(--yellow)' : ''}">&#9203; ${pending} pendentes</span>
             </div>
           </div>
-          <div class="card-meta">
-            <span class="card-meta-item">&#9989; ${done} feitas</span>
-            <span class="card-meta-item" style="${pending > 0 ? 'color:var(--yellow)' : ''}">&#9203; ${pending} pendentes</span>
-          </div>
-        </div>
-      `;
-    }).join('') || '<div class="empty-state"><p>Nenhum membro na equipe</p><button class="btn btn-ghost btn-sm" onclick="openInviteModal()">+ Adicionar Membro</button></div>'}
-  `;
-}
-
-// ============================================================
-// EVENT DETAIL
-// ============================================================
-function openEvent(eventId) {
-  const event = state.events.find(e => e.id === eventId);
-  if (!event) return;
-
-  const eventTasks = state.tasks.filter(t => t.event_id === eventId);
-  const done = eventTasks.filter(t => t.done).length;
-  const total = eventTasks.length;
-  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-
-  const modal = document.getElementById('modal-content');
-  modal.innerHTML = `
-    <div class="modal-title">${event.name}</div>
-    <div class="card-meta" style="margin-bottom:16px">
-      <span class="card-meta-item">&#128197; ${formatDate(event.date)}</span>
-      <span class="card-meta-item">&#128205; ${event.city || '—'}</span>
-      <span class="badge badge-purple">${event.type}</span>
-    </div>
-
-    <div class="section-title">Progresso Checklist (${pct}%)</div>
-    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-    <p style="font-size:12px;color:var(--text3);margin:6px 0 16px">${done}/${total} tarefas concluídas</p>
-
-    <div class="section-title">Ações</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <button class="btn btn-ghost btn-sm" onclick="closeModalAndGo('tasks')">Ver Tarefas</button>
-      <button class="btn btn-ghost btn-sm" onclick="closeModalAndGo('finance')">Ver DRE</button>
-      <button class="btn btn-ghost btn-sm" onclick="openEventModal('${eventId}')">Editar Evento</button>
-      <button class="btn btn-ghost btn-sm" onclick="openSaleModal('${eventId}')">+ Venda</button>
-      <button class="btn btn-ghost btn-sm" onclick="openCostModal('${eventId}')">+ Custo</button>
-      <button class="btn btn-ghost btn-sm" onclick="openTaskModal('${eventId}')">+ Tarefa</button>
+        `;
+      }).join('') || '<div class="empty-state"><p>Nenhum membro na equipe</p></div>'}
     </div>
   `;
-  openModal();
-}
-
-function closeModalAndGo(page) {
-  closeModal();
-  goPage(page);
 }
 
 // ============================================================
-// MODALS: CREATE/EDIT
+// MODALS
 // ============================================================
+function openModal() { document.getElementById('modal-overlay').classList.add('active'); }
+function closeModal(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById('modal-overlay').classList.remove('active');
+}
 
 // --- EVENT MODAL ---
 function openEventModal(editId) {
@@ -1088,17 +1308,12 @@ async function saveEvent(editId) {
     revenue_goal: Number(document.getElementById('m-ev-goal').value) || 0,
     owner_id: document.getElementById('m-ev-owner').value || null
   };
-
   if (!data.name || !data.date) { alert('Nome e data são obrigatórios'); return; }
-
-  if (editId) {
-    await sb.from('events').update(data).eq('id', editId);
-  } else {
-    await sb.from('events').insert(data);
-  }
-
+  if (editId) { await sb.from('events').update(data).eq('id', editId); }
+  else { await sb.from('events').insert(data); }
   await loadAllData();
   closeModal();
+  renderSidebarEvents();
   renderCurrentPage();
 }
 
@@ -1109,15 +1324,12 @@ function openSaleModal(eventId) {
   modal.innerHTML = `
     <div class="modal-title">Registrar Venda</div>
     <div class="form-group"><label>Produto/Ingresso</label>
-      <select id="m-sale-product">
-        <option value="">Avulso</option>
-        ${products.map(p => `<option value="${p.id}">${p.name} - R$${p.price}</option>`).join('')}
-      </select>
+      <select id="m-sale-product"><option value="">Avulso</option>${products.map(p => `<option value="${p.id}">${p.name} - R$${p.price}</option>`).join('')}</select>
     </div>
     <div class="form-group"><label>Nome do Comprador</label><input id="m-sale-buyer"></div>
     <div class="form-group"><label>Valor (R$)</label><input type="number" id="m-sale-amount" step="0.01"></div>
     <div class="form-group"><label>Taxa Plataforma (R$)</label><input type="number" id="m-sale-fee" step="0.01" value="0"></div>
-    <div class="form-group"><label>Data da Venda</label><input type="date" id="m-sale-date" value="${new Date().toISOString().split('T')[0]}"></div>
+    <div class="form-group"><label>Data</label><input type="date" id="m-sale-date" value="${new Date().toISOString().split('T')[0]}"></div>
     <div class="form-group"><label>Lote</label><input id="m-sale-lot"></div>
     <input type="hidden" id="m-sale-event" value="${eventId}">
     <div class="modal-actions">
@@ -1139,9 +1351,7 @@ async function saveSale() {
     sale_date: document.getElementById('m-sale-date').value,
     lot: document.getElementById('m-sale-lot').value
   };
-
   if (!data.amount) { alert('Informe o valor'); return; }
-
   await sb.from('sales').insert(data);
   await loadAllData();
   closeModal();
@@ -1154,9 +1364,7 @@ function openCostModal(eventId) {
   modal.innerHTML = `
     <div class="modal-title">Registrar Custo</div>
     <div class="form-group"><label>Categoria</label>
-      <select id="m-cost-cat">
-        ${state.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
-      </select>
+      <select id="m-cost-cat">${state.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}</select>
     </div>
     <div class="form-group"><label>Descrição</label><input id="m-cost-desc"></div>
     <div class="form-group"><label>Fornecedor</label><input id="m-cost-supplier"></div>
@@ -1188,9 +1396,7 @@ async function saveCost() {
     amount: Number(document.getElementById('m-cost-amount').value),
     status: document.getElementById('m-cost-status').value
   };
-
   if (!data.description || !data.amount) { alert('Descrição e valor são obrigatórios'); return; }
-
   await sb.from('costs').insert(data);
   await loadAllData();
   closeModal();
@@ -1204,35 +1410,17 @@ function openTaskModal(eventId) {
     <div class="modal-title">Nova Tarefa</div>
     <div class="form-group"><label>Título</label><input id="m-task-title"></div>
     <div class="form-group"><label>Evento</label>
-      <select id="m-task-event">
-        ${state.events.map(e => `<option value="${e.id}" ${e.id===eventId?'selected':''}>${e.name}</option>`).join('')}
-      </select>
+      <select id="m-task-event">${state.events.map(e => `<option value="${e.id}" ${e.id===eventId?'selected':''}>${e.name}</option>`).join('')}</select>
     </div>
     <div class="form-group"><label>Departamento</label>
-      <select id="m-task-dept">
-        <option value="">—</option>
-        <option value="PROD">PROD</option>
-        <option value="MKT">MKT</option>
-        <option value="FIN">FIN</option>
-        <option value="ADM">ADM</option>
-        <option value="ATD">ATD</option>
-        <option value="VND">VND</option>
-      </select>
+      <select id="m-task-dept"><option value="">—</option><option value="PROD">PROD</option><option value="MKT">MKT</option><option value="FIN">FIN</option><option value="ADM">ADM</option><option value="ATD">ATD</option><option value="VND">VND</option></select>
     </div>
     <div class="form-group"><label>Responsável</label>
-      <select id="m-task-assign">
-        <option value="">—</option>
-        ${state.profiles.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
-      </select>
+      <select id="m-task-assign"><option value="">—</option>${state.profiles.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}</select>
     </div>
     <div class="form-group"><label>Prazo</label><input type="date" id="m-task-due"></div>
     <div class="form-group"><label>Prioridade</label>
-      <select id="m-task-priority">
-        <option value="normal">Normal</option>
-        <option value="alta">Alta</option>
-        <option value="urgente">Urgente</option>
-        <option value="baixa">Baixa</option>
-      </select>
+      <select id="m-task-priority"><option value="normal">Normal</option><option value="alta">Alta</option><option value="urgente">Urgente</option><option value="baixa">Baixa</option></select>
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
@@ -1251,86 +1439,28 @@ async function saveTask() {
     due_date: document.getElementById('m-task-due').value || null,
     priority: document.getElementById('m-task-priority').value
   };
-
   if (!data.title) { alert('Título é obrigatório'); return; }
-
   await sb.from('tasks').insert(data);
   await loadAllData();
   closeModal();
+  updateSidebarCounts();
   renderCurrentPage();
 }
 
-// ============================================================
-// FAB ACTION (contextual)
-// ============================================================
-function fabAction() {
-  switch(currentPage) {
-    case 'events': openEventModal(); break;
-    case 'tasks': openTaskModal(state.events[0]?.id); break;
-    case 'finance': if(state.events[0]) openCostModal(state.events[0].id); break;
-    default: openEventModal();
-  }
-}
-
-// ============================================================
-// MODAL HELPERS
-// ============================================================
-function openModal() {
-  document.getElementById('modal-overlay').classList.add('active');
-}
-function closeModal(e) {
-  if (e && e.target !== e.currentTarget) return;
-  document.getElementById('modal-overlay').classList.remove('active');
-}
-
-// ============================================================
-// USER MENU
-// ============================================================
-function toggleUserMenu() {
-  const modal = document.getElementById('modal-content');
-  const profile = state.profiles.find(p => p.id === currentUser.id);
-  modal.innerHTML = `
-    <div class="modal-title">Minha Conta</div>
-    <p style="color:var(--text);font-size:15px;font-weight:600;margin-bottom:4px">${profile?.name || currentUser.email}</p>
-    <p style="color:var(--text2);font-size:13px;margin-bottom:4px">${currentUser.email}</p>
-    <span class="badge ${profile?.role === 'admin' ? 'badge-purple' : 'badge-blue'}" style="margin-bottom:20px">${profile?.role || 'member'}</span>
-    <button class="btn btn-danger" style="width:100%;margin-top:12px" onclick="logout()">Sair</button>
-  `;
-  openModal();
-}
-
-async function logout() {
-  await sb.auth.signOut();
-  location.reload();
-}
-
-// ============================================================
-// ADMIN: CONVIDAR MEMBRO (criar user no Supabase)
-// ============================================================
+// --- INVITE MODAL ---
 function openInviteModal() {
   const modal = document.getElementById('modal-content');
   modal.innerHTML = `
     <div class="modal-title">Adicionar Membro</div>
-    <p style="color:var(--text2);font-size:13px;margin-bottom:16px">O membro receberá email + senha para acessar o sistema.</p>
+    <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px">O membro receberá email + senha para acessar.</p>
     <div class="form-group"><label>Nome</label><input id="m-inv-name" placeholder="Nome completo"></div>
     <div class="form-group"><label>Email</label><input type="email" id="m-inv-email" placeholder="email@exemplo.com"></div>
     <div class="form-group"><label>Senha inicial</label><input type="text" id="m-inv-pass" placeholder="Mínimo 6 caracteres"></div>
     <div class="form-group"><label>Departamento</label>
-      <select id="m-inv-dept">
-        <option value="">—</option>
-        <option value="PROD">PROD</option>
-        <option value="MKT">MKT</option>
-        <option value="FIN">FIN</option>
-        <option value="ADM">ADM</option>
-        <option value="ATD">ATD</option>
-        <option value="VND">VND</option>
-      </select>
+      <select id="m-inv-dept"><option value="">—</option><option value="PROD">PROD</option><option value="MKT">MKT</option><option value="FIN">FIN</option><option value="ADM">ADM</option><option value="ATD">ATD</option><option value="VND">VND</option></select>
     </div>
     <div class="form-group"><label>Perfil</label>
-      <select id="m-inv-role">
-        <option value="member">Membro</option>
-        <option value="admin">Administrador</option>
-      </select>
+      <select id="m-inv-role"><option value="member">Membro</option><option value="admin">Administrador</option></select>
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
@@ -1349,52 +1479,51 @@ async function inviteMember() {
   const role = document.getElementById('m-inv-role').value;
   const errEl = document.getElementById('invite-error');
 
-  if (!name || !email || !pass) {
-    errEl.textContent = 'Preencha nome, email e senha.';
-    errEl.style.display = 'block';
-    return;
-  }
-  if (pass.length < 6) {
-    errEl.textContent = 'Senha precisa ter no mínimo 6 caracteres.';
-    errEl.style.display = 'block';
-    return;
-  }
+  if (!name || !email || !pass) { errEl.textContent = 'Preencha todos os campos.'; errEl.style.display = 'block'; return; }
+  if (pass.length < 6) { errEl.textContent = 'Senha: mínimo 6 caracteres.'; errEl.style.display = 'block'; return; }
 
   try {
-    // Criar user via signUp (funciona com anon key)
-    const { data, error } = await sb.auth.signUp({
-      email,
-      password: pass,
-      options: { data: { name } }
-    });
-
+    const { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: { name } } });
     if (error) throw error;
-
-    // Atualizar perfil com nome, departamento e role
-    if (data.user) {
-      await sb.from('profiles').update({ name, department: dept, role }).eq('id', data.user.id);
-    }
-
+    if (data.user) { await sb.from('profiles').update({ name, department: dept, role }).eq('id', data.user.id); }
     await loadAllData();
     closeModal();
     renderCurrentPage();
-    console.log('[ADMIN] Membro criado:', email);
   } catch (err) {
     errEl.textContent = err.message || 'Erro ao criar membro.';
     errEl.style.display = 'block';
   }
 }
 
+// --- USER MENU ---
+function toggleUserMenu() {
+  const modal = document.getElementById('modal-content');
+  const profile = state.profiles.find(p => p.id === currentUser.id);
+  modal.innerHTML = `
+    <div class="modal-title">Minha Conta</div>
+    <p style="font-size:16px;font-weight:600;margin-bottom:4px">${profile?.name || currentUser.email}</p>
+    <p style="color:var(--text-muted);font-size:13px;margin-bottom:8px">${currentUser.email}</p>
+    <span class="badge ${profile?.role === 'admin' ? 'badge-purple' : 'badge-blue'}">${profile?.role || 'member'}</span>
+    <button class="btn btn-danger" style="width:100%;margin-top:24px" onclick="logout()">Sair</button>
+  `;
+  openModal();
+}
+
+async function logout() {
+  await sb.auth.signOut();
+  location.reload();
+}
+
 // ============================================================
 // UTILITIES
 // ============================================================
-function formatCurrency(v) {
+function fmtCurrency(v) {
   return 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
-function formatDate(d) {
+function fmtDate(d) {
   if (!d) return '—';
   const dt = new Date(d + 'T12:00:00');
-  return dt.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+  return dt.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 function daysUntil(d) {
   const diff = Math.ceil((new Date(d) - new Date()) / 86400000);
@@ -1405,48 +1534,24 @@ function daysUntil(d) {
 }
 function isThisWeek(d) {
   if (!d) return false;
-  const now = new Date();
-  const date = new Date(d);
-  const diff = (date - now) / 86400000;
+  const diff = (new Date(d) - new Date()) / 86400000;
   return diff >= -1 && diff <= 7;
 }
 
 // ============================================================
-// INIT: Check session on load
+// INIT
 // ============================================================
 (async () => {
-  try {
-    console.log('[INIT] Verificando sessão...');
-    console.log('[INIT] Supabase URL:', SUPABASE_URL);
-    const { data: { session }, error } = await sb.auth.getSession();
-
-    if (error) {
-      console.error('[INIT] Erro ao verificar sessão:', error);
-      return;
-    }
-
-    if (session) {
-      console.log('[INIT] Sessão encontrada:', session.user.email);
-      currentUser = session.user;
-      await initApp();
-    } else {
-      console.log('[INIT] Sem sessão ativa. Mostrando login.');
-    }
-  } catch (err) {
-    console.error('[INIT] Erro fatal:', err);
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    currentUser = session.user;
+    await initApp();
   }
 })();
 
-// Listen for auth state changes
 sb.auth.onAuthStateChange((event, session) => {
-  console.log('[AUTH] State change:', event);
-  if (event === 'SIGNED_IN' && session) {
-    currentUser = session.user;
-    initApp();
-  }
-  if (event === 'SIGNED_OUT') {
-    location.reload();
-  }
+  if (event === 'SIGNED_IN' && session) { currentUser = session.user; initApp(); }
+  if (event === 'SIGNED_OUT') { location.reload(); }
 });
 </script>
 </body>
