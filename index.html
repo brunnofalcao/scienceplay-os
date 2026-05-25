@@ -439,16 +439,9 @@ body {
       <label>Senha</label>
       <input type="password" id="auth-pass" placeholder="••••••••">
     </div>
-    <div class="form-group" id="auth-name-group" style="display:none">
-      <label>Seu Nome</label>
-      <input type="text" id="auth-name" placeholder="Nome completo">
-    </div>
     <button class="btn btn-primary" id="auth-btn" onclick="handleAuth()">Entrar</button>
     <div class="auth-error" id="auth-error"></div>
-    <div class="auth-toggle">
-      <span id="auth-toggle-text">Primeiro acesso?</span>
-      <a id="auth-toggle-link" onclick="toggleAuth()">Criar conta</a>
-    </div>
+    <p style="margin-top:16px;font-size:12px;color:var(--text3);text-align:center">Acesso restrito à equipe Science Play.<br>Solicite suas credenciais ao administrador.</p>
   </div>
 </div>
 
@@ -545,55 +538,42 @@ let state = {
 };
 
 // ============================================================
-// AUTH
+// AUTH (somente login — usuários criados pelo admin no Supabase)
 // ============================================================
-let isSignUp = false;
-
-function toggleAuth() {
-  isSignUp = !isSignUp;
-  document.getElementById('auth-title').textContent = isSignUp ? 'Criar Conta' : 'Entrar';
-  document.getElementById('auth-btn').textContent = isSignUp ? 'Cadastrar' : 'Entrar';
-  document.getElementById('auth-name-group').style.display = isSignUp ? 'block' : 'none';
-  document.getElementById('auth-toggle-text').textContent = isSignUp ? 'Já tem conta?' : 'Primeiro acesso?';
-  document.getElementById('auth-toggle-link').textContent = isSignUp ? 'Entrar' : 'Criar conta';
-  document.getElementById('auth-error').style.display = 'none';
-}
 
 async function handleAuth() {
   const email = document.getElementById('auth-email').value.trim();
   const pass = document.getElementById('auth-pass').value;
   const btn = document.getElementById('auth-btn');
-  const errEl = document.getElementById('auth-error');
 
-  if (!email || !pass) { showAuthError('Preencha email e senha'); return; }
+  if (!email || !pass) { showAuthError('Preencha email e senha.'); return; }
 
   btn.disabled = true;
-  btn.textContent = 'Carregando...';
+  btn.textContent = 'Entrando...';
+  hideAuthError();
 
   try {
-    let result;
-    if (isSignUp) {
-      const name = document.getElementById('auth-name').value.trim() || email.split('@')[0];
-      result = await supabase.auth.signUp({ email, password: pass, options: { data: { name } } });
-    } else {
-      result = await supabase.auth.signInWithPassword({ email, password: pass });
+    console.log('[AUTH] Tentando login:', email);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+
+    if (error) {
+      console.error('[AUTH] Erro:', error.message);
+      // Traduzir erros comuns
+      const msgs = {
+        'Invalid login credentials': 'Email ou senha incorretos.',
+        'Email not confirmed': 'Email não confirmado. Peça ao admin para confirmar.',
+        'Invalid API key': 'Erro de configuração. Contate o admin.'
+      };
+      throw new Error(msgs[error.message] || error.message);
     }
 
-    if (result.error) throw result.error;
-
-    if (isSignUp && !result.data.session) {
-      showAuthError('Verifique seu email para confirmar o cadastro.');
-      btn.disabled = false;
-      btn.textContent = 'Cadastrar';
-      return;
-    }
-
-    currentUser = result.data.user;
+    console.log('[AUTH] Login OK:', data.user.id);
+    currentUser = data.user;
     await initApp();
   } catch (err) {
-    showAuthError(err.message || 'Erro de autenticação');
+    showAuthError(err.message || 'Erro ao tentar entrar.');
     btn.disabled = false;
-    btn.textContent = isSignUp ? 'Cadastrar' : 'Entrar';
+    btn.textContent = 'Entrar';
   }
 }
 
@@ -603,26 +583,44 @@ function showAuthError(msg) {
   el.style.display = 'block';
 }
 
+function hideAuthError() {
+  document.getElementById('auth-error').style.display = 'none';
+}
+
+// Permitir Enter pra submeter
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && document.getElementById('auth-screen').style.display !== 'none') {
+    handleAuth();
+  }
+});
+
 // ============================================================
 // APP INIT
 // ============================================================
 async function initApp() {
-  document.getElementById('auth-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
+  try {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
 
-  // Set user avatar
-  const profile = await getProfile();
-  const initials = (profile?.name || currentUser.email).substring(0,2).toUpperCase();
-  document.getElementById('user-avatar').textContent = initials;
+    // Set user avatar
+    const profile = await getProfile();
+    const initials = (profile?.name || currentUser.email).substring(0,2).toUpperCase();
+    document.getElementById('user-avatar').textContent = initials;
+    window._isAdmin = profile?.role === 'admin';
 
-  // Load data
-  await loadAllData();
+    // Load data
+    await loadAllData();
 
-  // Setup realtime
-  setupRealtime();
+    // Setup realtime
+    setupRealtime();
 
-  // Render
-  renderCurrentPage();
+    // Render
+    renderCurrentPage();
+    console.log('[APP] Inicializado. Admin:', window._isAdmin);
+  } catch (err) {
+    console.error('[APP] Erro ao inicializar:', err);
+    alert('Erro ao carregar dados. Verifique as tabelas no Supabase.');
+  }
 }
 
 async function getProfile() {
@@ -973,7 +971,10 @@ function renderDRE(eventId) {
 function renderTeam() {
   const el = document.getElementById('team-content');
   el.innerHTML = `
-    <div class="section-title">Equipe (${state.profiles.length})</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="section-title" style="margin-bottom:0">Equipe (${state.profiles.length})</div>
+      ${window._isAdmin ? '<button class="btn btn-ghost btn-sm" onclick="openInviteModal()">+ Membro</button>' : ''}
+    </div>
     ${state.profiles.map(p => {
       const tasks = state.tasks.filter(t => t.assigned_to === p.id);
       const pending = tasks.filter(t => !t.done).length;
@@ -983,7 +984,7 @@ function renderTeam() {
           <div class="card-header">
             <div>
               <div class="card-title">${p.name}</div>
-              <div class="card-subtitle">${p.department || 'Sem departamento'} • ${p.role}</div>
+              <div class="card-subtitle">${p.department || 'Sem departamento'} • <span class="badge ${p.role === 'admin' ? 'badge-purple' : 'badge-blue'}">${p.role}</span></div>
             </div>
           </div>
           <div class="card-meta">
@@ -992,7 +993,7 @@ function renderTeam() {
           </div>
         </div>
       `;
-    }).join('') || '<div class="empty-state"><p>Nenhum membro cadastrado</p></div>'}
+    }).join('') || '<div class="empty-state"><p>Nenhum membro na equipe</p><button class="btn btn-ghost btn-sm" onclick="openInviteModal()">+ Adicionar Membro</button></div>'}
   `;
 }
 
@@ -1287,10 +1288,13 @@ function closeModal(e) {
 // ============================================================
 function toggleUserMenu() {
   const modal = document.getElementById('modal-content');
+  const profile = state.profiles.find(p => p.id === currentUser.id);
   modal.innerHTML = `
     <div class="modal-title">Minha Conta</div>
-    <p style="color:var(--text2);font-size:14px;margin-bottom:20px">${currentUser.email}</p>
-    <button class="btn btn-danger" style="width:100%" onclick="logout()">Sair</button>
+    <p style="color:var(--text);font-size:15px;font-weight:600;margin-bottom:4px">${profile?.name || currentUser.email}</p>
+    <p style="color:var(--text2);font-size:13px;margin-bottom:4px">${currentUser.email}</p>
+    <span class="badge ${profile?.role === 'admin' ? 'badge-purple' : 'badge-blue'}" style="margin-bottom:20px">${profile?.role || 'member'}</span>
+    <button class="btn btn-danger" style="width:100%;margin-top:12px" onclick="logout()">Sair</button>
   `;
   openModal();
 }
@@ -1298,6 +1302,87 @@ function toggleUserMenu() {
 async function logout() {
   await supabase.auth.signOut();
   location.reload();
+}
+
+// ============================================================
+// ADMIN: CONVIDAR MEMBRO (criar user no Supabase)
+// ============================================================
+function openInviteModal() {
+  const modal = document.getElementById('modal-content');
+  modal.innerHTML = `
+    <div class="modal-title">Adicionar Membro</div>
+    <p style="color:var(--text2);font-size:13px;margin-bottom:16px">O membro receberá email + senha para acessar o sistema.</p>
+    <div class="form-group"><label>Nome</label><input id="m-inv-name" placeholder="Nome completo"></div>
+    <div class="form-group"><label>Email</label><input type="email" id="m-inv-email" placeholder="email@exemplo.com"></div>
+    <div class="form-group"><label>Senha inicial</label><input type="text" id="m-inv-pass" placeholder="Mínimo 6 caracteres"></div>
+    <div class="form-group"><label>Departamento</label>
+      <select id="m-inv-dept">
+        <option value="">—</option>
+        <option value="PROD">PROD</option>
+        <option value="MKT">MKT</option>
+        <option value="FIN">FIN</option>
+        <option value="ADM">ADM</option>
+        <option value="ATD">ATD</option>
+        <option value="VND">VND</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Perfil</label>
+      <select id="m-inv-role">
+        <option value="member">Membro</option>
+        <option value="admin">Administrador</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="inviteMember()">Criar Acesso</button>
+    </div>
+    <div class="auth-error" id="invite-error" style="display:none"></div>
+  `;
+  openModal();
+}
+
+async function inviteMember() {
+  const name = document.getElementById('m-inv-name').value.trim();
+  const email = document.getElementById('m-inv-email').value.trim();
+  const pass = document.getElementById('m-inv-pass').value;
+  const dept = document.getElementById('m-inv-dept').value || null;
+  const role = document.getElementById('m-inv-role').value;
+  const errEl = document.getElementById('invite-error');
+
+  if (!name || !email || !pass) {
+    errEl.textContent = 'Preencha nome, email e senha.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (pass.length < 6) {
+    errEl.textContent = 'Senha precisa ter no mínimo 6 caracteres.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    // Criar user via signUp (funciona com anon key)
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password: pass,
+      options: { data: { name } }
+    });
+
+    if (error) throw error;
+
+    // Atualizar perfil com nome, departamento e role
+    if (data.user) {
+      await supabase.from('profiles').update({ name, department: dept, role }).eq('id', data.user.id);
+    }
+
+    await loadAllData();
+    closeModal();
+    renderCurrentPage();
+    console.log('[ADMIN] Membro criado:', email);
+  } catch (err) {
+    errEl.textContent = err.message || 'Erro ao criar membro.';
+    errEl.style.display = 'block';
+  }
 }
 
 // ============================================================
@@ -1330,12 +1415,39 @@ function isThisWeek(d) {
 // INIT: Check session on load
 // ============================================================
 (async () => {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) {
-    currentUser = session.user;
-    await initApp();
+  try {
+    console.log('[INIT] Verificando sessão...');
+    console.log('[INIT] Supabase URL:', SUPABASE_URL);
+    const { data: { session }, error } = await supabase.auth.getSession();
+
+    if (error) {
+      console.error('[INIT] Erro ao verificar sessão:', error);
+      return;
+    }
+
+    if (session) {
+      console.log('[INIT] Sessão encontrada:', session.user.email);
+      currentUser = session.user;
+      await initApp();
+    } else {
+      console.log('[INIT] Sem sessão ativa. Mostrando login.');
+    }
+  } catch (err) {
+    console.error('[INIT] Erro fatal:', err);
   }
 })();
+
+// Listen for auth state changes
+supabase.auth.onAuthStateChange((event, session) => {
+  console.log('[AUTH] State change:', event);
+  if (event === 'SIGNED_IN' && session) {
+    currentUser = session.user;
+    initApp();
+  }
+  if (event === 'SIGNED_OUT') {
+    location.reload();
+  }
+});
 </script>
 </body>
 </html>
