@@ -1037,9 +1037,25 @@ async function loadAllData() {
   state.accessGroups = getData(results[7]);
   state.userAccess = getData(results[8]);
 
+  await autoFinalizeEvents();
   updateBadges();
   renderSidebarEvents();
   renderCurrentPage();
+}
+
+// Auto-finalize events whose date has passed
+async function autoFinalizeEvents() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const toFinalize = state.events.filter(e => {
+    if (!e.event_date) return false;
+    if (e.status === 'encerrado' || e.status === 'pos-evento') return false;
+    const evDate = new Date(e.event_date + 'T23:59:59');
+    return evDate < today;
+  });
+  if (toFinalize.length === 0) return;
+  const ids = toFinalize.map(e => e.id);
+  await sb.from('events').update({ status: 'encerrado' }).in('id', ids);
+  toFinalize.forEach(e => { e.status = 'encerrado'; });
 }
 
 function updateBadges() {
@@ -1442,8 +1458,8 @@ function renderEventsList() {
     return;
   }
 
-  const statusOrder = ['ativo','execucao','planejamento','pos-evento','encerrado'];
-  const statusLabels = { ativo: 'Ativos', execucao: 'Em Execução', planejamento: 'Em Planejamento', 'pos-evento': 'Pós-evento', encerrado: 'Encerrados' };
+  const statusOrder = ['ativo','execucao','planejamento','encerrado'];
+  const statusLabels = { ativo: 'Ativos', execucao: 'Em Execução', planejamento: 'Em Planejamento', encerrado: 'Finalizados' };
   const grouped = {};
   events.forEach(e => {
     const s = e.status || 'planejamento';
@@ -1462,8 +1478,9 @@ function renderEventsList() {
       const rec = state.finances.filter(f => f.event_id === e.id && f.type === 'receita').reduce((s,f) => s + (f.amount||0), 0);
       const h = healthColor(e);
       const statusBadge = e.status === 'ativo' ? 'badge-green' : e.status === 'planejamento' ? 'badge-yellow' : e.status === 'execucao' ? 'badge-blue' : 'badge-gray';
+      const statusLabel = e.status === 'encerrado' ? 'finalizado' : (e.status || '—');
       return '<div class="status-card" onclick="navigateTo(\'event-detail\',{eventId:\'' + e.id + '\'})">' +
-        '<div class="status-card-top"><h4>' + escHtml(e.name) + '</h4><span class="badge ' + statusBadge + '">' + (e.status || '—') + '</span></div>' +
+        '<div class="status-card-top"><h4>' + escHtml(e.name) + '</h4><span class="badge ' + statusBadge + '">' + statusLabel + '</span></div>' +
         '<div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;"><span class="badge badge-purple" style="margin-right:4px;">' + eventTypeLabel(e.type) + '</span>' + formatDate(e.event_date) + ' <span class="health-dot health-' + h + '" style="margin-left:8px;"></span></div>' +
         '<div class="status-card-metrics"><div class="status-card-metric"><div class="val">' + formatCurrency(rec) + '</div><div class="lbl">Receita</div></div>' +
         '<div class="status-card-metric"><div class="val">' + (total > 0 ? Math.round(done/total*100) : 0) + '%</div><div class="lbl">Progresso</div></div>' +
@@ -1521,7 +1538,7 @@ function renderEventDetail() {
 
   $('event-detail-hero').innerHTML = heroButtons +
     '<h1>' + escHtml(ev.name) + '</h1>' +
-    '<div class="meta">' + eventTypeLabel(ev.type) + ' &middot; ' + formatDate(ev.event_date) + (ev.end_date ? ' a ' + formatDate(ev.end_date) : '') + ' &middot; ' + (ev.status || '') + '</div>' +
+    '<div class="meta">' + eventTypeLabel(ev.type) + ' &middot; ' + formatDate(ev.event_date) + (ev.end_date ? ' a ' + formatDate(ev.end_date) : '') + ' &middot; ' + (ev.status === 'encerrado' ? 'finalizado' : (ev.status || '')) + '</div>' +
     '<div class="kpis">' +
     '<div class="kpi"><div class="v">' + formatCurrency(rec) + '</div><div class="l">Receita</div></div>' +
     '<div class="kpi"><div class="v">' + formatCurrency(cus) + '</div><div class="l">Custos</div></div>' +
