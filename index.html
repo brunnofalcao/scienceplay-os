@@ -249,6 +249,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   background: var(--card-bg); border-radius: var(--radius-lg); width: 560px; max-width: 90vw;
   max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.15);
 }
+.modal.wide { width: 800px; }
 .modal-header {
   padding: 20px 24px; border-bottom: 1px solid var(--border);
   display: flex; align-items: center; justify-content: space-between;
@@ -354,7 +355,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .feed-compose textarea:focus { border-color: var(--purple); }
 .feed-compose-actions { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
 
-/* ========== CHECKLIST ========== */
+/* ========== CHECKLIST (legacy) ========== */
 .checklist-item {
   display: flex; align-items: center; gap: 12px; padding: 12px 16px;
   border-bottom: 1px solid var(--border); transition: background 0.15s;
@@ -372,6 +373,39 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .checklist-title { font-size: 14px; font-weight: 500; }
 .checklist-meta { font-size: 12px; color: var(--text-muted); display: flex; gap: 12px; margin-top: 2px; flex-wrap: wrap; }
 .checklist-priority { font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 4px; }
+
+/* ========== KANBAN CHECKLIST ========== */
+.checklist-filters { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+.checklist-progress { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
+.checklist-progress-bar { height: 100%; background: var(--green); border-radius: 3px; transition: width 0.3s; }
+.phase-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.phase-column { background: #F9FAFB; border-radius: var(--radius-lg); border: 1px solid var(--border); overflow: hidden; }
+.phase-column-header { padding: 14px 16px; font-size: 13px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px solid var(--border); }
+.phase-column-body { padding: 8px; max-height: 600px; overflow-y: auto; }
+.phase-column-body.collapsed { display: none; }
+.task-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 8px; transition: box-shadow 0.15s; position: relative; }
+.task-card:hover { box-shadow: var(--card-shadow-hover); }
+.task-card.overdue { border-left: 3px solid var(--red); }
+.task-card.done { opacity: 0.6; }
+.task-card-header { display: flex; align-items: flex-start; gap: 10px; }
+.task-card-body { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.task-card-actions { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; }
+.task-card:hover .task-card-actions { opacity: 1; }
+.task-action-btn { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.15s; }
+.task-action-btn:hover { background: var(--purple-light); border-color: var(--purple); }
+.task-action-btn.danger:hover { background: var(--red-bg); border-color: var(--red); }
+
+/* ========== IMPORT TEMPLATE MODAL ========== */
+.template-picker-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.template-picker-card { border: 2px solid var(--border); border-radius: 10px; padding: 14px; cursor: pointer; transition: all 0.15s; }
+.template-picker-card:hover, .template-picker-card.selected { border-color: var(--purple); background: var(--purple-light); }
+.import-task-list { max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
+.import-task-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
+.import-task-item:last-child { border-bottom: none; }
+.import-task-item input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--purple); }
+
+/* ========== DELETE CONFIRMATION ========== */
+.delete-confirm-input { width: 100%; padding: 10px 14px; border: 2px solid var(--red); border-radius: 8px; font-size: 14px; font-family: inherit; outline: none; margin-top: 8px; }
 
 /* ========== MEMBER CARDS ========== */
 .member-card {
@@ -451,6 +485,8 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   .charts-grid { grid-template-columns: 1fr; }
   .comparison-grid { grid-template-columns: 1fr; }
   .form-row { grid-template-columns: 1fr; }
+  .phase-columns { grid-template-columns: 1fr; }
+  .template-picker-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 768px) {
   .sidebar { position: fixed; top: 0; left: 0; height: 100%; transform: translateX(-100%); z-index: 200; }
@@ -834,6 +870,8 @@ const state = {
   charts: {},
   taskEventFilterPopulated: false,
   comparePopulated: false,
+  checklistFilters: { department: '', priority: '', status: '', search: '', sort: 'due_date' },
+  collapsedPhases: {},
 };
 
 // ============================================================
@@ -901,6 +939,22 @@ function escHtml(s) {
   d.textContent = s || '';
   return d.innerHTML;
 }
+function normalizePhase(phase) {
+  if (!phase) return 'Geral';
+  const p = phase.toLowerCase().trim();
+  if (p.includes('pré') || p.includes('pre')) return 'Pré-evento';
+  if (p.includes('durante') || p === 'evento' || p === 'd-day' || p === 'dia do evento') return 'Durante o Evento';
+  if (p.includes('pós') || p.includes('pos') || p.includes('post')) return 'Pós-evento';
+  return phase;
+}
+
+const PHASE_ORDER = ['Pré-evento', 'Durante o Evento', 'Pós-evento', 'Geral'];
+const PHASE_COLORS = {
+  'Pré-evento': '#3B82F6',
+  'Durante o Evento': '#F59E0B',
+  'Pós-evento': '#10B981',
+  'Geral': '#6B7280',
+};
 
 // ============================================================
 // AUTH
@@ -1474,7 +1528,15 @@ function renderEventDetail() {
   const resultado = rec - cus;
   const margem = rec > 0 ? (resultado / rec * 100) : 0;
 
-  $('event-detail-hero').innerHTML =
+  const isAdmin = state.profile?.role === 'admin';
+  let heroButtons = '<div style="position:absolute;top:20px;right:20px;display:flex;gap:8px;">' +
+    '<button class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:#fff;" onclick="openEditEvent(\'' + ev.id + '\')">✏️ Editar</button>';
+  if (isAdmin) {
+    heroButtons += '<button class="btn btn-sm" style="background:rgba(239,68,68,0.3);color:#fff;" onclick="deleteEvent(\'' + ev.id + '\')">🗑️ Excluir</button>';
+  }
+  heroButtons += '</div>';
+
+  $('event-detail-hero').innerHTML = heroButtons +
     '<h1>' + escHtml(ev.name) + '</h1>' +
     '<div class="meta">' + eventTypeLabel(ev.type) + ' &middot; ' + formatDate(ev.event_date) + (ev.end_date ? ' a ' + formatDate(ev.end_date) : '') + ' &middot; ' + (ev.status || '') + '</div>' +
     '<div class="kpis">' +
@@ -1567,20 +1629,158 @@ function renderEventDRE(ev, container) {
     '</table></div></div>';
 }
 
+// ============================================================
+// EVENT CHECKLIST — KANBAN STYLE
+// ============================================================
 function renderEventChecklist(ev, container) {
-  const tasks = state.tasks.filter(t => t.event_id === ev.id);
-  const phases = [...new Set(tasks.map(t => t.phase || 'Geral'))].sort();
+  const allTasks = state.tasks.filter(t => t.event_id === ev.id);
+  const f = state.checklistFilters;
 
-  container.innerHTML =
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">' +
-    '<div style="font-size:13px;color:var(--text-muted);">' + tasks.filter(t=>t.done).length + ' de ' + tasks.length + ' concluidas</div>' +
-    '<button class="btn btn-sm btn-primary" onclick="openAddTask(\'' + ev.id + '\')">+ Nova Tarefa</button></div>' +
-    phases.map(phase =>
-      '<div class="card" style="margin-bottom:16px;"><div class="card-header"><h3>' + escHtml(phase) + '</h3></div>' +
-      '<div class="card-body" style="padding:0;">' +
-      tasks.filter(t => (t.phase || 'Geral') === phase).map(t => renderChecklistItem(t, ev)).join('') +
-      '</div></div>'
-    ).join('');
+  // Collect unique departments from these tasks
+  const departments = [...new Set(allTasks.map(t => t.department).filter(Boolean))].sort();
+
+  // Filter tasks
+  let tasks = [...allTasks];
+  if (f.department) tasks = tasks.filter(t => t.department === f.department);
+  if (f.priority) tasks = tasks.filter(t => t.priority === f.priority);
+  if (f.status === 'pendentes') tasks = tasks.filter(t => !t.done);
+  else if (f.status === 'concluidas') tasks = tasks.filter(t => t.done);
+  else if (f.status === 'atrasadas') tasks = tasks.filter(t => !t.done && t.due_date && daysDiff(t.due_date) < 0);
+  if (f.search) tasks = tasks.filter(t => (t.title || '').toLowerCase().includes(f.search.toLowerCase()));
+
+  // Sort
+  if (f.sort === 'priority') {
+    const pOrder = { alta: 0, media: 1, baixa: 2 };
+    tasks.sort((a, b) => (pOrder[a.priority] ?? 1) - (pOrder[b.priority] ?? 1));
+  } else if (f.sort === 'department') {
+    tasks.sort((a, b) => (a.department || 'zzz').localeCompare(b.department || 'zzz'));
+  } else {
+    tasks.sort((a, b) => (a.due_date || '9999').localeCompare(b.due_date || '9999'));
+  }
+
+  const doneCount = allTasks.filter(t => t.done).length;
+  const totalCount = allTasks.length;
+  const pctDone = totalCount > 0 ? Math.round(doneCount / totalCount * 100) : 0;
+
+  // Group by phase
+  const phaseMap = {};
+  tasks.forEach(t => {
+    const phase = normalizePhase(t.phase);
+    if (!phaseMap[phase]) phaseMap[phase] = [];
+    phaseMap[phase].push(t);
+  });
+
+  const phaseKeys = Object.keys(phaseMap).sort((a, b) => {
+    const ia = PHASE_ORDER.indexOf(a);
+    const ib = PHASE_ORDER.indexOf(b);
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+  });
+
+  // Build HTML
+  let html = '';
+
+  // Actions bar
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+    '<button class="btn btn-sm btn-primary" onclick="openAddTask(\'' + ev.id + '\')">+ Nova Tarefa</button>' +
+    '<button class="btn btn-sm btn-secondary" onclick="openImportFromTemplate(\'' + ev.id + '\')">📋 Importar do Template</button>' +
+    '<button class="btn btn-sm btn-outline" onclick="openSwapTemplate(\'' + ev.id + '\')">🔄 Trocar Template</button>' +
+    '</div>' +
+    '<div style="font-size:13px;font-weight:600;color:var(--text-secondary);">' + doneCount + ' de ' + totalCount + ' concluídas (' + pctDone + '%)</div></div>';
+
+  // Progress bar
+  html += '<div class="checklist-progress"><div class="checklist-progress-bar" style="width:' + pctDone + '%"></div></div>';
+
+  // Filters
+  html += '<div class="checklist-filters">' +
+    '<select class="filter-select" onchange="state.checklistFilters.department=this.value;renderEventChecklist(state.events.find(e=>e.id===\'' + ev.id + '\'),$( \'event-detail-content\'))">' +
+    '<option value="">Todos departamentos</option>' +
+    departments.map(d => '<option value="' + escHtml(d) + '"' + (f.department === d ? ' selected' : '') + '>' + escHtml(d) + '</option>').join('') +
+    '</select>' +
+    '<select class="filter-select" onchange="state.checklistFilters.priority=this.value;renderEventChecklist(state.events.find(e=>e.id===\'' + ev.id + '\'),$( \'event-detail-content\'))">' +
+    '<option value="">Todas prioridades</option>' +
+    '<option value="alta"' + (f.priority === 'alta' ? ' selected' : '') + '>Alta</option>' +
+    '<option value="media"' + (f.priority === 'media' ? ' selected' : '') + '>Media</option>' +
+    '<option value="baixa"' + (f.priority === 'baixa' ? ' selected' : '') + '>Baixa</option>' +
+    '</select>' +
+    '<select class="filter-select" onchange="state.checklistFilters.status=this.value;renderEventChecklist(state.events.find(e=>e.id===\'' + ev.id + '\'),$( \'event-detail-content\'))">' +
+    '<option value="">Todas</option>' +
+    '<option value="pendentes"' + (f.status === 'pendentes' ? ' selected' : '') + '>Pendentes</option>' +
+    '<option value="concluidas"' + (f.status === 'concluidas' ? ' selected' : '') + '>Concluídas</option>' +
+    '<option value="atrasadas"' + (f.status === 'atrasadas' ? ' selected' : '') + '>Atrasadas</option>' +
+    '</select>' +
+    '<select class="filter-select" onchange="state.checklistFilters.sort=this.value;renderEventChecklist(state.events.find(e=>e.id===\'' + ev.id + '\'),$( \'event-detail-content\'))">' +
+    '<option value="due_date"' + (f.sort === 'due_date' ? ' selected' : '') + '>Data de vencimento</option>' +
+    '<option value="priority"' + (f.sort === 'priority' ? ' selected' : '') + '>Prioridade</option>' +
+    '<option value="department"' + (f.sort === 'department' ? ' selected' : '') + '>Departamento</option>' +
+    '</select>' +
+    '<input type="text" class="search-input" placeholder="Buscar tarefa..." value="' + escHtml(f.search) + '" oninput="state.checklistFilters.search=this.value;renderEventChecklist(state.events.find(e=>e.id===\'' + ev.id + '\'),$( \'event-detail-content\'))">' +
+    '</div>';
+
+  // Phase columns
+  html += '<div class="phase-columns">';
+  phaseKeys.forEach(phase => {
+    const phaseTasks = phaseMap[phase];
+    const pDone = phaseTasks.filter(t => t.done).length;
+    const pTotal = phaseTasks.length;
+    const pPct = pTotal > 0 ? Math.round(pDone / pTotal * 100) : 0;
+    const color = PHASE_COLORS[phase] || '#6B7280';
+    const isCollapsed = state.collapsedPhases[ev.id + '_' + phase];
+
+    html += '<div class="phase-column">' +
+      '<div class="phase-column-header" style="background:' + color + '15;color:' + color + ';" onclick="togglePhaseCollapse(\'' + ev.id + '\',\'' + escHtml(phase) + '\')">' +
+      '<span>' + escHtml(phase) + ' (' + pDone + '/' + pTotal + ')</span>' +
+      '<span style="font-size:12px;">' + pPct + '% ' + (isCollapsed ? '▸' : '▾') + '</span></div>' +
+      '<div class="phase-column-body' + (isCollapsed ? ' collapsed' : '') + '">';
+
+    phaseTasks.forEach(t => {
+      html += renderTaskCard(t, ev);
+    });
+
+    if (phaseTasks.length === 0) {
+      html += '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px;">Nenhuma tarefa</div>';
+    }
+
+    html += '</div></div>';
+  });
+  html += '</div>';
+
+  if (phaseKeys.length === 0) {
+    html += '<div class="empty-state"><div class="icon">✅</div><h3>Nenhuma tarefa encontrada</h3><p>Adicione tarefas ou importe de um template</p></div>';
+  }
+
+  container.innerHTML = html;
+}
+
+function togglePhaseCollapse(eventId, phase) {
+  const key = eventId + '_' + phase;
+  state.collapsedPhases[key] = !state.collapsedPhases[key];
+  const ev = state.events.find(e => e.id === eventId);
+  if (ev) renderEventChecklist(ev, $('event-detail-content'));
+}
+
+function renderTaskCard(t, ev) {
+  const event = ev || state.events.find(e => e.id === t.event_id);
+  const assignee = state.members.find(m => m.id === t.assigned_to);
+  const offset = event ? dayOffset(event.event_date, t.due_date) : '';
+  const isOverdue = !t.done && t.due_date && daysDiff(t.due_date) < 0;
+  const prioColors = { alta: 'background:var(--red-bg);color:#991B1B', media: 'background:var(--yellow-bg);color:#92400E', baixa: 'background:var(--blue-bg);color:#1E40AF' };
+
+  return '<div class="task-card' + (isOverdue ? ' overdue' : '') + (t.done ? ' done' : '') + '">' +
+    '<div class="task-card-actions">' +
+    '<button class="task-action-btn" onclick="event.stopPropagation();openEditTask(\'' + t.id + '\')" title="Editar">✏️</button>' +
+    '<button class="task-action-btn danger" onclick="event.stopPropagation();deleteTask(\'' + t.id + '\')" title="Excluir">🗑️</button>' +
+    '</div>' +
+    '<div class="task-card-header">' +
+    '<div class="checklist-checkbox ' + (t.done ? 'done' : '') + '" onclick="toggleTask(\'' + t.id + '\',' + !t.done + ')" style="margin-top:2px;">' + (t.done ? '✓' : '') + '</div>' +
+    '<div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:500;' + (t.done ? 'text-decoration:line-through;color:var(--text-muted);' : '') + '">' + escHtml(t.title) + '</div></div></div>' +
+    '<div class="task-card-body">' +
+    (t.department ? '<span class="badge badge-gray">' + escHtml(t.department) + '</span>' : '') +
+    (t.priority ? '<span class="badge" style="' + (prioColors[t.priority] || '') + '">' + t.priority + '</span>' : '') +
+    (t.due_date ? '<span style="font-size:11px;' + (isOverdue ? 'color:var(--red);font-weight:700;' : 'color:var(--text-muted);') + '">' + formatDate(t.due_date) + '</span>' : '') +
+    (offset ? '<span class="badge badge-purple" style="font-size:10px;">' + offset + '</span>' : '') +
+    (assignee ? '<span style="font-size:11px;color:var(--text-secondary);">👤 ' + escHtml(assignee.name) + '</span>' : '') +
+    '</div></div>';
 }
 
 function renderChecklistItem(t, ev) {
@@ -1974,15 +2174,19 @@ function renderComparison() {
 // ============================================================
 // MODALS
 // ============================================================
-function openModal(title, bodyHtml, footerHtml) {
+function openModal(title, bodyHtml, footerHtml, wide) {
   $('modal-title').textContent = title;
   $('modal-body').innerHTML = bodyHtml;
   $('modal-footer').innerHTML = footerHtml || '';
+  const modalEl = $('modal');
+  if (wide) modalEl.classList.add('wide');
+  else modalEl.classList.remove('wide');
   $('modal-overlay').classList.add('active');
 }
 
 function closeModal() {
   $('modal-overlay').classList.remove('active');
+  $('modal').classList.remove('wide');
 }
 
 $('modal-overlay').addEventListener('click', e => { if (e.target === $('modal-overlay')) closeModal(); });
@@ -2033,6 +2237,143 @@ async function saveEvent() {
   navigateTo('event-detail', { eventId: data.id });
 }
 
+// ---- Edit Event ----
+function openEditEvent(eventId) {
+  const ev = state.events.find(e => e.id === eventId);
+  if (!ev) return;
+  const typeOptions = ['imersao','congresso','mentoria','certificacao']
+    .map(t => '<option value="' + t + '"' + (ev.type === t ? ' selected' : '') + '>' + eventTypeLabel(t) + '</option>').join('');
+  const statusOptions = ['planejamento','ativo','execucao','pos-evento','encerrado']
+    .map(s => '<option value="' + s + '"' + (ev.status === s ? ' selected' : '') + '>' + s.charAt(0).toUpperCase() + s.slice(1) + '</option>').join('');
+
+  openModal('Editar Evento',
+    '<div class="form-group"><label>Nome</label><input class="form-control" id="edit-ev-name" value="' + escHtml(ev.name || '') + '"></div>' +
+    '<div class="form-row"><div class="form-group"><label>Tipo</label><select class="form-control" id="edit-ev-type">' + typeOptions + '</select></div>' +
+    '<div class="form-group"><label>Status</label><select class="form-control" id="edit-ev-status">' + statusOptions + '</select></div></div>' +
+    '<div class="form-row"><div class="form-group"><label>Data Inicio</label><input type="date" class="form-control" id="edit-ev-date" value="' + (ev.event_date || '') + '"></div>' +
+    '<div class="form-group"><label>Data Fim</label><input type="date" class="form-control" id="edit-ev-end-date" value="' + (ev.end_date || '') + '"></div></div>' +
+    '<div class="form-group"><label>Descricao</label><textarea class="form-control" id="edit-ev-desc">' + escHtml(ev.description || '') + '</textarea></div>',
+    '<button class="btn btn-outline" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="updateEvent(\'' + eventId + '\')">Salvar Alterações</button>'
+  );
+}
+
+async function updateEvent(eventId) {
+  const name = $('edit-ev-name').value.trim();
+  if (!name) return;
+  const { error } = await sb.from('events').update({
+    name, type: $('edit-ev-type').value, status: $('edit-ev-status').value,
+    event_date: $('edit-ev-date').value || null, end_date: $('edit-ev-end-date').value || null,
+    description: $('edit-ev-desc').value || null,
+  }).eq('id', eventId);
+
+  if (error) { alert('Erro ao salvar: ' + error.message); return; }
+  closeModal();
+  await loadAllData();
+  navigateTo('event-detail', { eventId });
+}
+
+// ---- Delete Event (Admin only, double confirmation) ----
+function deleteEvent(eventId) {
+  if (state.profile?.role !== 'admin') { alert('Apenas administradores podem excluir eventos.'); return; }
+  const ev = state.events.find(e => e.id === eventId);
+  if (!ev) return;
+
+  openModal('Excluir Evento',
+    '<div style="text-align:center;padding:10px 0;">' +
+    '<div style="font-size:40px;margin-bottom:12px;">⚠️</div>' +
+    '<p style="font-size:16px;font-weight:600;margin-bottom:8px;">Tem certeza que deseja excluir?</p>' +
+    '<p style="font-size:14px;color:var(--text-secondary);margin-bottom:20px;">"' + escHtml(ev.name) + '"</p>' +
+    '<p style="font-size:13px;color:var(--red);font-weight:600;margin-bottom:8px;">CONFIRMAR EXCLUSÃO PERMANENTE</p>' +
+    '<p style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Digite o nome do evento para confirmar:</p>' +
+    '<input class="delete-confirm-input" id="delete-confirm-name" placeholder="' + escHtml(ev.name) + '" autocomplete="off">' +
+    '<p style="font-size:11px;color:var(--text-muted);margin-top:12px;">Todas as tarefas, financeiros e feeds associados também serão excluídos.</p>' +
+    '</div>',
+    '<button class="btn btn-outline" onclick="closeModal()">Cancelar</button>' +
+    '<button class="btn btn-danger" id="btn-confirm-delete-event" onclick="confirmDeleteEvent(\'' + eventId + '\')" disabled>Excluir Permanentemente</button>'
+  );
+
+  // Enable delete button only when name matches
+  setTimeout(() => {
+    const input = $('delete-confirm-name');
+    const btn = $('btn-confirm-delete-event');
+    if (input && btn) {
+      input.addEventListener('input', function() {
+        btn.disabled = this.value.trim() !== ev.name;
+      });
+    }
+  }, 50);
+}
+
+async function confirmDeleteEvent(eventId) {
+  const ev = state.events.find(e => e.id === eventId);
+  if (!ev) return;
+  const typed = $('delete-confirm-name')?.value?.trim();
+  if (typed !== ev.name) { alert('O nome digitado não confere.'); return; }
+
+  // Delete related data
+  await sb.from('tasks').delete().eq('event_id', eventId);
+  await sb.from('finances').delete().eq('event_id', eventId);
+  await sb.from('feeds').delete().eq('event_id', eventId);
+  await sb.from('events').delete().eq('id', eventId);
+
+  closeModal();
+  await loadAllData();
+  if (ev.type === 'certificacao') navigateTo('produtos');
+  else navigateTo('eventos');
+}
+
+// ---- Edit Task ----
+function openEditTask(taskId) {
+  const t = state.tasks.find(tk => tk.id === taskId);
+  if (!t) return;
+  const memberOptions = state.members.map(m => '<option value="' + m.id + '"' + (t.assigned_to === m.id ? ' selected' : '') + '>' + escHtml(m.name || m.email) + '</option>').join('');
+  const deptOptions = ['marketing','comercial','producao','conteudo','financeiro','operacoes']
+    .map(d => '<option value="' + d + '"' + (t.department === d ? ' selected' : '') + '>' + d.charAt(0).toUpperCase() + d.slice(1) + '</option>').join('');
+  const prioOptions = ['alta','media','baixa']
+    .map(p => '<option value="' + p + '"' + (t.priority === p ? ' selected' : '') + '>' + p.charAt(0).toUpperCase() + p.slice(1) + '</option>').join('');
+
+  openModal('Editar Tarefa',
+    '<div class="form-group"><label>Titulo</label><input class="form-control" id="edit-task-title" value="' + escHtml(t.title || '') + '"></div>' +
+    '<div class="form-row"><div class="form-group"><label>Departamento</label><select class="form-control" id="edit-task-dept"><option value="">Selecione</option>' + deptOptions + '</select></div>' +
+    '<div class="form-group"><label>Prioridade</label><select class="form-control" id="edit-task-prio">' + prioOptions + '</select></div></div>' +
+    '<div class="form-row"><div class="form-group"><label>Prazo</label><input type="date" class="form-control" id="edit-task-due" value="' + (t.due_date || '') + '"></div>' +
+    '<div class="form-group"><label>Responsavel</label><select class="form-control" id="edit-task-assigned"><option value="">Nenhum</option>' + memberOptions + '</select></div></div>' +
+    '<div class="form-group"><label>Fase</label><input class="form-control" id="edit-task-phase" value="' + escHtml(t.phase || '') + '" placeholder="Ex: Pré-evento, Evento, Pós-evento"></div>',
+    '<button class="btn btn-outline" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="updateTask(\'' + taskId + '\')">Salvar</button>'
+  );
+}
+
+async function updateTask(taskId) {
+  const title = $('edit-task-title').value.trim();
+  if (!title) return;
+  const t = state.tasks.find(tk => tk.id === taskId);
+  const ev = t ? state.events.find(e => e.id === t.event_id) : null;
+  const dueDate = $('edit-task-due').value || null;
+  const dayOff = ev && ev.event_date && dueDate ? Math.round((new Date(dueDate+'T12:00:00') - new Date(ev.event_date+'T12:00:00')) / 86400000) : null;
+
+  const { error } = await sb.from('tasks').update({
+    title, department: $('edit-task-dept').value || null,
+    priority: $('edit-task-prio').value || 'media', due_date: dueDate,
+    assigned_to: $('edit-task-assigned').value || null, phase: $('edit-task-phase').value || null,
+    day_offset: dayOff,
+  }).eq('id', taskId);
+
+  if (error) { alert('Erro ao salvar: ' + error.message); return; }
+  closeModal();
+  await refreshTable('tasks');
+}
+
+// ---- Delete Task ----
+async function deleteTask(taskId) {
+  const t = state.tasks.find(tk => tk.id === taskId);
+  if (!t) return;
+  if (!confirm('Excluir tarefa "' + (t.title || '') + '"?')) return;
+  await sb.from('tasks').delete().eq('id', taskId);
+  state.tasks = state.tasks.filter(tk => tk.id !== taskId);
+  updateBadges();
+  renderCurrentPage();
+}
+
 // ---- Add Task ----
 function openAddTask(eventId) {
   const memberOptions = state.members.map(m => '<option value="' + m.id + '">' + escHtml(m.name || m.email) + '</option>').join('');
@@ -2060,6 +2401,175 @@ async function saveTask(eventId) {
     assigned_to: $('task-assigned').value || null, phase: $('task-phase').value || null,
     day_offset: dayOff, done: false,
   });
+  closeModal();
+  await refreshTable('tasks');
+}
+
+// ---- Import Tasks from Template ----
+function openImportFromTemplate(eventId) {
+  const ev = state.events.find(e => e.id === eventId);
+  if (!ev) return;
+
+  const templates = state.templates;
+  if (templates.length === 0) {
+    openModal('Importar do Template',
+      '<div class="empty-state"><div class="icon">📋</div><h3>Nenhum template disponível</h3><p>Crie um template POP primeiro.</p></div>',
+      '<button class="btn btn-outline" onclick="closeModal()">Fechar</button>'
+    );
+    return;
+  }
+
+  let html = '<p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Selecione um template e escolha as tarefas para importar:</p>';
+
+  // Template picker
+  html += '<div class="template-picker-grid">';
+  templates.forEach((t, i) => {
+    const tTasks = state.templateTasks.filter(tt => tt.template_id === t.id);
+    html += '<div class="template-picker-card' + (i === 0 ? ' selected' : '') + '" data-template-id="' + t.id + '" onclick="selectImportTemplate(\'' + t.id + '\')">' +
+      '<div style="font-weight:700;font-size:14px;">' + escHtml(t.name) + '</div>' +
+      '<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">' + escHtml(t.description || '') + '</div>' +
+      '<div style="font-size:12px;color:var(--purple);font-weight:600;margin-top:6px;">' + tTasks.length + ' tarefas</div></div>';
+  });
+  html += '</div>';
+
+  // Task list
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+    '<span style="font-size:13px;font-weight:600;">Tarefas do template:</span>' +
+    '<div style="display:flex;gap:8px;">' +
+    '<button class="btn btn-sm btn-outline" onclick="toggleAllImportTasks(true)">Selecionar Todas</button>' +
+    '<button class="btn btn-sm btn-outline" onclick="toggleAllImportTasks(false)">Desmarcar Todas</button>' +
+    '</div></div>';
+  html += '<div class="import-task-list" id="import-task-list"></div>';
+
+  openModal('Importar do Template', html,
+    '<button class="btn btn-outline" onclick="closeModal()">Cancelar</button>' +
+    '<button class="btn btn-primary" onclick="importSelectedTasks(\'' + eventId + '\')">Importar Selecionadas</button>',
+    true
+  );
+
+  // Render first template tasks
+  setTimeout(() => selectImportTemplate(templates[0].id), 50);
+}
+
+function selectImportTemplate(templateId) {
+  // Update card selection visual
+  qsa('.template-picker-card').forEach(c => {
+    c.classList.toggle('selected', c.getAttribute('data-template-id') === templateId);
+  });
+
+  const tTasks = state.templateTasks.filter(tt => tt.template_id === templateId);
+  const container = $('import-task-list');
+  if (!container) return;
+
+  container.setAttribute('data-template-id', templateId);
+  container.innerHTML = tTasks.length === 0
+    ? '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;">Nenhuma tarefa neste template</div>'
+    : tTasks.map(tt =>
+      '<div class="import-task-item">' +
+      '<input type="checkbox" checked data-task-id="' + tt.id + '">' +
+      '<div style="flex:1;"><div style="font-weight:500;">' + escHtml(tt.title) + '</div>' +
+      '<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">' +
+      (tt.phase ? escHtml(tt.phase) + ' · ' : '') +
+      (tt.department ? escHtml(tt.department) + ' · ' : '') +
+      (tt.day_offset != null ? 'D' + (tt.day_offset <= 0 ? tt.day_offset : '+' + tt.day_offset) + ' · ' : '') +
+      (tt.priority || 'media') +
+      '</div></div></div>'
+    ).join('');
+}
+
+function toggleAllImportTasks(checked) {
+  qsa('#import-task-list input[type=checkbox]').forEach(cb => cb.checked = checked);
+}
+
+async function importSelectedTasks(eventId) {
+  const ev = state.events.find(e => e.id === eventId);
+  if (!ev) return;
+
+  const container = $('import-task-list');
+  const templateId = container?.getAttribute('data-template-id');
+  if (!templateId) return;
+
+  const selectedIds = [];
+  qsa('#import-task-list input[type=checkbox]:checked').forEach(cb => {
+    selectedIds.push(cb.getAttribute('data-task-id'));
+  });
+
+  if (selectedIds.length === 0) { alert('Selecione pelo menos uma tarefa.'); return; }
+
+  const inserts = [];
+  selectedIds.forEach(ttId => {
+    const tt = state.templateTasks.find(t => t.id === ttId);
+    if (!tt) return;
+    inserts.push({
+      event_id: eventId, title: tt.title, department: tt.department,
+      phase: tt.phase, priority: tt.priority, day_offset: tt.day_offset,
+      due_date: ev.event_date && tt.day_offset != null ? addDays(ev.event_date, tt.day_offset) : null,
+      done: false,
+    });
+  });
+
+  if (inserts.length > 0) {
+    await sb.from('tasks').insert(inserts);
+  }
+  closeModal();
+  await refreshTable('tasks');
+}
+
+// ---- Swap/Reset Template ----
+function openSwapTemplate(eventId) {
+  const ev = state.events.find(e => e.id === eventId);
+  if (!ev) return;
+
+  const templates = state.templates;
+  if (templates.length === 0) {
+    openModal('Trocar Template',
+      '<div class="empty-state"><div class="icon">📋</div><h3>Nenhum template disponível</h3></div>',
+      '<button class="btn btn-outline" onclick="closeModal()">Fechar</button>'
+    );
+    return;
+  }
+
+  let html = '<div style="background:var(--yellow-bg);border:1px solid var(--yellow);border-radius:8px;padding:14px;margin-bottom:16px;">' +
+    '<p style="font-size:13px;font-weight:600;color:#92400E;margin-bottom:4px;">⚠️ Atenção</p>' +
+    '<p style="font-size:12px;color:#92400E;">Isso removerá todas as tarefas automáticas (sem responsável atribuído) e aplicará o novo template.</p></div>';
+
+  html += '<div class="form-group"><label>Selecione o novo template:</label><select class="form-control" id="swap-template-id">';
+  templates.forEach(t => {
+    const count = state.templateTasks.filter(tt => tt.template_id === t.id).length;
+    html += '<option value="' + t.id + '">' + escHtml(t.name) + ' (' + count + ' tarefas)</option>';
+  });
+  html += '</select></div>';
+
+  openModal('Trocar Template', html,
+    '<button class="btn btn-outline" onclick="closeModal()">Cancelar</button>' +
+    '<button class="btn btn-danger" onclick="confirmSwapTemplate(\'' + eventId + '\')">Trocar Template</button>'
+  );
+}
+
+async function confirmSwapTemplate(eventId) {
+  const ev = state.events.find(e => e.id === eventId);
+  if (!ev) return;
+  const templateId = $('swap-template-id')?.value;
+  if (!templateId) return;
+
+  // Delete tasks without assigned_to (auto-generated)
+  const autoTasks = state.tasks.filter(t => t.event_id === eventId && !t.assigned_to);
+  for (const t of autoTasks) {
+    await sb.from('tasks').delete().eq('id', t.id);
+  }
+
+  // Apply new template
+  const tTasks = state.templateTasks.filter(t => t.template_id === templateId);
+  const inserts = tTasks.map(tt => ({
+    event_id: eventId, title: tt.title, department: tt.department,
+    phase: tt.phase, priority: tt.priority, day_offset: tt.day_offset,
+    due_date: ev.event_date && tt.day_offset != null ? addDays(ev.event_date, tt.day_offset) : null,
+    done: false,
+  }));
+  if (inserts.length > 0) {
+    await sb.from('tasks').insert(inserts);
+  }
+
   closeModal();
   await refreshTable('tasks');
 }
