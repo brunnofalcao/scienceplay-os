@@ -378,10 +378,10 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .checklist-filters { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
 .checklist-progress { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
 .checklist-progress-bar { height: 100%; background: var(--green); border-radius: 3px; transition: width 0.3s; }
-.phase-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
-.phase-column { background: #F9FAFB; border-radius: var(--radius-lg); border: 1px solid var(--border); overflow: hidden; }
+.phase-columns { display: flex; flex-direction: column; gap: 16px; }
+.phase-column { background: #F9FAFB; border-radius: var(--radius-lg); border: 1px solid var(--border); overflow: visible; }
 .phase-column-header { padding: 14px 16px; font-size: 13px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px solid var(--border); }
-.phase-column-body { padding: 8px; max-height: 600px; overflow-y: auto; }
+.phase-column-body { padding: 8px; overflow-y: visible; }
 .phase-column-body.collapsed { display: none; }
 .task-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 8px; transition: box-shadow 0.15s; position: relative; }
 .task-card:hover { box-shadow: var(--card-shadow-hover); }
@@ -452,9 +452,6 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 }
 .search-input:focus { border-color: var(--purple); }
 
-/* ========== COMPARISON ========== */
-.comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-
 /* ========== TEMPLATE CARDS ========== */
 .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
 .template-card {
@@ -485,7 +482,6 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   .charts-grid { grid-template-columns: 1fr; }
   .comparison-grid { grid-template-columns: 1fr; }
   .form-row { grid-template-columns: 1fr; }
-  .phase-columns { grid-template-columns: 1fr; }
   .template-picker-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 768px) {
@@ -566,9 +562,6 @@ textarea.form-control { resize: vertical; min-height: 80px; }
       </div>
       <div class="sidebar-item" data-page="timeline" onclick="navigateTo('timeline')">
         <span class="icon">📅</span> Timeline
-      </div>
-      <div class="sidebar-item" data-page="comparativos" onclick="navigateTo('comparativos')">
-        <span class="icon">⚖️</span> Comparativos
       </div>
     </div>
 
@@ -809,19 +802,6 @@ textarea.form-control { resize: vertical; min-height: 80px; }
       </div>
       <h3 style="font-size:15px;font-weight:700;margin:24px 0 14px;">Eventos do Ano</h3>
       <div class="status-grid" id="timeline-events-list"></div>
-    </div>
-
-    <!-- ===== COMPARATIVOS ===== -->
-    <div class="page" id="page-comparativos">
-      <div class="page-header">
-        <div><div class="page-title">Comparativos</div><div class="page-subtitle">Compare dois eventos lado a lado</div></div>
-      </div>
-      <div class="filters-bar">
-        <select class="filter-select" id="compare-event-a" onchange="renderComparison()"><option value="">Selecione o Evento A</option></select>
-        <span style="font-weight:700;color:var(--text-muted)">vs</span>
-        <select class="filter-select" id="compare-event-b" onchange="renderComparison()"><option value="">Selecione o Evento B</option></select>
-      </div>
-      <div class="comparison-grid" id="comparison-content"></div>
     </div>
 
   </div>
@@ -1155,7 +1135,6 @@ function renderCurrentPage() {
     case 'equipe': renderEquipe(); break;
     case 'templates': renderTemplatesList(); break;
     case 'timeline': renderTimelinePage(); break;
-    case 'comparativos': renderComparativos(); break;
     case 'event-detail': renderEventDetail(); break;
     case 'template-detail': renderTemplateDetail(); break;
   }
@@ -1163,7 +1142,7 @@ function renderCurrentPage() {
 
 function renderSidebarEvents() {
   const container = $('sidebar-events-list');
-  const active = state.events.filter(e => e.status !== 'encerrado' && e.type !== 'certificacao');
+  const active = state.events.filter(e => (e.status === 'planejamento' || e.status === 'ativo' || e.status === 'execucao') && e.type !== 'certificacao');
   if (active.length === 0) {
     container.innerHTML = '<div style="padding:8px 12px;font-size:12px;color:rgba(255,255,255,0.3)">Nenhum evento ativo</div>';
     return;
@@ -1529,8 +1508,12 @@ function renderEventDetail() {
   const margem = rec > 0 ? (resultado / rec * 100) : 0;
 
   const isAdmin = state.profile?.role === 'admin';
-  let heroButtons = '<div style="position:absolute;top:20px;right:20px;display:flex;gap:8px;">' +
-    '<button class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:#fff;" onclick="openEditEvent(\'' + ev.id + '\')">✏️ Editar</button>';
+  const isEncerrado = ev.status === 'encerrado' || ev.status === 'pos-evento';
+  let heroButtons = '<div style="position:absolute;top:20px;right:20px;display:flex;gap:8px;">';
+  if (isEncerrado) {
+    heroButtons += '<button class="btn btn-sm" style="background:rgba(16,185,129,0.3);color:#fff;" onclick="reopenEvent(\'' + ev.id + '\')">🔓 Reabrir</button>';
+  }
+  heroButtons += '<button class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:#fff;" onclick="openEditEvent(\'' + ev.id + '\')">✏️ Editar</button>';
   if (isAdmin) {
     heroButtons += '<button class="btn btn-sm" style="background:rgba(239,68,68,0.3);color:#fff;" onclick="deleteEvent(\'' + ev.id + '\')">🗑️ Excluir</button>';
   }
@@ -2270,6 +2253,16 @@ async function updateEvent(eventId) {
   closeModal();
   await loadAllData();
   navigateTo('event-detail', { eventId });
+}
+
+// ---- Reopen Event (change status back to ativo) ----
+async function reopenEvent(eventId) {
+  if (!confirm('Reabrir este evento? O status voltará para "ativo".')) return;
+  await sb.from('events').update({ status: 'ativo' }).eq('id', eventId);
+  const ev = state.events.find(e => e.id === eventId);
+  if (ev) ev.status = 'ativo';
+  renderSidebarEvents();
+  renderEventDetail();
 }
 
 // ---- Delete Event (Admin only, double confirmation) ----
