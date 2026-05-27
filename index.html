@@ -332,6 +332,56 @@ textarea.form-control { resize:vertical; min-height:88px; }
 .dre-table .dre-result { background:var(--green-bg); font-weight:700; font-size:15px; }
 .dre-table .dre-result.negative { background:var(--red-bg); }
 
+/* DRE Detailed */
+.dre-view-toggle { display:inline-flex; background:rgba(0,0,0,0.04); border-radius:var(--radius); padding:3px; gap:2px; }
+.dre-view-btn { padding:7px 16px; border-radius:calc(var(--radius) - 2px); font-size:13px; font-weight:600; border:none; cursor:pointer; background:transparent; color:var(--text-secondary); transition:all 0.2s var(--ease); }
+.dre-view-btn.active { background:var(--card-bg); color:var(--text-primary); box-shadow:0 1px 3px rgba(0,0,0,0.08); }
+.dre-section { margin-bottom:2px; }
+.dre-section-header { display:flex; align-items:center; gap:10px; padding:12px 18px; background:rgba(0,0,0,0.03); border-bottom:1px solid var(--border); cursor:pointer; user-select:none; transition:background 0.15s; }
+.dre-section-header:hover { background:rgba(0,0,0,0.05); }
+.dre-section-header .chevron { font-size:11px; color:var(--text-muted); transition:transform 0.2s var(--ease); }
+.dre-section-header.collapsed .chevron { transform:rotate(-90deg); }
+.dre-section-header .section-name { flex:1; font-weight:600; font-size:13px; text-transform:uppercase; letter-spacing:0.4px; color:var(--text-secondary); }
+.dre-section-header .section-total { font-weight:700; font-size:14px; }
+.dre-section-body { overflow:hidden; transition:max-height 0.3s var(--ease); }
+.dre-item { display:grid; grid-template-columns:1fr 70px 120px 120px 100px 40px; align-items:center; padding:10px 18px; border-bottom:1px solid rgba(0,0,0,0.04); font-size:13px; transition:background 0.15s; gap:8px; }
+.dre-item:hover { background:rgba(0,0,0,0.015); }
+.dre-item .item-desc { font-weight:500; color:var(--text-primary); }
+.dre-item .item-qty { text-align:center; color:var(--text-secondary); }
+.dre-item .item-unit, .dre-item .item-total { text-align:right; font-variant-numeric:tabular-nums; }
+.dre-item .item-total { font-weight:600; }
+.dre-item-header { display:grid; grid-template-columns:1fr 70px 120px 120px 100px 40px; padding:8px 18px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); border-bottom:1px solid var(--border); gap:8px; }
+.dre-item-header span:nth-child(2) { text-align:center; }
+.dre-item-header span:nth-child(3), .dre-item-header span:nth-child(4) { text-align:right; }
+.dre-item-header span:nth-child(5) { text-align:center; }
+
+/* Payment status badges */
+.pay-status { display:inline-flex; align-items:center; justify-content:center; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.3px; cursor:pointer; transition:all 0.15s; border:1px solid transparent; }
+.pay-status.status-estimado { background:rgba(0,0,0,0.04); color:var(--text-secondary); border-color:rgba(0,0,0,0.08); }
+.pay-status.status-orcado { background:rgba(59,130,246,0.1); color:#2563EB; border-color:rgba(59,130,246,0.2); }
+.pay-status.status-pago { background:rgba(239,68,68,0.08); color:#DC2626; border-color:rgba(239,68,68,0.15); }
+.pay-status:hover { transform:scale(1.05); }
+
+/* DRE inline edit */
+.dre-inline-input { width:100%; padding:4px 8px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; background:var(--card-bg); text-align:right; font-variant-numeric:tabular-nums; transition:border-color 0.15s; }
+.dre-inline-input:focus { outline:none; border-color:var(--purple); box-shadow:0 0 0 3px rgba(124,58,237,0.1); }
+.dre-delete-btn { width:28px; height:28px; display:flex; align-items:center; justify-content:center; border:none; background:transparent; color:var(--text-muted); border-radius:var(--radius-sm); cursor:pointer; font-size:14px; opacity:0; transition:all 0.15s; }
+.dre-item:hover .dre-delete-btn { opacity:1; }
+.dre-delete-btn:hover { background:rgba(239,68,68,0.1); color:var(--red); }
+
+/* DRE summary bar */
+.dre-summary-bar { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:24px; }
+.dre-summary-item { padding:16px; border-radius:var(--radius); background:var(--card-bg); border:1px solid var(--border); text-align:center; }
+.dre-summary-item .label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:4px; }
+.dre-summary-item .value { font-size:20px; font-weight:700; letter-spacing:-0.5px; }
+.dre-summary-item .value.green { color:var(--green); }
+.dre-summary-item .value.red { color:var(--red); }
+@media (max-width:768px) {
+  .dre-item { grid-template-columns:1fr 50px 90px 90px 80px 32px; padding:8px 12px; font-size:12px; }
+  .dre-item-header { grid-template-columns:1fr 50px 90px 90px 80px 32px; padding:6px 12px; }
+  .dre-summary-bar { grid-template-columns:1fr 1fr; }
+}
+
 /* DELETE */
 .delete-confirm-input { width:100%; padding:11px 16px; border:2px solid var(--red); border-radius:10px; font-size:14px; font-family:inherit; outline:none; margin-top:10px; }
 
@@ -615,10 +665,10 @@ const state = {
   user: null, profile: null,
   events: [], tasks: [], finances: [], members: [], feeds: [],
   templates: [], templateTasks: [], accessGroups: [], userAccess: [],
-  checkpoints: [], checkpointTemplates: [],
+  checkpoints: [], checkpointTemplates: [], financeTemplateItems: [],
   currentPage: 'dashboard', currentEventId: null, currentTemplateId: null,
   currentEventTab: 'central', timelineYear: new Date().getFullYear(),
-  charts: {}, collapsedPhases: {},
+  charts: {}, collapsedPhases: {}, dreView: 'previsao',
   checklistFilters: { area: '', priority: '', status: '', search: '' },
 };
 
@@ -812,6 +862,7 @@ async function loadAllData() {
     sb.from('user_access').select('*'),
     sb.from('checkpoints').select('*').order('deadline_offset', { ascending: true }),
     sb.from('checkpoint_templates').select('*').order('deadline_offset', { ascending: true }),
+    sb.from('finance_template_items').select('*').order('sort_order', { ascending: true }),
   ]);
   const gd = (r) => r.status === 'fulfilled' ? (r.value.data || []) : [];
   state.events = gd(results[0]);
@@ -825,6 +876,7 @@ async function loadAllData() {
   state.userAccess = gd(results[8]);
   state.checkpoints = gd(results[9]);
   state.checkpointTemplates = gd(results[10]);
+  state.financeTemplateItems = gd(results[11]);
   await autoFinalizeEvents();
   updateBadges();
   renderSidebarEvents();
@@ -859,6 +911,7 @@ function setupRealtime() {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'finances' }, () => refreshTable('finances'))
     .on('postgres_changes', { event: '*', schema: 'public', table: 'feeds' }, () => refreshTable('feeds'))
     .on('postgres_changes', { event: '*', schema: 'public', table: 'checkpoints' }, () => refreshTable('checkpoints'))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'finance_template_items' }, () => refreshTable('finance_template_items'))
     .subscribe();
 }
 
@@ -880,6 +933,9 @@ async function refreshTable(table) {
     case 'checkpoints':
       res = await sb.from('checkpoints').select('*').order('deadline_offset', { ascending: true });
       state.checkpoints = res.data || []; break;
+    case 'finance_template_items':
+      res = await sb.from('finance_template_items').select('*').order('sort_order', { ascending: true });
+      state.financeTemplateItems = res.data || []; break;
   }
   renderCurrentPage();
 }
@@ -1537,40 +1593,110 @@ function renderEventTimeline(ev, container) {
 // --- TAB: DRE ---
 function renderEventDRE(ev, container) {
   const finances = state.finances.filter(f => f.event_id === ev.id);
-  const receitas = finances.filter(f => f.type === 'receita');
-  const custos = finances.filter(f => f.type === 'custo');
+  const view = state.dreView || 'previsao';
+  const filtered = view === 'oficial' ? finances.filter(f => f.payment_status === 'pago') : finances;
+  const receitas = filtered.filter(f => f.type === 'receita');
+  const custos = filtered.filter(f => f.type === 'custo');
   const totalRec = receitas.reduce((s, f) => s + (f.amount||0), 0);
   const totalCus = custos.reduce((s, f) => s + (f.amount||0), 0);
   const resultado = totalRec - totalCus;
   const margem = totalRec > 0 ? (resultado / totalRec * 100) : 0;
 
-  const recByCat = {};
-  receitas.forEach(f => { recByCat[f.category || 'Outros'] = (recByCat[f.category || 'Outros'] || 0) + (f.amount || 0); });
-  const cusByCat = {};
-  custos.forEach(f => { cusByCat[f.category || 'Outros'] = (cusByCat[f.category || 'Outros'] || 0) + (f.amount || 0); });
-
-  let targetHtml = '';
-  if (ev.target_receita) {
-    const pctTarget = totalRec > 0 ? Math.round(totalRec / ev.target_receita * 100) : 0;
-    targetHtml = '<div style="margin-bottom:20px;"><h4 style="font-size:13px;font-weight:700;margin-bottom:8px;">Meta de Receita: ' + formatCurrency(ev.target_receita) + '</h4>' +
-      '<div class="progress-bar-wrap" style="height:10px;"><div class="progress-bar-fill" style="width:' + Math.min(100, pctTarget) + '%;background:' + (pctTarget >= 100 ? 'var(--green)' : 'var(--purple)') + ';"></div></div>' +
-      '<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">' + pctTarget + '% da meta atingida</div></div>';
+  // Group by section
+  function groupBySection(items) {
+    const groups = {};
+    items.sort((a,b) => (a.sort_order||0) - (b.sort_order||0)).forEach(f => {
+      const sec = f.section || f.category || 'Outros';
+      if (!groups[sec]) groups[sec] = [];
+      groups[sec].push(f);
+    });
+    return groups;
   }
 
+  function renderSection(type, label, items, groups) {
+    const typeTotal = items.reduce((s,f) => s + (f.amount||0), 0);
+    let html = '<div style="margin-bottom:6px;"><div class="dre-item-header"><span>' + label + '</span><span>Qtd</span><span>Unit.</span><span>Total</span><span>Status</span><span></span></div>';
+    Object.entries(groups).forEach(([section, sitems]) => {
+      const secTotal = sitems.reduce((s,f) => s + (f.amount||0), 0);
+      const secId = 'dre-sec-' + type + '-' + section.replace(/\s/g,'_');
+      html += '<div class="dre-section">' +
+        '<div class="dre-section-header" onclick="toggleDreSection(\'' + secId + '\',this)">' +
+        '<span class="chevron">&#9660;</span>' +
+        '<span class="section-name">' + escHtml(section) + '</span>' +
+        '<span class="section-total">' + formatCurrency(secTotal) + '</span></div>' +
+        '<div class="dre-section-body" id="' + secId + '">';
+      sitems.forEach(f => {
+        const statusClass = 'status-' + (f.payment_status || 'estimado');
+        const statusLabel = f.payment_status === 'pago' ? 'Pago' : f.payment_status === 'orcado' ? 'Orcado' : 'Estimado';
+        html += '<div class="dre-item">' +
+          '<span class="item-desc" title="' + escHtml(f.notes || '') + '">' + escHtml(f.description || f.category || '—') + '</span>' +
+          '<span class="item-qty">' + (f.quantity || 1) + '</span>' +
+          '<span class="item-unit">' + formatCurrency(f.unit_price || 0) + '</span>' +
+          '<span class="item-total">' + formatCurrency(f.amount || 0) + '</span>' +
+          '<span class="pay-status ' + statusClass + '" onclick="cycleDreStatus(\'' + f.id + '\')" title="Clique para alterar">' + statusLabel + '</span>' +
+          '<button class="dre-delete-btn" onclick="deleteDreItem(\'' + f.id + '\',\'' + ev.id + '\')" title="Excluir">&times;</button>' +
+          '</div>';
+      });
+      html += '</div></div>';
+    });
+    html += '<div style="display:flex;justify-content:space-between;padding:12px 18px;background:var(--purple-light);border-radius:0 0 var(--radius-sm) var(--radius-sm);font-weight:700;font-size:14px;">' +
+      '<span>Total ' + label + '</span><span>' + formatCurrency(typeTotal) + '</span></div></div>';
+    return html;
+  }
+
+  const recGroups = groupBySection(receitas);
+  const cusGroups = groupBySection(custos);
+
+  // Summary bar
+  const summaryHtml = '<div class="dre-summary-bar">' +
+    '<div class="dre-summary-item"><div class="label">Receitas</div><div class="value green">' + formatCurrency(totalRec) + '</div></div>' +
+    '<div class="dre-summary-item"><div class="label">Custos</div><div class="value red">' + formatCurrency(totalCus) + '</div></div>' +
+    '<div class="dre-summary-item"><div class="label">Resultado</div><div class="value ' + (resultado>=0?'green':'red') + '">' + formatCurrency(resultado) + '</div></div>' +
+    '<div class="dre-summary-item"><div class="label">Margem</div><div class="value">' + formatPct(margem) + '</div></div></div>';
+
   container.innerHTML =
-    '<div class="card"><div class="card-header"><h3>DRE &mdash; ' + escHtml(ev.name) + '</h3>' +
-    '<button class="btn btn-sm btn-primary" onclick="openAddFinance(\'' + ev.id + '\')">+ Lancamento</button></div>' +
-    '<div class="card-body">' + targetHtml +
-    '<table class="dre-table">' +
-    '<tr class="dre-header"><td>RECEITAS</td><td>Valor</td></tr>' +
-    Object.entries(recByCat).map(([cat, val]) => '<tr><td>' + escHtml(cat) + '</td><td>' + formatCurrency(val) + '</td></tr>').join('') +
-    '<tr class="dre-total"><td>Total Receitas</td><td>' + formatCurrency(totalRec) + '</td></tr>' +
-    '<tr class="dre-header"><td>CUSTOS</td><td>Valor</td></tr>' +
-    Object.entries(cusByCat).map(([cat, val]) => '<tr><td>' + escHtml(cat) + '</td><td>' + formatCurrency(val) + '</td></tr>').join('') +
-    '<tr class="dre-total"><td>Total Custos</td><td>' + formatCurrency(totalCus) + '</td></tr>' +
-    '<tr class="dre-result ' + (resultado < 0 ? 'negative' : '') + '"><td>RESULTADO</td><td>' + formatCurrency(resultado) + '</td></tr>' +
-    '<tr><td style="font-weight:600">Margem</td><td style="font-weight:600">' + formatPct(margem) + '</td></tr>' +
-    '</table></div></div>';
+    '<div class="card"><div class="card-header" style="flex-wrap:wrap;gap:12px;">' +
+    '<h3>DRE &mdash; ' + escHtml(ev.name) + '</h3>' +
+    '<div style="display:flex;align-items:center;gap:12px;">' +
+    '<div class="dre-view-toggle">' +
+    '<button class="dre-view-btn ' + (view==='previsao'?'active':'') + '" onclick="switchDreView(\'previsao\',\'' + ev.id + '\')">Previsao</button>' +
+    '<button class="dre-view-btn ' + (view==='oficial'?'active':'') + '" onclick="switchDreView(\'oficial\',\'' + ev.id + '\')">Oficial</button></div>' +
+    '<button class="btn btn-sm btn-primary" onclick="openAddFinance(\'' + ev.id + '\')">+ Lancamento</button>' +
+    '</div></div>' +
+    '<div class="card-body">' + summaryHtml +
+    renderSection('receita', 'Receitas', receitas, recGroups) +
+    renderSection('custo', 'Custos', custos, cusGroups) +
+    '<div style="display:flex;justify-content:space-between;padding:16px 18px;background:' + (resultado>=0?'var(--green-bg)':'var(--red-bg)') + ';border-radius:var(--radius);margin-top:8px;font-weight:700;font-size:16px;">' +
+    '<span>RESULTADO ' + (view==='oficial'?'OFICIAL':'ESTIMADO') + '</span><span>' + formatCurrency(resultado) + '</span></div>' +
+    '</div></div>';
+}
+
+function switchDreView(view, eventId) {
+  state.dreView = view;
+  const ev = state.events.find(e => e.id === eventId);
+  if (ev) renderEventDRE(ev, $('event-tab-content'));
+}
+
+function toggleDreSection(secId, headerEl) {
+  const body = $(secId);
+  if (!body) return;
+  const isCollapsed = headerEl.classList.toggle('collapsed');
+  body.style.display = isCollapsed ? 'none' : 'block';
+}
+
+async function cycleDreStatus(finId) {
+  const fin = state.finances.find(f => f.id === finId);
+  if (!fin) return;
+  const cycle = { estimado: 'orcado', orcado: 'pago', pago: 'estimado' };
+  const next = cycle[fin.payment_status || 'estimado'];
+  await sb.from('finances').update({ payment_status: next }).eq('id', finId);
+  await refreshTable('finances');
+}
+
+async function deleteDreItem(finId, eventId) {
+  if (!confirm('Excluir este item do DRE?')) return;
+  await sb.from('finances').delete().eq('id', finId);
+  await refreshTable('finances');
 }
 
 // --- TAB: GO/NO-GO ---
@@ -1735,41 +1861,51 @@ function switchFinTab(tab, btn) {
 }
 
 function renderFinConsolidated() {
-  const receitas = state.finances.filter(f => f.type === 'receita');
-  const custos = state.finances.filter(f => f.type === 'custo');
-  const totalRec = receitas.reduce((s, f) => s + (f.amount||0), 0);
-  const totalCus = custos.reduce((s, f) => s + (f.amount||0), 0);
-  const resultado = totalRec - totalCus;
-  const recByCat = {};
-  receitas.forEach(f => { recByCat[f.category || 'Outros'] = (recByCat[f.category || 'Outros'] || 0) + (f.amount || 0); });
-  const cusByCat = {};
-  custos.forEach(f => { cusByCat[f.category || 'Outros'] = (cusByCat[f.category || 'Outros'] || 0) + (f.amount || 0); });
+  // Oficial = only pago
+  const allFins = state.finances;
+  const pagoFins = allFins.filter(f => f.payment_status === 'pago');
+  const totalRecEst = allFins.filter(f => f.type==='receita').reduce((s,f) => s+(f.amount||0), 0);
+  const totalCusEst = allFins.filter(f => f.type==='custo').reduce((s,f) => s+(f.amount||0), 0);
+  const totalRecOf = pagoFins.filter(f => f.type==='receita').reduce((s,f) => s+(f.amount||0), 0);
+  const totalCusOf = pagoFins.filter(f => f.type==='custo').reduce((s,f) => s+(f.amount||0), 0);
+  const resEst = totalRecEst - totalCusEst;
+  const resOf = totalRecOf - totalCusOf;
+
+  const recBySec = {};
+  allFins.filter(f => f.type==='receita').forEach(f => { const s = f.section||f.category||'Outros'; recBySec[s] = (recBySec[s]||0)+(f.amount||0); });
+  const cusBySec = {};
+  allFins.filter(f => f.type==='custo').forEach(f => { const s = f.section||f.category||'Outros'; cusBySec[s] = (cusBySec[s]||0)+(f.amount||0); });
 
   $('fin-consolidated').innerHTML =
     '<div class="kpi-grid" style="margin-bottom:24px;">' +
-    '<div class="kpi-card"><div class="kpi-label">Total Receitas</div><div class="kpi-value green">' + formatCurrency(totalRec) + '</div></div>' +
-    '<div class="kpi-card"><div class="kpi-label">Total Custos</div><div class="kpi-value red">' + formatCurrency(totalCus) + '</div></div>' +
-    '<div class="kpi-card"><div class="kpi-label">Resultado</div><div class="kpi-value ' + (resultado>=0?'green':'red') + '">' + formatCurrency(resultado) + '</div></div>' +
-    '<div class="kpi-card"><div class="kpi-label">Margem</div><div class="kpi-value">' + (totalRec > 0 ? formatPct(resultado/totalRec*100) : '0%') + '</div></div></div>' +
+    '<div class="kpi-card"><div class="kpi-label">Receita Estimada</div><div class="kpi-value green">' + formatCurrency(totalRecEst) + '</div></div>' +
+    '<div class="kpi-card"><div class="kpi-label">Custo Estimado</div><div class="kpi-value red">' + formatCurrency(totalCusEst) + '</div></div>' +
+    '<div class="kpi-card"><div class="kpi-label">Resultado Estimado</div><div class="kpi-value ' + (resEst>=0?'green':'red') + '">' + formatCurrency(resEst) + '</div></div>' +
+    '<div class="kpi-card"><div class="kpi-label">Resultado Oficial</div><div class="kpi-value ' + (resOf>=0?'green':'red') + '">' + formatCurrency(resOf) + '</div></div></div>' +
     '<div class="card"><div class="card-header"><h3>DRE Consolidado</h3></div><div class="card-body"><table class="dre-table">' +
     '<tr class="dre-header"><td>RECEITAS</td><td>Valor</td></tr>' +
-    Object.entries(recByCat).map(([cat, val]) => '<tr><td>' + escHtml(cat) + '</td><td>' + formatCurrency(val) + '</td></tr>').join('') +
-    '<tr class="dre-total"><td>Total Receitas</td><td>' + formatCurrency(totalRec) + '</td></tr>' +
+    Object.entries(recBySec).map(([sec, val]) => '<tr><td>' + escHtml(sec) + '</td><td>' + formatCurrency(val) + '</td></tr>').join('') +
+    '<tr class="dre-total"><td>Total Receitas</td><td>' + formatCurrency(totalRecEst) + '</td></tr>' +
     '<tr class="dre-header"><td>CUSTOS</td><td>Valor</td></tr>' +
-    Object.entries(cusByCat).map(([cat, val]) => '<tr><td>' + escHtml(cat) + '</td><td>' + formatCurrency(val) + '</td></tr>').join('') +
-    '<tr class="dre-total"><td>Total Custos</td><td>' + formatCurrency(totalCus) + '</td></tr>' +
-    '<tr class="dre-result ' + (resultado<0?'negative':'') + '"><td>RESULTADO LIQUIDO</td><td>' + formatCurrency(resultado) + '</td></tr>' +
+    Object.entries(cusBySec).map(([sec, val]) => '<tr><td>' + escHtml(sec) + '</td><td>' + formatCurrency(val) + '</td></tr>').join('') +
+    '<tr class="dre-total"><td>Total Custos</td><td>' + formatCurrency(totalCusEst) + '</td></tr>' +
+    '<tr class="dre-result ' + (resEst<0?'negative':'') + '"><td>RESULTADO ESTIMADO</td><td>' + formatCurrency(resEst) + '</td></tr>' +
+    '<tr class="dre-result ' + (resOf<0?'negative':'') + '"><td>RESULTADO OFICIAL (Pago)</td><td>' + formatCurrency(resOf) + '</td></tr>' +
     '</table></div></div>';
 }
 
 function renderFinPerEvent() {
   $('fin-per-event').innerHTML =
     '<div class="card"><div class="card-body"><div class="table-wrap"><table>' +
-    '<thead><tr><th>Evento</th><th>Tipo</th><th>Receita</th><th>Custos</th><th>Resultado</th><th>Margem</th></tr></thead><tbody>' +
+    '<thead><tr><th>Evento</th><th>Tipo</th><th>Receita Est.</th><th>Custos Est.</th><th>Result. Est.</th><th>Result. Oficial</th><th>Margem</th></tr></thead><tbody>' +
     state.events.map(e => {
-      const rec = state.finances.filter(f => f.event_id === e.id && f.type === 'receita').reduce((s,f) => s + (f.amount||0), 0);
-      const cus = state.finances.filter(f => f.event_id === e.id && f.type === 'custo').reduce((s,f) => s + (f.amount||0), 0);
+      const eFins = state.finances.filter(f => f.event_id === e.id);
+      const rec = eFins.filter(f => f.type === 'receita').reduce((s,f) => s + (f.amount||0), 0);
+      const cus = eFins.filter(f => f.type === 'custo').reduce((s,f) => s + (f.amount||0), 0);
       const res = rec - cus;
+      const recOf = eFins.filter(f => f.type === 'receita' && f.payment_status === 'pago').reduce((s,f) => s + (f.amount||0), 0);
+      const cusOf = eFins.filter(f => f.type === 'custo' && f.payment_status === 'pago').reduce((s,f) => s + (f.amount||0), 0);
+      const resOf = recOf - cusOf;
       const mar = rec > 0 ? (res/rec*100) : 0;
       return '<tr style="cursor:pointer" onclick="navigateTo(\'event-detail\',{eventId:\'' + e.id + '\'})">' +
         '<td style="font-weight:600">' + escHtml(e.name) + '</td>' +
@@ -1777,6 +1913,7 @@ function renderFinPerEvent() {
         '<td style="color:var(--green);font-weight:600">' + formatCurrency(rec) + '</td>' +
         '<td style="color:var(--red)">' + formatCurrency(cus) + '</td>' +
         '<td style="font-weight:700;color:' + (res>=0?'var(--green)':'var(--red)') + '">' + formatCurrency(res) + '</td>' +
+        '<td style="font-weight:700;color:' + (resOf>=0?'var(--green)':'var(--red)') + '">' + formatCurrency(resOf) + '</td>' +
         '<td>' + formatPct(mar) + '</td></tr>';
     }).join('') +
     '</tbody></table></div></div></div>';
@@ -1828,9 +1965,10 @@ function renderTemplatesList() {
   $('templates-list').innerHTML = state.templates.map(t => {
     const tasks = state.templateTasks.filter(tt => tt.template_id === t.id);
     const cps = state.checkpointTemplates.filter(ct => ct.template_id === t.id);
+    const dreItems = state.financeTemplateItems.filter(fi => fi.template_id === t.id);
     return '<div class="template-card" onclick="navigateTo(\'template-detail\',{templateId:\'' + t.id + '\'})">' +
       '<h4>' + escHtml(t.name) + '</h4><p>' + escHtml(t.description || 'Sem descricao') + '</p>' +
-      '<div class="count">' + tasks.length + ' tarefas &middot; ' + cps.length + ' checkpoints</div>' +
+      '<div class="count">' + tasks.length + ' tarefas &middot; ' + cps.length + ' checkpoints &middot; ' + dreItems.length + ' itens DRE</div>' +
       '<div style="margin-top:8px;"><span class="badge badge-purple">' + eventTypeLabel(t.event_type || 'congresso') + '</span></div></div>';
   }).join('') || '<div class="empty-state"><div class="icon">&#128203;</div><h3>Nenhum template</h3><p>Crie um template POP para padronizar seus eventos</p></div>';
 }
@@ -1993,6 +2131,16 @@ async function saveEvent() {
       decisor: ct.decisor, action_nogo: ct.action_nogo, status: 'pendente',
     }));
     if (cpInserts.length > 0) await sb.from('checkpoints').insert(cpInserts);
+
+    // Import finance template items as DRE items (all start as 'estimado')
+    const ftItems = state.financeTemplateItems.filter(fi => fi.template_id === templateId);
+    const finInserts = ftItems.map(fi => ({
+      event_id: data.id, type: fi.type, amount: fi.default_amount || (fi.default_quantity * fi.default_unit_price) || 0,
+      category: fi.section, section: fi.section, description: fi.description,
+      quantity: fi.default_quantity || 1, unit_price: fi.default_unit_price || 0,
+      payment_status: 'estimado', notes: fi.notes || null, sort_order: fi.sort_order || 0,
+    }));
+    if (finInserts.length > 0) await sb.from('finances').insert(finInserts);
   }
   closeModal();
   await loadAllData();
@@ -2292,30 +2440,77 @@ async function confirmSwapTemplate(eventId) {
     decisor: ct.decisor, action_nogo: ct.action_nogo, status: 'pendente',
   }));
   if (cpInserts.length > 0) await sb.from('checkpoints').insert(cpInserts);
+  // Import finance template items (delete old estimado items first)
+  const oldEstimado = state.finances.filter(f => f.event_id === eventId && f.payment_status === 'estimado');
+  for (const f of oldEstimado) await sb.from('finances').delete().eq('id', f.id);
+  const ftItems = state.financeTemplateItems.filter(fi => fi.template_id === templateId);
+  const finInserts = ftItems.map(fi => ({
+    event_id: eventId, type: fi.type, amount: fi.default_amount || (fi.default_quantity * fi.default_unit_price) || 0,
+    category: fi.section, section: fi.section, description: fi.description,
+    quantity: fi.default_quantity || 1, unit_price: fi.default_unit_price || 0,
+    payment_status: 'estimado', notes: fi.notes || null, sort_order: fi.sort_order || 0,
+  }));
+  if (finInserts.length > 0) await sb.from('finances').insert(finInserts);
   closeModal();
   await loadAllData();
   navigateTo('event-detail', { eventId: eventId });
 }
 
 // ---- Finance ----
-function openAddFinance(eventId) {
+function openAddFinance(eventId, prefillType) {
+  // Build section datalist from existing items for this event
+  const evFins = state.finances.filter(f => f.event_id === eventId);
+  const sections = [...new Set(evFins.map(f => f.section).filter(Boolean))];
+  const datalistHtml = '<datalist id="fin-sections">' + sections.map(s => '<option value="' + escHtml(s) + '">').join('') + '</datalist>';
+
   openModal('Novo Lancamento Financeiro',
-    '<div class="form-row"><div class="form-group"><label>Tipo</label><select class="form-control" id="fin-type"><option value="receita">Receita</option><option value="custo">Custo</option></select></div>' +
-    '<div class="form-group"><label>Valor (R$)</label><input type="number" class="form-control" id="fin-amount" placeholder="0"></div></div>' +
-    '<div class="form-row"><div class="form-group"><label>Categoria</label><input class="form-control" id="fin-category" placeholder="Ex: Ingressos, Marketing..."></div>' +
+    datalistHtml +
+    '<div class="form-row"><div class="form-group"><label>Tipo</label><select class="form-control" id="fin-type">' +
+    '<option value="custo"' + (prefillType==='receita'?'':' selected') + '>Custo</option>' +
+    '<option value="receita"' + (prefillType==='receita'?' selected':'') + '>Receita</option></select></div>' +
+    '<div class="form-group"><label>Secao</label><input class="form-control" id="fin-section" list="fin-sections" placeholder="Ex: Estrutura e Audiovisual"></div></div>' +
+    '<div class="form-group"><label>Descricao</label><input class="form-control" id="fin-desc" placeholder="Descricao do item"></div>' +
+    '<div class="form-row"><div class="form-group"><label>Quantidade</label><input type="number" class="form-control" id="fin-qty" value="1" min="1"></div>' +
+    '<div class="form-group"><label>Valor Unitario (R$)</label><input type="number" class="form-control" id="fin-unit-price" placeholder="0.00" step="0.01"></div>' +
+    '<div class="form-group"><label>Total (R$)</label><input type="number" class="form-control" id="fin-amount" placeholder="0.00" step="0.01"></div></div>' +
+    '<div class="form-row"><div class="form-group"><label>Status</label><select class="form-control" id="fin-status">' +
+    '<option value="estimado">Estimado</option><option value="orcado">Orcado</option><option value="pago">Pago</option></select></div>' +
     '<div class="form-group"><label>Data</label><input type="date" class="form-control" id="fin-date"></div></div>' +
-    '<div class="form-group"><label>Descricao</label><input class="form-control" id="fin-desc" placeholder="Descricao do lancamento"></div>',
+    '<div class="form-group"><label>Observacoes</label><input class="form-control" id="fin-notes" placeholder="Notas adicionais"></div>' +
+    '<script>document.getElementById("fin-qty").addEventListener("input",calcFinTotal);document.getElementById("fin-unit-price").addEventListener("input",calcFinTotal);<\/script>',
     '<button class="btn btn-outline" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveFinance(\'' + eventId + '\')">Salvar</button>'
   );
+  // Auto-calc total from qty * unit
+  setTimeout(() => {
+    const qtyEl = $('fin-qty'), upEl = $('fin-unit-price'), amtEl = $('fin-amount');
+    if (qtyEl && upEl && amtEl) {
+      const calc = () => { const q = parseFloat(qtyEl.value)||1; const u = parseFloat(upEl.value)||0; amtEl.value = (q*u).toFixed(2); };
+      qtyEl.addEventListener('input', calc);
+      upEl.addEventListener('input', calc);
+    }
+  }, 100);
 }
 
 async function saveFinance(eventId) {
-  const amount = parseFloat($('fin-amount').value);
-  if (!amount) return;
+  const desc = $('fin-desc').value.trim();
+  const amount = parseFloat($('fin-amount').value) || 0;
+  if (!desc && !amount) return;
+  const qty = parseInt($('fin-qty').value) || 1;
+  const unitPrice = parseFloat($('fin-unit-price').value) || 0;
+  const total = amount || (qty * unitPrice);
+  // Determine sort_order
+  const evFins = state.finances.filter(f => f.event_id === eventId);
+  const maxSort = evFins.reduce((m,f) => Math.max(m, f.sort_order||0), 0);
   await sb.from('finances').insert({
-    event_id: eventId, type: $('fin-type').value, amount: amount,
-    category: $('fin-category').value || null, description: $('fin-desc').value || null,
+    event_id: eventId, type: $('fin-type').value, amount: total,
+    category: $('fin-section').value || null,
+    section: $('fin-section').value || null,
+    description: desc || null,
     date: $('fin-date').value || null,
+    quantity: qty, unit_price: unitPrice,
+    payment_status: $('fin-status').value || 'estimado',
+    notes: $('fin-notes').value || null,
+    sort_order: maxSort + 10,
   });
   closeModal();
   await refreshTable('finances');
