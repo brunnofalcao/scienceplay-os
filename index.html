@@ -380,12 +380,6 @@ textarea.form-control { resize:vertical; min-height:88px; }
 .dre-summary-item .value { font-size:20px; font-weight:700; letter-spacing:-0.5px; }
 .dre-summary-item .value.green { color:var(--green); }
 .dre-summary-item .value.red { color:var(--red); }
-@media (max-width:768px) {
-  .dre-item { grid-template-columns:1fr 50px 90px 90px 80px 32px; padding:8px 12px; font-size:12px; }
-  .dre-item-header { grid-template-columns:1fr 50px 90px 90px 80px 32px; padding:6px 12px; }
-  .dre-summary-bar { grid-template-columns:1fr 1fr; }
-}
-
 /* DELETE */
 .delete-confirm-input { width:100%; padding:11px 16px; border:2px solid var(--red); border-radius:10px; font-size:14px; font-family:inherit; outline:none; margin-top:10px; }
 
@@ -445,6 +439,9 @@ textarea.form-control { resize:vertical; min-height:88px; }
 .vtimeline-task:hover { box-shadow:var(--card-shadow); }
 .vtimeline-task.done { opacity:0.45; }
 
+/* MEMBER KANBAN */
+.member-kanban-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+
 /* NEXT EVENTS */
 .next-events-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:18px; margin-bottom:28px; }
 .next-event-card { background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; box-shadow:var(--card-shadow); cursor:pointer; transition:all var(--duration) var(--ease); }
@@ -467,29 +464,131 @@ textarea.form-control { resize:vertical; min-height:88px; }
 .progress-bar-fill { height:100%; background:var(--green); border-radius:10px; transition:width 0.5s var(--ease); }
 
 /* RESPONSIVE */
+/* ===== RESPONSIVE: TABLET ===== */
 @media (max-width:1024px) {
   .charts-grid { grid-template-columns:1fr; }
   .form-row { grid-template-columns:1fr; }
   .template-picker-grid { grid-template-columns:1fr; }
   .checkpoint-criteria { grid-template-columns:1fr; }
+  .deals-grid { grid-template-columns:1fr 1fr; }
+  .next-events-grid { grid-template-columns:1fr 1fr; }
+  .dre-summary-bar { grid-template-columns:1fr 1fr; }
+  .member-kanban-grid { grid-template-columns:1fr 1fr; }
 }
+
+/* ===== RESPONSIVE: MOBILE ===== */
 @media (max-width:768px) {
+  /* Sidebar: off-canvas */
   .sidebar { position:fixed; top:0; left:0; height:100%; transform:translateX(-100%); z-index:200; }
   .sidebar.open { transform:translateX(0); }
   .sidebar-overlay.active { display:block; }
   .mobile-menu-btn { display:flex; align-items:center; justify-content:center; }
-  .main-content { padding:20px; padding-top:72px; }
-  .kpi-grid { grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; }
-  .kpi-value { font-size:24px; }
-  .page-title { font-size:24px; }
-  .event-hero { padding:28px; border-radius:var(--radius-lg); }
-  .event-hero h1 { font-size:22px; }
-  .event-hero .kpis { gap:20px; }
-  .tabs-nav { gap:0; }
-  .tab-btn { padding:12px 16px; }
-  .modal { max-width:95vw; border-radius:var(--radius-lg); }
+
+  /* Main content */
+  .main-content { padding:16px; padding-top:68px; }
+
+  /* Typography */
+  .page-title { font-size:22px; }
+  .page-subtitle { font-size:12px; }
+  .page-header { margin-bottom:20px; gap:10px; }
+
+  /* KPIs: 2 colunas no mobile */
+  .kpi-grid { grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px; }
+  .kpi-card { padding:16px; }
+  .kpi-value { font-size:22px; }
+  .kpi-label { font-size:10px; }
+
+  /* Cards */
+  .card-header { padding:14px 16px 12px; }
+  .card-body { padding:16px; }
+
+  /* Buttons */
+  .btn { padding:8px 14px; font-size:12px; }
+  .btn-sm { padding:6px 10px; font-size:11px; }
+  .page-header .btn-primary { font-size:12px; padding:8px 14px; }
+
+  /* Event hero */
+  .event-hero { padding:22px; border-radius:var(--radius-lg); }
+  .event-hero h1 { font-size:20px; }
+  .event-hero .meta { font-size:12px; }
+  .event-hero .kpis { gap:16px; margin-top:16px; }
+  .event-hero .kpi .v { font-size:20px; }
+  .event-hero .kpi .l { font-size:9px; }
+  .event-countdown { font-size:36px; right:20px; }
+
+  /* Tabs */
+  .tabs-nav { gap:0; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .tab-btn { padding:10px 14px; font-size:12px; white-space:nowrap; flex-shrink:0; }
+
+  /* Tables: horizontal scroll */
+  .card-body:has(table), .card > div:has(table) { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  table { min-width:520px; }
+  thead th { padding:10px 12px; font-size:10px; }
+  tbody td { padding:10px 12px; font-size:12px; }
+
+  /* Modal */
+  .modal { max-width:95vw; border-radius:var(--radius-lg); max-height:90vh; }
+  .modal-header { padding:18px 20px 14px; }
+  .modal-header h2 { font-size:16px; }
+  .modal-body { padding:18px 20px; }
+  .modal-footer { padding:14px 20px; flex-wrap:wrap; }
+
+  /* Grids: single column */
   .status-grid { grid-template-columns:1fr; }
-  .area-grid { grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); }
+  .deals-grid { grid-template-columns:1fr; }
+  .next-events-grid { grid-template-columns:1fr; }
+  .area-grid { grid-template-columns:1fr 1fr; gap:10px; }
+  .template-grid { grid-template-columns:1fr; }
+  .alert-grid { grid-template-columns:1fr; }
+
+  /* Phase indicator: scroll horizontal */
+  .phase-indicator { gap:4px; padding-bottom:8px; }
+  .phase-dot { width:26px; height:26px; font-size:10px; }
+  .phase-label { font-size:10px; max-width:80px; }
+  .phase-connector { width:12px; }
+
+  /* Member kanban: single column on mobile */
+  .member-kanban-grid { grid-template-columns:1fr; }
+  .member-card { flex-direction:column; text-align:center; gap:12px; }
+  .member-stats { justify-content:center; }
+
+  /* Deal cards */
+  .deal-card { padding:14px 16px; }
+  .deal-card-company { font-size:14px; }
+  .deal-card-value { font-size:16px; }
+  .deal-card-dates { flex-direction:column; gap:4px; }
+  .deal-card-actions { flex-wrap:wrap; }
+
+  /* DRE */
+  .dre-item { grid-template-columns:1fr 50px 90px 90px 80px 32px; padding:8px 12px; font-size:12px; }
+  .dre-item-header { grid-template-columns:1fr 50px 90px 90px 80px 32px; padding:6px 12px; }
+  .dre-summary-bar { grid-template-columns:1fr 1fr; }
+
+  /* Charts */
+  .charts-grid { grid-template-columns:1fr; gap:14px; }
+
+  /* Filters */
+  .filters-bar { flex-direction:column; align-items:stretch; }
+  .filter-select, .search-input { width:100%; }
+
+  /* Timeline */
+  .timeline-bar { padding:16px; }
+}
+
+/* ===== RESPONSIVE: SMALL MOBILE ===== */
+@media (max-width:420px) {
+  .main-content { padding:12px; padding-top:64px; }
+  .kpi-grid { grid-template-columns:1fr 1fr; gap:8px; }
+  .kpi-card { padding:12px; }
+  .kpi-value { font-size:20px; }
+  .page-title { font-size:20px; }
+  .event-hero { padding:18px; }
+  .event-hero h1 { font-size:18px; }
+  .event-hero .kpis { gap:12px; flex-direction:row; flex-wrap:wrap; }
+  .event-hero .kpi .v { font-size:18px; }
+  .area-grid { grid-template-columns:1fr; }
+  .form-row { grid-template-columns:1fr; }
+  table { min-width:400px; }
 }
 </style>
 </head>
@@ -1180,7 +1279,7 @@ function renderDashboardMember() {
   ];
 
   let kanbanHtml = '<h3 style="font-size:15px;font-weight:700;margin-bottom:14px;">Minhas Tarefas</h3>' +
-    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:24px;">';
+    '<div class="member-kanban-grid">';
   kanbanCols.forEach(col => {
     kanbanHtml += '<div class="card" style="border-top:3px solid ' + col.color + ';">' +
       '<div class="card-header" style="padding:12px 16px;"><h4 style="font-size:13px;font-weight:700;">' + col.title + ' <span style="opacity:0.5;font-weight:400;">(' + col.tasks.length + ')</span></h4></div>' +
