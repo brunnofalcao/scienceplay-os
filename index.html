@@ -97,7 +97,7 @@ body { font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-seri
 .mobile-menu-btn { display:none; position:fixed; top:16px; left:16px; z-index:98; background:var(--sidebar-bg); color:#fff; border:none; border-radius:12px; width:44px; height:44px; font-size:20px; cursor:pointer; box-shadow:0 4px 16px rgba(0,0,0,0.15); }
 
 /* MAIN */
-.main-content { flex:1; overflow-y:auto; overflow-x:hidden; padding:36px 40px; background:var(--bg); }
+.main-content { flex:1; min-width:0; overflow-y:auto; padding:36px 40px; background:var(--bg); }
 .page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:32px; flex-wrap:wrap; gap:14px; }
 .page-title { font-size:28px; font-weight:700; color:var(--text); letter-spacing:-0.6px; }
 .page-subtitle { font-size:13px; color:var(--text-muted); margin-top:4px; font-weight:400; }
@@ -336,7 +336,7 @@ textarea.form-control { resize:vertical; min-height:88px; }
 .dre-view-toggle { display:inline-flex; background:rgba(0,0,0,0.04); border-radius:var(--radius); padding:3px; gap:2px; }
 .dre-view-btn { padding:7px 16px; border-radius:calc(var(--radius) - 2px); font-size:13px; font-weight:600; border:none; cursor:pointer; background:transparent; color:var(--text-secondary); transition:all 0.2s var(--ease); }
 .dre-view-btn.active { background:var(--card-bg); color:var(--text-primary); box-shadow:0 1px 3px rgba(0,0,0,0.08); }
-.dre-section { margin-bottom:2px; }
+.dre-section { margin-bottom:2px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
 .dre-section-header { display:flex; align-items:center; gap:10px; padding:12px 18px; background:rgba(0,0,0,0.03); border-bottom:1px solid var(--border); cursor:pointer; user-select:none; transition:background 0.15s; }
 .dre-section-header:hover { background:rgba(0,0,0,0.05); }
 .dre-section-header .chevron { font-size:11px; color:var(--text-muted); transition:transform 0.2s var(--ease); }
@@ -400,11 +400,14 @@ textarea.form-control { resize:vertical; min-height:88px; }
 .btn-success:hover { background:#059669; }
 
 /* PHASE INDICATOR */
-.phase-indicator { display:flex; align-items:center; gap:6px; margin-bottom:28px; overflow-x:auto; padding:6px 0; }
-.phase-step { display:flex; align-items:center; gap:5px; }
-.phase-dot { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; flex-shrink:0; transition:transform var(--duration); }
-.phase-label { font-size:11px; font-weight:500; white-space:nowrap; max-width:120px; overflow:hidden; text-overflow:ellipsis; color:var(--text-secondary); }
-.phase-connector { width:20px; height:2px; background:var(--border); flex-shrink:0; }
+.phase-indicator { display:flex; align-items:center; gap:0; margin-bottom:28px; padding:6px 0; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+.phase-step { display:flex; align-items:center; gap:8px; padding:10px 12px; flex:1; min-width:0; position:relative; }
+.phase-step:not(:last-child)::after { content:''; position:absolute; right:0; top:20%; height:60%; width:1px; background:var(--border); }
+.phase-dot { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; flex-shrink:0; transition:transform var(--duration); }
+.phase-label { font-size:11px; font-weight:500; color:var(--text-secondary); line-height:1.3; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+.phase-step.phase-current { background:rgba(124,58,237,0.04); }
+.phase-step.phase-current .phase-label { font-weight:700; }
+.phase-connector { display:none; }
 
 /* AREA CARDS */
 .area-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:14px; margin-bottom:28px; }
@@ -449,7 +452,7 @@ textarea.form-control { resize:vertical; min-height:88px; }
 .next-event-countdown { font-size:36px; font-weight:700; color:var(--purple); line-height:1; letter-spacing:-1.5px; }
 
 /* PAGES */
-.page { display:none; }
+.page { display:none; max-width:100%; }
 .page.active { display:block; animation:pageIn 0.3s var(--ease); }
 @keyframes pageIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 .empty-state { text-align:center; padding:60px 20px; color:var(--text-muted); }
@@ -541,11 +544,12 @@ textarea.form-control { resize:vertical; min-height:88px; }
   .template-grid { grid-template-columns:1fr; }
   .alert-grid { grid-template-columns:1fr; }
 
-  /* Phase indicator: scroll horizontal */
-  .phase-indicator { gap:4px; padding-bottom:8px; }
-  .phase-dot { width:26px; height:26px; font-size:10px; }
-  .phase-label { font-size:10px; max-width:80px; }
-  .phase-connector { width:12px; }
+  /* Phase indicator: stack compact */
+  .phase-indicator { flex-wrap:wrap; border-radius:var(--radius); }
+  .phase-step { padding:8px 10px; flex:0 0 auto; min-width:fit-content; }
+  .phase-dot { width:24px; height:24px; font-size:10px; }
+  .phase-label { font-size:10px; display:none; }
+  .phase-step.phase-current .phase-label { display:block; }
 
   /* Member kanban: single column on mobile */
   .member-kanban-grid { grid-template-columns:1fr; }
@@ -586,6 +590,7 @@ textarea.form-control { resize:vertical; min-height:88px; }
   .event-hero h1 { font-size:18px; }
   .event-hero .kpis { gap:12px; flex-direction:row; flex-wrap:wrap; }
   .event-hero .kpi .v { font-size:18px; }
+  .event-countdown { display:none; }
   .area-grid { grid-template-columns:1fr; }
   .form-row { grid-template-columns:1fr; }
   table { min-width:400px; }
@@ -801,7 +806,7 @@ textarea.form-control { resize:vertical; min-height:88px; }
 
 <!-- MODAL: Detalhe da Negociação -->
 <div class="modal-overlay" id="modal-deal-detail-overlay">
-  <div class="modal" style="width:620px;">
+  <div class="modal" style="width:620px;max-width:95vw;">
     <div class="modal-header">
       <h2 id="deal-detail-title">Detalhes</h2>
       <button class="modal-close" onclick="closeDealDetailModal()">&times;</button>
@@ -1624,10 +1629,14 @@ function renderEventCentral(ev, container) {
     const p = PHASES[pk];
     const isCurrent = pk === phase;
     const isPast = PHASE_KEYS.indexOf(pk) < PHASE_KEYS.indexOf(phase);
-    html += '<div class="phase-step">';
-    html += '<div class="phase-dot" style="background:' + (isCurrent ? p.color : isPast ? p.color : '#E5E7EB') + ';' + (isCurrent ? 'box-shadow:0 0 0 4px ' + p.color + '33;' : '') + '">' + pk.replace('F','') + '</div>';
-    html += '<div class="phase-label" style="color:' + (isCurrent ? p.color : 'var(--text-muted)') + '">' + p.name + '</div>';
-    if (i < PHASE_KEYS.length - 1) html += '<div class="phase-connector" style="background:' + (isPast ? p.color : 'var(--border)') + '"></div>';
+    const stepClass = isCurrent ? ' phase-current' : '';
+    const dotBg = isCurrent ? p.color : isPast ? p.color : '#E5E7EB';
+    const dotShadow = isCurrent ? 'box-shadow:0 0 0 3px ' + p.color + '33;' : '';
+    const labelColor = isCurrent ? p.color : isPast ? 'var(--text-secondary)' : 'var(--text-muted)';
+    const opacity = !isCurrent && !isPast ? 'opacity:0.5;' : '';
+    html += '<div class="phase-step' + stepClass + '" style="' + opacity + '">';
+    html += '<div class="phase-dot" style="background:' + dotBg + ';' + dotShadow + '">' + pk.replace('F','') + '</div>';
+    html += '<div class="phase-label" style="color:' + labelColor + '" title="' + p.name + ' (' + p.period + ')">' + p.name + '</div>';
     html += '</div>';
   });
   html += '</div>';
