@@ -1527,7 +1527,8 @@ async function cycleTaskStatus(taskId) {
   const idx = cycle.indexOf(current);
   const next = cycle[(idx + 1) % cycle.length];
   const done = next === 'concluida';
-  await sb.from('tasks').update({ task_status: next, done: done, completed_at: done ? new Date().toISOString() : null }).eq('id', taskId);
+  const { error } = await sb.from('tasks').update({ task_status: next, done: done, completed_at: done ? new Date().toISOString() : null }).eq('id', taskId);
+  if (error) { console.error('Erro ao atualizar status:', error); return; }
   t.task_status = next; t.done = done; t.completed_at = done ? new Date().toISOString() : null;
   renderCurrentPage();
 }
@@ -2320,7 +2321,7 @@ async function saveTask(eventId) {
   const ev = state.events.find(e => e.id === eventId);
   const dueDate = $('task-due').value || null;
   const dayOff = ev && ev.event_date && dueDate ? Math.round((new Date(dueDate+'T12:00:00') - new Date(ev.event_date+'T12:00:00')) / 86400000) : null;
-  await sb.from('tasks').insert({
+  const { error } = await sb.from('tasks').insert({
     event_id: eventId, title: title, area: $('task-area').value || null,
     phase_code: $('task-phase-code').value || null,
     priority: $('task-prio').value || 'media', due_date: dueDate,
@@ -2330,6 +2331,7 @@ async function saveTask(eventId) {
     dependency: $('task-dependency').value || null,
     day_offset: dayOff, done: false, task_status: 'pendente',
   });
+  if (error) { console.error('Erro ao criar tarefa:', error); alert('Erro ao criar tarefa: ' + error.message); return; }
   closeModal();
   await refreshTable('tasks');
 }
@@ -2363,22 +2365,29 @@ async function updateTask(taskId) {
   const title = $('edit-task-title').value.trim();
   if (!title) return;
   const t = state.tasks.find(tk => tk.id === taskId);
-  const ev = t ? state.events.find(e => e.id === t.event_id) : null;
+  if (!t) return;
+  const ev = state.events.find(e => e.id === t.event_id);
   const dueDate = $('edit-task-due').value || null;
   const dayOff = ev && ev.event_date && dueDate ? Math.round((new Date(dueDate+'T12:00:00') - new Date(ev.event_date+'T12:00:00')) / 86400000) : null;
   const newStatus = $('edit-task-status').value || 'pendente';
   const done = newStatus === 'concluida';
-  await sb.from('tasks').update({
-    title: title, area: $('edit-task-area').value || null,
-    phase_code: $('edit-task-phase-code').value || null,
+  // Preserve phase_code: if select is empty but task had one, keep original
+  const phaseVal = $('edit-task-phase-code').value;
+  const phaseCode = phaseVal || t.phase_code || null;
+  const payload = {
+    title: title, area: $('edit-task-area').value || t.area || null,
+    phase_code: phaseCode,
     priority: $('edit-task-prio').value || 'media', due_date: dueDate,
     assigned_to: $('edit-task-assigned').value || null,
     responsible_role: $('edit-task-role').value || null,
     done_criteria: $('edit-task-done-criteria').value || null,
     dependency: $('edit-task-dependency').value || null,
-    day_offset: dayOff, task_status: newStatus, done: done,
+    day_offset: dayOff != null ? dayOff : t.day_offset,
+    task_status: newStatus, done: done,
     completed_at: done ? new Date().toISOString() : null,
-  }).eq('id', taskId);
+  };
+  const { error } = await sb.from('tasks').update(payload).eq('id', taskId);
+  if (error) { console.error('Erro ao salvar tarefa:', error); alert('Erro ao salvar tarefa: ' + error.message); return; }
   closeModal();
   await refreshTable('tasks');
 }
