@@ -502,9 +502,9 @@ textarea.form-control { resize:vertical; min-height:88px; }
       <div class="sidebar-item active" data-page="dashboard" onclick="navigateTo('dashboard')"><span class="icon">&#128202;</span> Dashboard</div>
       <div class="sidebar-item" data-page="eventos" onclick="navigateTo('eventos')"><span class="icon">&#127919;</span> Eventos</div>
       <div class="sidebar-item" data-page="timeline" onclick="navigateTo('timeline')"><span class="icon">&#128197;</span> Timeline</div>
-      <div class="sidebar-item" data-page="financeiro" onclick="navigateTo('financeiro')"><span class="icon">&#128176;</span> Financeiro</div>
-      <div class="sidebar-item" data-page="equipe" onclick="navigateTo('equipe')"><span class="icon">&#128101;</span> Equipe</div>
-      <div class="sidebar-item" data-page="templates" onclick="navigateTo('templates')"><span class="icon">&#128203;</span> Templates POP</div>
+      <div class="sidebar-item admin-only" data-page="financeiro" onclick="navigateTo('financeiro')"><span class="icon">&#128176;</span> Financeiro</div>
+      <div class="sidebar-item admin-only" data-page="equipe" onclick="navigateTo('equipe')"><span class="icon">&#128101;</span> Equipe</div>
+      <div class="sidebar-item admin-only" data-page="templates" onclick="navigateTo('templates')"><span class="icon">&#128203;</span> Templates POP</div>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-label">Eventos Ativos</div>
@@ -524,16 +524,19 @@ textarea.form-control { resize:vertical; min-height:88px; }
       <div class="page-header"><div><div class="page-title" id="dashboard-greeting">Bom dia</div><div class="page-subtitle" id="dashboard-date"></div></div></div>
       <div class="kpi-grid" id="dashboard-kpis"></div>
       <div id="dashboard-alerts-section"></div>
-      <h3 style="font-size:15px;font-weight:700;margin-bottom:14px;">Proximos Eventos</h3>
-      <div class="next-events-grid" id="dashboard-next-events"></div>
-      <div class="timeline-bar" id="dashboard-timeline">
-        <h3>Timeline Anual <span id="timeline-year-label"></span></h3>
-        <div class="timeline-months" id="timeline-months"></div>
-        <div class="timeline-events" id="timeline-events" style="min-height:40px;"></div>
+      <div id="dashboard-next-events"></div>
+      <div id="dashboard-timeline-section">
+        <div class="timeline-bar" id="dashboard-timeline">
+          <h3>Timeline Anual <span id="timeline-year-label"></span></h3>
+          <div class="timeline-months" id="timeline-months"></div>
+          <div class="timeline-events" id="timeline-events" style="min-height:40px;"></div>
+        </div>
       </div>
-      <div class="charts-grid">
-        <div class="card chart-card"><div class="card-header"><h3>Receita por Mes</h3></div><div class="card-body"><canvas id="chart-receita-mes"></canvas></div></div>
-        <div class="card chart-card"><div class="card-header"><h3>Receita por Evento</h3></div><div class="card-body"><canvas id="chart-receita-evento"></canvas></div></div>
+      <div id="dashboard-charts-section">
+        <div class="charts-grid">
+          <div class="card chart-card"><div class="card-header"><h3>Receita por Mes</h3></div><div class="card-body"><canvas id="chart-receita-mes"></canvas></div></div>
+          <div class="card chart-card"><div class="card-header"><h3>Receita por Evento</h3></div><div class="card-body"><canvas id="chart-receita-evento"></canvas></div></div>
+        </div>
       </div>
     </div>
 
@@ -834,7 +837,10 @@ function showApp() {
   $('sidebar-user-name').textContent = p.name || state.user.email;
   $('sidebar-user-role').textContent = p.role === 'admin' ? 'Administrador' : 'Membro';
   $('sidebar-avatar').textContent = initials(p.name || state.user.email);
-  if (p.role !== 'admin') { $('btn-invite-member').style.display = 'none'; }
+  if (p.role !== 'admin') {
+    $('btn-invite-member').style.display = 'none';
+    qsa('.admin-only').forEach(el => el.style.display = 'none');
+  }
   updateGreeting();
   navigateTo('dashboard');
 }
@@ -975,11 +981,11 @@ function goBackFromEvent() { navigateTo('eventos'); }
 
 function renderCurrentPage() {
   switch(state.currentPage) {
-    case 'dashboard': renderDashboardCEO(); break;
+    case 'dashboard': state.profile?.role === 'admin' ? renderDashboardCEO() : renderDashboardMember(); break;
     case 'eventos': renderEventsList(); break;
-    case 'financeiro': renderFinanceiro(); break;
-    case 'equipe': renderEquipe(); break;
-    case 'templates': renderTemplatesList(); break;
+    case 'financeiro': if (state.profile?.role === 'admin') renderFinanceiro(); else navigateTo('dashboard'); break;
+    case 'equipe': if (state.profile?.role === 'admin') renderEquipe(); else navigateTo('dashboard'); break;
+    case 'templates': if (state.profile?.role === 'admin') renderTemplatesList(); else navigateTo('dashboard'); break;
     case 'timeline': renderTimelinePage(); break;
     case 'event-detail': renderEventDetail(); break;
     case 'template-detail': renderTemplateDetail(); break;
@@ -1036,11 +1042,116 @@ function renderDashboardCEO() {
   // Next Events
   renderDashboardNextEvents();
 
-  // Timeline
+  // Timeline + Charts (visible for admin)
+  $('dashboard-timeline-section').style.display = '';
+  $('dashboard-charts-section').style.display = '';
   renderDashboardTimeline(year);
-
-  // Charts
   renderCharts(year);
+}
+
+// ============================================================
+// DASHBOARD MEMBER — Foco 100% operacional
+// ============================================================
+function renderDashboardMember() {
+  const myId = state.user?.id;
+  const allTasks = state.tasks;
+  const myTasks = allTasks.filter(t => t.assigned_to === myId);
+  const myOverdue = myTasks.filter(t => getEffectiveStatus(t) === 'atrasada');
+  const myPending = myTasks.filter(t => !t.done && getEffectiveStatus(t) !== 'bloqueada');
+  const myDone = myTasks.filter(t => t.done);
+  const myBlocked = myTasks.filter(t => getEffectiveStatus(t) === 'bloqueada');
+  const myInProgress = myTasks.filter(t => t.task_status === 'em_andamento');
+
+  // KPIs operacionais
+  $('dashboard-kpis').innerHTML =
+    '<div class="kpi-card"><div class="kpi-label">Minhas Tarefas</div><div class="kpi-value purple">' + myTasks.length + '</div></div>' +
+    '<div class="kpi-card"><div class="kpi-label">Em Andamento</div><div class="kpi-value">' + myInProgress.length + '</div></div>' +
+    '<div class="kpi-card"><div class="kpi-label">Pendentes</div><div class="kpi-value ' + (myPending.length > 5 ? 'red' : '') + '">' + myPending.length + '</div></div>' +
+    '<div class="kpi-card"><div class="kpi-label">Atrasadas</div><div class="kpi-value ' + (myOverdue.length > 0 ? 'red' : 'green') + '">' + myOverdue.length + '</div></div>' +
+    '<div class="kpi-card"><div class="kpi-label">Concluidas</div><div class="kpi-value green">' + myDone.length + '</div></div>' +
+    '<div class="kpi-card"><div class="kpi-label">Bloqueadas</div><div class="kpi-value ' + (myBlocked.length > 0 ? 'red' : '') + '">' + myBlocked.length + '</div></div>';
+
+  // Alertas para membro
+  let alertsHtml = '';
+  if (myOverdue.length > 0) {
+    alertsHtml += '<h3 style="font-size:15px;font-weight:700;margin-bottom:14px;color:var(--red);">Atencao Imediata</h3><div class="alert-grid">' +
+      '<div class="alert-card" style="border-left:3px solid var(--red)"><div class="alert-icon" style="background:var(--red-bg)">⏰</div><div><h4>' + myOverdue.length + ' tarefa' + (myOverdue.length > 1 ? 's' : '') + ' atrasada' + (myOverdue.length > 1 ? 's' : '') + '</h4><p>Precisam ser resolvidas agora</p></div></div></div>';
+  }
+  if (myBlocked.length > 0) {
+    alertsHtml += '<div class="alert-grid" style="margin-top:8px;">' +
+      '<div class="alert-card" style="border-left:3px solid #F59E0B"><div class="alert-icon" style="background:var(--yellow-bg)">🛑</div><div><h4>' + myBlocked.length + ' tarefa' + (myBlocked.length > 1 ? 's' : '') + ' bloqueada' + (myBlocked.length > 1 ? 's' : '') + '</h4><p>Dependencias pendentes</p></div></div></div>';
+  }
+  $('dashboard-alerts-section').innerHTML = alertsHtml;
+
+  // Kanban: Atrasadas → Em Andamento → Pendentes → Concluídas recentes
+  const recentDone = myDone.sort((a,b) => (b.completed_at||'').localeCompare(a.completed_at||'')).slice(0, 5);
+  const kanbanCols = [
+    { title: '🔴 Atrasadas', tasks: myOverdue, color: '#EF4444', emptyMsg: 'Nenhuma atrasada' },
+    { title: '🔵 Em Andamento', tasks: myInProgress, color: '#3B82F6', emptyMsg: 'Nenhuma em andamento' },
+    { title: '⚪ Pendentes', tasks: myPending.filter(t => t.task_status !== 'em_andamento'), color: '#8B5CF6', emptyMsg: 'Nenhuma pendente' },
+    { title: '✅ Recém Concluidas', tasks: recentDone, color: '#10B981', emptyMsg: 'Nenhuma concluida ainda' },
+  ];
+
+  let kanbanHtml = '<h3 style="font-size:15px;font-weight:700;margin-bottom:14px;">Minhas Tarefas</h3>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:24px;">';
+  kanbanCols.forEach(col => {
+    kanbanHtml += '<div class="card" style="border-top:3px solid ' + col.color + ';">' +
+      '<div class="card-header" style="padding:12px 16px;"><h4 style="font-size:13px;font-weight:700;">' + col.title + ' <span style="opacity:0.5;font-weight:400;">(' + col.tasks.length + ')</span></h4></div>' +
+      '<div class="card-body" style="padding:8px 12px;max-height:400px;overflow-y:auto;">';
+    if (col.tasks.length === 0) {
+      kanbanHtml += '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px;">' + col.emptyMsg + '</div>';
+    } else {
+      col.tasks.forEach(t => {
+        const ev = state.events.find(e => e.id === t.event_id);
+        const evName = ev ? ev.name : '';
+        const shortEvent = evName.length > 25 ? evName.slice(0,25) + '...' : evName;
+        const dd = t.due_date ? daysDiff(t.due_date) : null;
+        const dueLabel = dd !== null ? (dd >= 0 ? 'em ' + dd + 'd' : Math.abs(dd) + 'd atrás') : '';
+        const dueColor = dd !== null && dd < 0 ? 'var(--red)' : 'var(--text-muted)';
+        kanbanHtml += '<div style="background:var(--bg);border-radius:8px;padding:10px 12px;margin-bottom:8px;cursor:pointer;border:1px solid var(--border);transition:box-shadow 0.15s;" ' +
+          'onmouseover="this.style.boxShadow=\'var(--card-shadow-hover)\'" onmouseout="this.style.boxShadow=\'none\'" ' +
+          'onclick="navigateTo(\'event-detail\',{eventId:\'' + t.event_id + '\'})">' +
+          '<div style="font-size:13px;font-weight:600;margin-bottom:4px;">' + escHtml(t.title) + '</div>' +
+          '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">' +
+          '<span style="font-size:10px;color:var(--text-muted);background:var(--card-bg);border:1px solid var(--border);border-radius:4px;padding:1px 6px;">' + escHtml(shortEvent) + '</span>' +
+          (t.phase_code ? '<span style="font-size:10px;color:' + (PHASES[t.phase_code]?.color || '#999') + ';font-weight:600;">' + t.phase_code + '</span>' : '') +
+          (dueLabel ? '<span style="font-size:10px;color:' + dueColor + ';">' + dueLabel + '</span>' : '') +
+          '</div></div>';
+      });
+    }
+    kanbanHtml += '</div></div>';
+  });
+  kanbanHtml += '</div>';
+  $('dashboard-next-events').innerHTML = kanbanHtml;
+
+  // Próximos prazos (próximas 7 tasks por due_date)
+  const today = new Date().toISOString().slice(0,10);
+  const upcomingTasks = myPending.filter(t => t.due_date && t.due_date >= today)
+    .sort((a,b) => a.due_date.localeCompare(b.due_date)).slice(0, 7);
+  let upHtml = '<h3 style="font-size:15px;font-weight:700;margin-bottom:14px;">Proximos Prazos</h3>';
+  if (upcomingTasks.length === 0) {
+    upHtml += '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Nenhum prazo proximo</div>';
+  } else {
+    upHtml += '<div class="card"><div class="card-body" style="padding:0;">';
+    upcomingTasks.forEach(t => {
+      const ev = state.events.find(e => e.id === t.event_id);
+      const dd = daysDiff(t.due_date);
+      const urgency = dd <= 2 ? 'var(--red)' : dd <= 7 ? '#F59E0B' : 'var(--text-muted)';
+      upHtml += '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;" ' +
+        'onclick="navigateTo(\'event-detail\',{eventId:\'' + t.event_id + '\'})">' +
+        '<div style="min-width:50px;text-align:center;"><div style="font-size:20px;font-weight:800;color:' + urgency + ';">D-' + Math.max(0,dd) + '</div></div>' +
+        '<div style="flex:1;"><div style="font-size:13px;font-weight:600;">' + escHtml(t.title) + '</div>' +
+        '<div style="font-size:11px;color:var(--text-muted);">' + (ev ? escHtml(ev.name) : '') + ' &middot; ' + formatDate(t.due_date) +
+        (t.phase_code ? ' &middot; ' + t.phase_code : '') + '</div></div>' +
+        '<button class="btn btn-sm btn-outline" style="font-size:11px;" onclick="event.stopPropagation();cycleTaskStatus(\'' + t.id + '\')">⟳</button></div>';
+    });
+    upHtml += '</div></div>';
+  }
+
+  // Timeline do membro: não mostra
+  $('dashboard-timeline-section').innerHTML = upHtml;
+  // Charts do membro: não mostra
+  $('dashboard-charts-section').innerHTML = '';
 }
 
 function renderDashboardAlerts() {
@@ -1087,11 +1198,11 @@ function renderDashboardNextEvents() {
     .slice(0, 3);
 
   if (upcoming.length === 0) {
-    $('dashboard-next-events').innerHTML = '<div class="empty-state" style="padding:20px"><p>Nenhum evento futuro</p></div>';
+    $('dashboard-next-events').innerHTML = '<h3 style="font-size:15px;font-weight:700;margin-bottom:14px;">Proximos Eventos</h3><div class="empty-state" style="padding:20px"><p>Nenhum evento futuro</p></div>';
     return;
   }
 
-  $('dashboard-next-events').innerHTML = upcoming.map(e => {
+  $('dashboard-next-events').innerHTML = '<h3 style="font-size:15px;font-weight:700;margin-bottom:14px;">Proximos Eventos</h3><div class="next-events-grid">' + upcoming.map(e => {
     const d = daysDiff(e.event_date);
     const tasks = state.tasks.filter(t => t.event_id === e.id);
     const done = tasks.filter(t => t.done).length;
@@ -1109,7 +1220,7 @@ function renderDashboardNextEvents() {
       '<div><div style="font-size:18px;font-weight:700;">' + pct + '%</div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;">Tarefas</div></div>' +
       '<div><span class="badge badge-purple">' + phase + '</span></div></div>' +
       '<div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:' + pct + '%"></div></div></div>';
-  }).join('');
+  }).join('') + '</div>';
 }
 
 function renderDashboardTimeline(year) {
@@ -1228,7 +1339,7 @@ function renderEventsList() {
         '<span class="badge badge-gray">' + phase + '</span></div>' +
         '<div class="progress-bar-wrap" style="margin-bottom:10px;"><div class="progress-bar-fill" style="width:' + pct + '%"></div></div>' +
         '<div class="status-card-metrics">' +
-        '<div class="status-card-metric"><div class="val">' + formatCurrency(rec) + '</div><div class="lbl">Receita</div></div>' +
+        (state.profile?.role === 'admin' ? '<div class="status-card-metric"><div class="val">' + formatCurrency(rec) + '</div><div class="lbl">Receita</div></div>' : '') +
         '<div class="status-card-metric"><div class="val">' + pct + '%</div><div class="lbl">Progresso</div></div>' +
         '<div class="status-card-metric"><div class="val">' + done + '/' + total + '</div><div class="lbl">Tarefas</div></div></div></div>';
     }).join('');
@@ -1257,21 +1368,24 @@ function renderEventDetail() {
   const isAdmin = state.profile?.role === 'admin';
   const isEncerrado = ev.status === 'encerrado' || ev.status === 'pos-evento';
 
-  let heroButtons = '<div style="position:absolute;top:20px;right:20px;display:flex;gap:8px;">';
-  if (isEncerrado) heroButtons += '<button class="btn btn-sm" style="background:rgba(16,185,129,0.3);color:#fff;" onclick="reopenEvent(\'' + ev.id + '\')">Reabrir</button>';
-  heroButtons += '<button class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:#fff;" onclick="openEditEvent(\'' + ev.id + '\')">Editar</button>';
-  if (isAdmin) heroButtons += '<button class="btn btn-sm" style="background:rgba(239,68,68,0.3);color:#fff;" onclick="deleteEvent(\'' + ev.id + '\')">Excluir</button>';
-  heroButtons += '</div>';
+  let heroButtons = '';
+  if (isAdmin) {
+    heroButtons = '<div style="position:absolute;top:20px;right:20px;display:flex;gap:8px;">';
+    if (isEncerrado) heroButtons += '<button class="btn btn-sm" style="background:rgba(16,185,129,0.3);color:#fff;" onclick="reopenEvent(\'' + ev.id + '\')">Reabrir</button>';
+    heroButtons += '<button class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:#fff;" onclick="openEditEvent(\'' + ev.id + '\')">Editar</button>';
+    heroButtons += '<button class="btn btn-sm" style="background:rgba(239,68,68,0.3);color:#fff;" onclick="deleteEvent(\'' + ev.id + '\')">Excluir</button>';
+    heroButtons += '</div>';
+  }
 
   $('event-detail-hero').innerHTML = heroButtons +
     '<div class="event-countdown">' + countdown + '</div>' +
     '<h1>' + escHtml(ev.name) + '</h1>' +
     '<div class="meta">' + eventTypeLabel(ev.type) + ' &middot; ' + formatDate(ev.event_date) + (ev.end_date ? ' a ' + formatDate(ev.end_date) : '') + ' &middot; ' + (ev.status || '') + ' &middot; Fase ' + phase + '</div>' +
     '<div class="kpis">' +
-    '<div class="kpi"><div class="v">' + formatCurrency(rec) + '</div><div class="l">Receita</div></div>' +
+    (isAdmin ? '<div class="kpi"><div class="v">' + formatCurrency(rec) + '</div><div class="l">Receita</div></div>' +
     '<div class="kpi"><div class="v">' + formatCurrency(cus) + '</div><div class="l">Custos</div></div>' +
     '<div class="kpi"><div class="v">' + formatCurrency(resultado) + '</div><div class="l">Resultado</div></div>' +
-    '<div class="kpi"><div class="v">' + formatPct(margem) + '</div><div class="l">Margem</div></div>' +
+    '<div class="kpi"><div class="v">' + formatPct(margem) + '</div><div class="l">Margem</div></div>' : '') +
     '<div class="kpi"><div class="v">' + pct + '%</div><div class="l">Conclusao</div></div>' +
     '<div class="kpi"><div class="v">' + done + '/' + total + '</div><div class="l">Tarefas</div></div></div>';
 
@@ -1279,7 +1393,7 @@ function renderEventDetail() {
     { id: 'central', label: 'Central' },
     { id: 'operacional', label: 'Operacional' },
     { id: 'timeline', label: 'Timeline' },
-    { id: 'dre', label: 'DRE' },
+    ...(isAdmin ? [{ id: 'dre', label: 'DRE' }] : []),
     { id: 'gonogo', label: 'Go/No-Go' },
     { id: 'feed', label: 'Feed' },
   ];
