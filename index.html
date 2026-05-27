@@ -1452,7 +1452,7 @@ function renderEventOperacional(ev, container) {
     const pTotal = phaseTasks.length;
     const pPct = pTotal > 0 ? Math.round(pDone / pTotal * 100) : 0;
     const key = ev.id + '_' + pk;
-    const isCollapsed = state.collapsedPhases[key] !== undefined ? state.collapsedPhases[key] : (phaseTasks.length === 0);
+    const isCollapsed = state.collapsedPhases[key] !== undefined ? state.collapsedPhases[key] : true;
 
     html += '<div class="phase-column">' +
       '<div class="phase-column-header" style="background:' + p.color + '15;color:' + p.color + ';" onclick="togglePhaseCollapse(\'' + ev.id + '\',\'' + pk + '\')">' +
