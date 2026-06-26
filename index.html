@@ -631,7 +631,7 @@ textarea.form-control { resize:vertical; min-height:88px; }
 .score-ring svg { transform:rotate(-90deg); }
 .score-ring .score-value { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:36px; font-weight:800; letter-spacing:-2px; }
 .score-ring .score-label { position:absolute; top:50%; left:50%; transform:translate(-50%,16px); font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
-.score-category { display:grid; grid-template-columns:1fr auto auto; gap:8px; align-items:center; padding:10px 14px; border-bottom:1px solid var(--border); font-size:13px; }
+.score-category { display:grid; grid-template-columns:1fr 60px 60px 1fr 80px; gap:8px; align-items:center; padding:10px 14px; border-bottom:1px solid var(--border); font-size:13px; }
 .score-category:last-child { border-bottom:none; }
 .score-bar { width:100px; height:6px; background:rgba(0,0,0,0.06); border-radius:3px; overflow:hidden; }
 .score-bar-fill { height:100%; border-radius:3px; transition:width 0.5s var(--ease); }
@@ -1034,7 +1034,8 @@ const state = {
   charts: {}, collapsedPhases: {}, dreView: 'previsao', dreUnlocked: false,
   checklistFilters: { area: '', priority: '', status: '', search: '' },
   deals: [], dealEditingId: null, vendasTab: 'vd-dashboard',
-  ddItems: [], csStudents: null, csTab: 'all',
+  ddItems: [], csStudents: null, csTab: 'visao_geral',
+  csContacts: [], csTasks: [], csFilters: {}, csView: 'dashboard', csSelectedStudent: null, csProfileTab: 'resumo',
 };
 
 
@@ -1646,101 +1647,1343 @@ function saveDDItems() { localStorage.setItem('sp-os-dd-items', JSON.stringify(s
 function loadDDItems() { try { const s = localStorage.getItem('sp-os-dd-items'); if(s) state.ddItems = JSON.parse(s); } catch(e){} if(!state.ddItems) state.ddItems = []; }
 
 // ============================================================
-// CS DASHBOARD — GOLDEN & A MESA
+// CS MODULE — Customer Success Operational Dashboard
 // ============================================================
+
 function computeCSHealth(mentoria) {
-  const students = (state.csStudents||[]).filter(s => s.mentoria === mentoria);
-  if (students.length === 0) return 75; // Default
-  const avgHealth = students.reduce((s,st) => s + (st.healthScore||70), 0) / students.length;
+  var students = (state.csStudents || []).filter(function(s) { return s.mentoria === mentoria; });
+  if (students.length === 0) return 75;
+  var avgHealth = students.reduce(function(sum, st) { return sum + (st.healthScore || 70); }, 0) / students.length;
   return Math.round(avgHealth);
 }
 
-function renderCS() {
-  // Load CS data
-  loadCSData();
-  
-  const students = state.csStudents || [];
-  const goldenStudents = students.filter(s => s.mentoria === 'Golden');
-  const mesaStudents = students.filter(s => s.mentoria === 'A Mesa');
-  const atRisk = students.filter(s => s.healthScore < 50);
-  const renewalSoon = students.filter(s => {
-    if (!s.renewalDate) return false;
-    const diff = dealDaysFromNow(s.renewalDate);
-    return diff !== null && diff >= 0 && diff <= 60;
-  });
-  const inadimplentes = students.filter(s => s.financialStatus === 'inadimplente');
-  const avgNPS = students.length > 0 ? Math.round(students.reduce((s,st) => s + (st.nps||0), 0) / students.length) : 0;
+function computeHealthScore(student) {
+  var breakdown = [];
+  var total = 0;
 
-  let html = '<div class="page-header"><div><div class="page-title">CS — Customer Success</div><div class="page-subtitle">Acompanhamento de mentorados Golden Group e A Mesa</div></div>' +
-    '<button class="btn btn-primary" onclick="openAddStudent()">+ Novo Mentorado</button></div>';
+  // Factor 1: Presenca (25%)
+  var presScore = Math.min(100, Math.max(0, student.attendance || 0));
+  var presStatus = (typeof student.attendance === 'number') ? 'configured' : 'needs_config';
+  breakdown.push({ factor: 'Presenca', weight: 25, score: presScore, source: (student.attendance || 0) + '%', status: presStatus });
+  total += presScore * 0.25;
 
-  // KPIs
-  html += '<div class="kpi-grid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr));">' +
-    kpiCard('Mentorados Ativos', students.length, 'purple') +
-    kpiCard('Golden Group', goldenStudents.length, '') +
-    kpiCard('A Mesa', mesaStudents.length, '') +
-    kpiCard('Em Risco', atRisk.length, atRisk.length > 0 ? 'red' : 'green') +
-    kpiCard('Renovações (60d)', renewalSoon.length, renewalSoon.length > 0 ? '' : 'green') +
-    kpiCard('Inadimplentes', inadimplentes.length, inadimplentes.length > 0 ? 'red' : 'green') +
-    kpiCard('NPS Médio', avgNPS, avgNPS >= 8 ? 'green' : avgNPS >= 6 ? '' : 'red') +
-    '</div>';
-
-  // Tabs
-  html += '<div class="tabs-nav" style="margin-bottom:20px;">' +
-    '<button class="tab-btn '+(state.csTab==='all'||!state.csTab?'active':'')+'" onclick="state.csTab=\'all\';renderCS()">Todos</button>' +
-    '<button class="tab-btn '+(state.csTab==='golden'?'active':'')+'" onclick="state.csTab=\'golden\';renderCS()">Golden Group</button>' +
-    '<button class="tab-btn '+(state.csTab==='mesa'?'active':'')+'" onclick="state.csTab=\'mesa\';renderCS()">A Mesa</button>' +
-    '<button class="tab-btn '+(state.csTab==='risk'?'active':'')+'" onclick="state.csTab=\'risk\';renderCS()">Em Risco</button>' +
-    '</div>';
-
-  // Filtered students
-  let filtered = students;
-  if (state.csTab === 'golden') filtered = goldenStudents;
-  else if (state.csTab === 'mesa') filtered = mesaStudents;
-  else if (state.csTab === 'risk') filtered = atRisk;
-
-  if (filtered.length === 0) {
-    html += '<div class="empty-state"><div class="icon">👥</div><h3>Nenhum mentorado encontrado</h3><p>Adicione mentorados para começar o acompanhamento</p></div>';
-  } else {
-    html += '<div class="cs-grid">';
-    filtered.forEach(s => {
-      const riskClass = s.healthScore < 50 ? ' at-risk' : '';
-      const renewClass = (s.renewalDate && dealDaysFromNow(s.renewalDate) <= 60 && dealDaysFromNow(s.renewalDate) >= 0) ? ' renewal-soon' : '';
-      html += '<div class="cs-student-card'+riskClass+renewClass+'" onclick="openStudentDetail('+s.id+')">' +
-        '<div class="cs-student-top"><div class="cs-student-avatar">'+initials(s.name)+'</div><div class="cs-student-info"><h4>'+escHtml(s.name)+'</h4><p>'+escHtml(s.mentoria)+' &middot; '+escHtml(s.profession||'')+'</p></div>' +
-        '<span class="badge '+(s.mentoria==='Golden'?'badge-yellow':'badge-purple')+'">'+s.mentoria+'</span></div>' +
-        '<div class="cs-student-metrics">' +
-        '<div class="metric"><div class="val" style="color:'+(s.healthScore>=70?'var(--green)':s.healthScore>=40?'var(--yellow)':'var(--red)')+'">'+s.healthScore+'</div><div class="lbl">Health</div></div>' +
-        '<div class="metric"><div class="val">'+(s.nps||'—')+'</div><div class="lbl">NPS</div></div>' +
-        '<div class="metric"><div class="val">'+(s.attendance||0)+'%</div><div class="lbl">Presença</div></div>' +
-        '<div class="metric"><div class="val">'+formatCurrency(s.ticket||0)+'</div><div class="lbl">Ticket</div></div>' +
-        '</div></div>';
-    });
-    html += '</div>';
+  // Factor 2: NPS (20%)
+  var npsRaw = student.nps;
+  var npsScore = 0;
+  var npsStatus = 'needs_config';
+  if (typeof npsRaw === 'number' && npsRaw >= 0) {
+    npsScore = Math.round(npsRaw * 10);
+    npsStatus = 'configured';
   }
+  breakdown.push({ factor: 'NPS', weight: 20, score: npsScore, source: (npsRaw || 0) + '/10', status: npsStatus });
+  total += npsScore * 0.20;
+
+  // Factor 3: Pagamento (20%)
+  var finScore = 0;
+  var finStatus = 'configured';
+  if (student.financialStatus === 'adimplente') finScore = 100;
+  else if (student.financialStatus === 'parcial') finScore = 50;
+  else if (student.financialStatus === 'inadimplente') finScore = 0;
+  else finStatus = 'needs_config';
+  breakdown.push({ factor: 'Pagamento', weight: 20, score: finScore, source: student.financialStatus || 'N/A', status: finStatus });
+  total += finScore * 0.20;
+
+  // Factor 4: Interacao CS (15%)
+  var contactScore = 0;
+  var contactStatus = 'needs_config';
+  var dsc = student.daysSinceContact;
+  if (typeof dsc === 'number' && dsc >= 0) {
+    if (dsc <= 7) contactScore = 100;
+    else if (dsc <= 15) contactScore = 75;
+    else if (dsc <= 30) contactScore = 50;
+    else if (dsc <= 60) contactScore = 25;
+    else contactScore = 0;
+    contactStatus = 'configured';
+  }
+  breakdown.push({ factor: 'Interacao CS', weight: 15, score: contactScore, source: (typeof dsc === 'number' ? dsc + ' dias' : 'Sem contato'), status: contactStatus });
+  total += contactScore * 0.15;
+
+  // Factor 5: Renovacao (10%)
+  var renewScore = 0;
+  var renewStatus = 'needs_config';
+  if (student.renewalDate) {
+    var rDays = dealDaysFromNow(student.renewalDate);
+    if (rDays !== null) {
+      if (rDays > 120) renewScore = 100;
+      else if (rDays > 90) renewScore = 80;
+      else if (rDays > 60) renewScore = 60;
+      else if (rDays > 30) renewScore = 40;
+      else if (rDays > 0) renewScore = 20;
+      else renewScore = 0;
+      renewStatus = 'configured';
+    }
+  }
+  if (student.renewalProbability && student.renewalProbability > 0) {
+    renewScore = Math.round((renewScore + student.renewalProbability) / 2);
+    renewStatus = 'configured';
+  }
+  breakdown.push({ factor: 'Renovacao', weight: 10, score: renewScore, source: student.renewalDate ? dealFmtDate(student.renewalDate) : 'N/A', status: renewStatus });
+  total += renewScore * 0.10;
+
+  // Factor 6: Engajamento (10%)
+  var engScore = Math.min(100, Math.max(0, student.engajamento || 0));
+  var engStatus = (typeof student.engajamento === 'number') ? 'configured' : 'needs_config';
+  breakdown.push({ factor: 'Engajamento', weight: 10, score: engScore, source: (student.engajamento || 0) + '%', status: engStatus });
+  total += engScore * 0.10;
+
+  return { total: Math.round(total), breakdown: breakdown };
+}
+
+function getStudentAlerts(student) {
+  var alerts = [];
+  var dsc = student.daysSinceContact;
+  var renewDays = student.renewalDate ? dealDaysFromNow(student.renewalDate) : null;
+
+  // Critical: inadimplente + low health
+  if (student.financialStatus === 'inadimplente' && student.healthScore < 50) {
+    alerts.push({ type: 'critical', priority: 'critico', reason: 'Inadimplente com health critico (' + student.healthScore + ')', action: 'Reuniao urgente + cobranca', playbook: 'inadimplente' });
+  }
+
+  // Risk: health < 50
+  if (student.healthScore < 50) {
+    alerts.push({ type: 'risk', priority: 'alto', reason: student.riskReason || 'Health score abaixo de 50 (' + student.healthScore + ')', action: 'Contato imediato de reengajamento', playbook: 'baixa_presenca' });
+  }
+
+  // NPS low
+  if (typeof student.nps === 'number' && student.nps <= 6) {
+    alerts.push({ type: 'nps_low', priority: 'alto', reason: 'NPS baixo: ' + student.nps, action: 'Ligacao para entender insatisfacao', playbook: 'nps_baixo' });
+  }
+
+  // Low attendance
+  if (typeof student.attendance === 'number' && student.attendance < 60) {
+    alerts.push({ type: 'low_attendance', priority: 'alto', reason: 'Presenca em ' + student.attendance + '%', action: 'Verificar motivo e reengajar', playbook: 'baixa_presenca' });
+  }
+
+  // Inadimplente
+  if (student.financialStatus === 'inadimplente') {
+    alerts.push({ type: 'inadimplente', priority: 'alto', reason: 'Status financeiro: inadimplente', action: 'Acionar cobranca e oferecer negociacao', playbook: 'inadimplente' });
+  }
+
+  // Renewal 30d
+  if (renewDays !== null && renewDays >= 0 && renewDays <= 30) {
+    alerts.push({ type: 'renewal_30', priority: 'critico', reason: 'Renovacao em ' + renewDays + ' dias (' + dealFmtDate(student.renewalDate) + ')', action: 'Iniciar processo de renovacao', playbook: 'renovacao_proxima' });
+  }
+
+  // Renewal 60d
+  if (renewDays !== null && renewDays > 30 && renewDays <= 60) {
+    alerts.push({ type: 'renewal_60', priority: 'alto', reason: 'Renovacao em ' + renewDays + ' dias', action: 'Preparar conversa de renovacao', playbook: 'renovacao_proxima' });
+  }
+
+  // Renewal 90d
+  if (renewDays !== null && renewDays > 60 && renewDays <= 90) {
+    alerts.push({ type: 'renewal_90', priority: 'medio', reason: 'Renovacao em ' + renewDays + ' dias', action: 'Agendar follow-up de renovacao', playbook: 'renovacao_proxima' });
+  }
+
+  // No contact > 15 days
+  if (typeof dsc === 'number' && dsc > 15) {
+    alerts.push({ type: 'no_contact', priority: dsc > 30 ? 'alto' : 'medio', reason: 'Sem contato ha ' + dsc + ' dias', action: 'Realizar follow-up imediato', playbook: 'baixa_presenca' });
+  }
+
+  // VIP neglected
+  if (student.tags && student.tags.indexOf('VIP') >= 0 && typeof dsc === 'number' && dsc > 10) {
+    alerts.push({ type: 'vip_neglected', priority: 'alto', reason: 'Cliente VIP sem contato ha ' + dsc + ' dias', action: 'Contato prioritario com VIP', playbook: 'cliente_vip' });
+  }
+
+  // New onboarding
+  if (student.status === 'onboarding') {
+    alerts.push({ type: 'new_onboarding', priority: 'medio', reason: 'Mentorado em fase de onboarding', action: 'Seguir playbook de onboarding', playbook: 'novo_mentorado' });
+  }
+
+  // Sort by priority
+  var priorityOrder = { critico: 0, alto: 1, medio: 2, baixo: 3 };
+  alerts.sort(function(a, b) { return (priorityOrder[a.priority] || 3) - (priorityOrder[b.priority] || 3); });
+
+  return alerts;
+}
+
+function getPlaybook(student) {
+  if (student.status === 'onboarding') {
+    return {
+      id: 'novo_mentorado', name: 'Novo Mentorado — Onboarding',
+      steps: [
+        { action: 'Boas-vindas', channel: 'whatsapp', description: 'Mensagem de boas-vindas personalizada + video institucional' },
+        { action: 'Kit de acesso', channel: 'email', description: 'Enviar credenciais, grupo WhatsApp, agenda de encontros' },
+        { action: 'Reuniao de kickoff', channel: 'reuniao', description: 'Call de 30min para alinhar expectativas e objetivos' },
+        { action: 'Check-in 7 dias', channel: 'whatsapp', description: 'Verificar se acessou plataforma e tem duvidas' },
+        { action: 'Check-in 30 dias', channel: 'ligacao', description: 'Ligacao para avaliar primeiras impressoes e NPS' }
+      ],
+      trigger: 'Mentorado novo, status onboarding'
+    };
+  }
+
+  if (typeof student.attendance === 'number' && student.attendance < 60) {
+    return {
+      id: 'baixa_presenca', name: 'Baixa Presenca — Reengajamento',
+      steps: [
+        { action: 'Diagnostico', channel: 'ligacao', description: 'Ligar para entender motivo das faltas' },
+        { action: 'Plano personalizado', channel: 'email', description: 'Enviar resumo dos encontros perdidos + proximos temas' },
+        { action: 'Lembrete proativo', channel: 'whatsapp', description: 'Enviar lembrete 24h antes de cada encontro' },
+        { action: 'Check-in semanal', channel: 'whatsapp', description: 'Acompanhar presenca por 4 semanas' }
+      ],
+      trigger: 'Presenca abaixo de 60%'
+    };
+  }
+
+  if (typeof student.nps === 'number' && student.nps <= 6) {
+    return {
+      id: 'nps_baixo', name: 'NPS Baixo — Recuperacao',
+      steps: [
+        { action: 'Escuta ativa', channel: 'ligacao', description: 'Ligar para ouvir feedbacks e insatisfacoes' },
+        { action: 'Plano de acao', channel: 'email', description: 'Enviar email com acoes de melhoria baseadas no feedback' },
+        { action: 'Acompanhamento', channel: 'whatsapp', description: 'Follow-up semanal por 3 semanas' },
+        { action: 'Re-avaliacao NPS', channel: 'ligacao', description: 'Nova pesquisa NPS apos 30 dias' }
+      ],
+      trigger: 'NPS menor ou igual a 6'
+    };
+  }
+
+  if (student.financialStatus === 'inadimplente') {
+    return {
+      id: 'inadimplente', name: 'Inadimplente — Negociacao',
+      steps: [
+        { action: 'Primeiro contato', channel: 'whatsapp', description: 'Mensagem amigavel lembrando do pagamento' },
+        { action: 'Ligacao', channel: 'ligacao', description: 'Ligar para entender situacao e oferecer negociacao' },
+        { action: 'Proposta', channel: 'email', description: 'Enviar opcoes de parcelamento ou desconto' },
+        { action: 'Escalonamento', channel: 'reuniao', description: 'Reuniao com gestao para definir proximo passo' }
+      ],
+      trigger: 'Status financeiro inadimplente'
+    };
+  }
+
+  var renewDays = student.renewalDate ? dealDaysFromNow(student.renewalDate) : null;
+  if (renewDays !== null && renewDays >= 0 && renewDays <= 90) {
+    return {
+      id: 'renovacao_proxima', name: 'Renovacao Proxima — Retencao',
+      steps: [
+        { action: 'Preparacao', channel: 'email', description: 'Enviar relatorio de resultados e ROI do periodo' },
+        { action: 'Conversa de renovacao', channel: 'reuniao', description: 'Agendar call para apresentar proposta de renovacao' },
+        { action: 'Follow-up proposta', channel: 'whatsapp', description: 'Acompanhar decisao e tirar duvidas' },
+        { action: 'Fechamento', channel: 'ligacao', description: 'Confirmar renovacao ou entender objecoes' }
+      ],
+      trigger: 'Renovacao em menos de 90 dias'
+    };
+  }
+
+  if (student.tags && student.tags.indexOf('VIP') >= 0) {
+    return {
+      id: 'cliente_vip', name: 'Cliente VIP — Encantamento',
+      steps: [
+        { action: 'Check-in mensal', channel: 'ligacao', description: 'Ligacao mensal para alinhar expectativas' },
+        { action: 'Conteudo exclusivo', channel: 'email', description: 'Enviar materiais e insights exclusivos' },
+        { action: 'Indicacao', channel: 'reuniao', description: 'Solicitar indicacoes e depoimentos' },
+        { action: 'Surpresa', channel: 'presencial', description: 'Enviar presente ou experiencia diferenciada' }
+      ],
+      trigger: 'Cliente com tag VIP'
+    };
+  }
+
+  return {
+    id: 'padrao', name: 'Acompanhamento Padrao',
+    steps: [
+      { action: 'Follow-up mensal', channel: 'whatsapp', description: 'Mensagem de acompanhamento mensal' },
+      { action: 'Check-in trimestral', channel: 'ligacao', description: 'Ligacao a cada 3 meses para avaliar satisfacao' }
+    ],
+    trigger: 'Mentorado ativo sem alertas especificos'
+  };
+}
+
+function renderCS() {
+  loadCSData();
+
+  var view = state.csView || 'dashboard';
+  if (view === 'profile' && state.csSelectedStudent) {
+    openStudentProfile(state.csSelectedStudent);
+    return;
+  }
+
+  var html = '<div class="page-header"><div><div class="page-title">CS — Customer Success</div>' +
+    '<div class="page-subtitle">Painel operacional de acompanhamento de mentorados</div></div>' +
+    '<div style="display:flex;gap:8px;">';
+
+  if (can('cs.edit')) {
+    html += '<button class="btn btn-primary" onclick="openAddStudent()">+ Novo Mentorado</button>';
+  }
+  html += '</div></div>';
+
+  // Main tabs
+  var csMainTab = state.csTab || 'visao_geral';
+  html += '<div class="tabs-nav" style="margin-bottom:20px;">' +
+    '<button class="tab-btn ' + (csMainTab === 'visao_geral' ? 'active' : '') + '" onclick="state.csTab=\'visao_geral\';state.csView=\'dashboard\';renderCS()">Visao Geral</button>' +
+    '<button class="tab-btn ' + (csMainTab === 'acoes_hoje' ? 'active' : '') + '" onclick="state.csTab=\'acoes_hoje\';state.csView=\'dashboard\';renderCS()">Acoes de Hoje</button>' +
+    '<button class="tab-btn ' + (csMainTab === 'carteira' ? 'active' : '') + '" onclick="state.csTab=\'carteira\';state.csView=\'portfolio\';renderCS()">Carteira</button>' +
+    '<button class="tab-btn ' + (csMainTab === 'onboarding_cs' ? 'active' : '') + '" onclick="state.csTab=\'onboarding_cs\';state.csView=\'onboarding\';renderCS()">Onboarding CS</button>' +
+    '</div>';
+
+  html += '<div id="cs-tab-content">';
+
+  if (csMainTab === 'visao_geral') {
+    html += renderCSExecutive();
+  } else if (csMainTab === 'acoes_hoje') {
+    html += renderCSDailyQueue();
+  } else if (csMainTab === 'carteira') {
+    html += renderCSPortfolio();
+  } else if (csMainTab === 'onboarding_cs') {
+    html += renderCSOnboarding();
+  }
+
+  html += '</div>';
 
   $('cs-content').innerHTML = html;
 }
 
+function renderCSExecutive() {
+  var students = state.csStudents || [];
+  var goldenStudents = students.filter(function(s) { return s.mentoria === 'Golden'; });
+  var mesaStudents = students.filter(function(s) { return s.mentoria === 'A Mesa'; });
+  var activeStudents = students.filter(function(s) { return s.status !== 'cancelado' && s.status !== 'inativo'; });
+  var atRisk = students.filter(function(s) { return s.healthScore < 50 && s.status !== 'cancelado'; });
+  var critical = students.filter(function(s) { return s.healthScore < 30 && s.status !== 'cancelado'; });
+  var inadimplentes = students.filter(function(s) { return s.financialStatus === 'inadimplente'; });
+
+  var renewal30 = students.filter(function(s) {
+    if (!s.renewalDate) return false;
+    var d = dealDaysFromNow(s.renewalDate);
+    return d !== null && d >= 0 && d <= 30;
+  });
+  var renewal60 = students.filter(function(s) {
+    if (!s.renewalDate) return false;
+    var d = dealDaysFromNow(s.renewalDate);
+    return d !== null && d > 30 && d <= 60;
+  });
+  var renewal90 = students.filter(function(s) {
+    if (!s.renewalDate) return false;
+    var d = dealDaysFromNow(s.renewalDate);
+    return d !== null && d > 60 && d <= 90;
+  });
+
+  var avgNPS = activeStudents.length > 0 ? Math.round(activeStudents.reduce(function(s, st) { return s + (st.nps || 0); }, 0) / activeStudents.length * 10) / 10 : 0;
+  var avgHealth = activeStudents.length > 0 ? Math.round(activeStudents.reduce(function(s, st) { return s + (st.healthScore || 0); }, 0) / activeStudents.length) : 0;
+  var avgAttendance = activeStudents.length > 0 ? Math.round(activeStudents.reduce(function(s, st) { return s + (st.attendance || 0); }, 0) / activeStudents.length) : 0;
+
+  var receitaRisco = atRisk.reduce(function(s, st) { return s + (st.ticket || 0); }, 0);
+  var receitaRenovavel = renewal30.concat(renewal60).concat(renewal90).reduce(function(s, st) { return s + (st.ticket || 0); }, 0);
+
+  var healthy = students.filter(function(s) { return s.healthScore >= 70 && s.status !== 'cancelado'; });
+  var pctHealthy = activeStudents.length > 0 ? Math.round(healthy.length / activeStudents.length * 100) : 0;
+  var pctCritical = activeStudents.length > 0 ? Math.round(critical.length / activeStudents.length * 100) : 0;
+
+  var contacts = state.csContacts || [];
+  var tasks = state.csTasks || [];
+  var pendingContacts = contacts.filter(function(c) { return c.status === 'pendente'; });
+  var overdueTasks = tasks.filter(function(t) { return t.status !== 'concluida' && t.dueDate && dealDaysFromNow(t.dueDate) < 0; });
+  var noContact15 = students.filter(function(s) { return typeof s.daysSinceContact === 'number' && s.daysSinceContact > 15 && s.status !== 'cancelado'; });
+
+  var totalAlerts = 0;
+  students.forEach(function(s) {
+    var al = getStudentAlerts(s);
+    totalAlerts += al.filter(function(a) { return a.priority === 'critico'; }).length;
+  });
+
+  var html = '';
+
+  // Row 1: Main KPIs
+  html += '<div class="kpi-grid" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr));margin-bottom:16px;">' +
+    kpiCard('Mentorados Ativos', activeStudents.length, 'purple') +
+    kpiCard('Golden Group', goldenStudents.length, '') +
+    kpiCard('A Mesa', mesaStudents.length, '') +
+    kpiCard('Em Risco', atRisk.length, atRisk.length > 0 ? 'red' : 'green') +
+    kpiCard('Criticos', critical.length, critical.length > 0 ? 'red' : 'green') +
+    kpiCard('Inadimplentes', inadimplentes.length, inadimplentes.length > 0 ? 'red' : 'green') +
+    '</div>';
+
+  // Row 2: Metrics
+  html += '<div class="kpi-grid" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr));margin-bottom:16px;">' +
+    kpiCard('NPS Medio', avgNPS, avgNPS >= 8 ? 'green' : avgNPS >= 6 ? '' : 'red') +
+    kpiCard('Health Medio', avgHealth, avgHealth >= 70 ? 'green' : avgHealth >= 50 ? '' : 'red') +
+    kpiCard('Presenca Media', avgAttendance + '%', avgAttendance >= 80 ? 'green' : avgAttendance >= 60 ? '' : 'red') +
+    kpiCard('Renovacao 30d', renewal30.length, renewal30.length > 0 ? 'red' : 'green') +
+    kpiCard('Renovacao 60d', renewal60.length, renewal60.length > 0 ? '' : 'green') +
+    kpiCard('Renovacao 90d', renewal90.length, '') +
+    '</div>';
+
+  // Row 3: Financial + Ops
+  html += '<div class="kpi-grid" style="grid-template-columns:repeat(auto-fill,minmax(155px,1fr));margin-bottom:20px;">' +
+    kpiCard('Receita em Risco', formatCurrency(receitaRisco), receitaRisco > 0 ? 'red' : 'green') +
+    kpiCard('Receita Renovavel', formatCurrency(receitaRenovavel), '') +
+    kpiCard('Carteira Saudavel', pctHealthy + '%', pctHealthy >= 70 ? 'green' : pctHealthy >= 50 ? '' : 'red') +
+    kpiCard('Carteira Critica', pctCritical + '%', pctCritical > 0 ? 'red' : 'green') +
+    kpiCard('Contatos Pendentes', pendingContacts.length, pendingContacts.length > 0 ? '' : 'green') +
+    kpiCard('Tarefas Atrasadas', overdueTasks.length, overdueTasks.length > 0 ? 'red' : 'green') +
+    kpiCard('Sem Contato >15d', noContact15.length, noContact15.length > 0 ? 'red' : 'green') +
+    kpiCard('Alertas Criticos', totalAlerts, totalAlerts > 0 ? 'red' : 'green') +
+    '</div>';
+
+  // Critical alerts summary
+  if (totalAlerts > 0) {
+    html += '<div style="background:var(--red-bg);border:1px solid var(--red);border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;">' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">' +
+      '<span style="font-size:20px;">&#9888;</span>' +
+      '<span style="font-size:14px;font-weight:700;color:var(--red);">' + totalAlerts + ' alerta(s) critico(s) requerem acao imediata</span></div>';
+
+    students.forEach(function(s) {
+      var al = getStudentAlerts(s);
+      al.forEach(function(a) {
+        if (a.priority === 'critico') {
+          html += '<div style="padding:8px 12px;background:rgba(255,255,255,0.6);border-radius:8px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;">' +
+            '<div><strong>' + escHtml(s.name) + '</strong> — ' + escHtml(a.reason) + '</div>' +
+            '<button class="btn btn-outline btn-sm" onclick="state.csView=\'profile\';state.csSelectedStudent=' + s.id + ';renderCS()">Ver</button></div>';
+        }
+      });
+    });
+    html += '</div>';
+  }
+
+  return html;
+}
+
+function renderCSDailyQueue() {
+  var students = state.csStudents || [];
+  var html = '';
+  var items = [];
+
+  students.forEach(function(s) {
+    if (s.status === 'cancelado') return;
+    var alerts = getStudentAlerts(s);
+    var playbook = getPlaybook(s);
+
+    alerts.forEach(function(alert) {
+      items.push({
+        student: s,
+        alert: alert,
+        playbook: playbook,
+        priorityOrder: alert.priority === 'critico' ? 0 : alert.priority === 'alto' ? 1 : alert.priority === 'medio' ? 2 : 3
+      });
+    });
+  });
+
+  // Also add pending tasks due today or overdue
+  var tasks = state.csTasks || [];
+  var today = new Date().toISOString().slice(0, 10);
+  tasks.forEach(function(t) {
+    if (t.status === 'concluida') return;
+    if (t.dueDate && t.dueDate <= today) {
+      var st = students.find(function(s) { return s.id === t.studentId; });
+      if (st) {
+        items.push({
+          student: st,
+          alert: { type: 'task_due', priority: t.priority === 'alta' ? 'alto' : t.priority === 'media' ? 'medio' : 'baixo', reason: 'Tarefa: ' + t.title, action: t.description || 'Completar tarefa', playbook: t.type },
+          playbook: getPlaybook(st),
+          priorityOrder: t.priority === 'alta' ? 1 : t.priority === 'media' ? 2 : 3
+        });
+      }
+    }
+  });
+
+  items.sort(function(a, b) { return a.priorityOrder - b.priorityOrder; });
+
+  if (items.length === 0) {
+    html += '<div class="empty-state"><div class="icon" style="font-size:48px;">&#9989;</div><h3>Nenhuma acao pendente para hoje</h3><p>Todos os mentorados estao em dia. Continue o bom trabalho!</p></div>';
+    return html;
+  }
+
+  html += '<div style="margin-bottom:12px;font-size:13px;color:var(--text-muted);">' + items.length + ' acoes pendentes — ordenadas por prioridade</div>';
+
+  var priorityColors = { critico: 'var(--red)', alto: '#E97000', medio: 'var(--yellow)', baixo: 'var(--text-muted)' };
+  var priorityBgs = { critico: 'var(--red-bg)', alto: '#FFF7ED', medio: 'var(--yellow-bg)', baixo: 'var(--bg)' };
+  var priorityLabels = { critico: 'CRITICO', alto: 'ALTO', medio: 'MEDIO', baixo: 'BAIXO' };
+
+  items.forEach(function(item) {
+    var s = item.student;
+    var a = item.alert;
+    var borderColor = priorityColors[a.priority] || 'var(--border)';
+    html += '<div style="background:var(--card-bg);border:1px solid var(--border);border-left:4px solid ' + borderColor + ';border-radius:var(--radius);padding:16px 20px;margin-bottom:10px;box-shadow:var(--card-shadow);">' +
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">' +
+      '<div style="flex:1;min-width:200px;">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
+      '<span class="badge ' + (s.mentoria === 'Golden' ? 'badge-yellow' : 'badge-purple') + '">' + escHtml(s.mentoria) + '</span>' +
+      '<span style="display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;background:' + (priorityBgs[a.priority] || 'var(--bg)') + ';color:' + (priorityColors[a.priority] || 'var(--text-muted)') + ';">' + (priorityLabels[a.priority] || 'INFO') + '</span>' +
+      '</div>' +
+      '<div style="font-size:15px;font-weight:700;margin-bottom:4px;">' + escHtml(s.name) + '</div>' +
+      '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;"><strong>Motivo:</strong> ' + escHtml(a.reason) + '</div>' +
+      '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;"><strong>Acao sugerida:</strong> ' + escHtml(a.action) + '</div>' +
+      '<div style="font-size:11px;color:var(--text-muted);">Responsavel: ' + escHtml(s.csResponsible || 'Equipe CS') + '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:flex-start;">' +
+      '<button class="btn btn-outline btn-sm" onclick="openRegisterContact(' + s.id + ')">Registrar Contato</button>' +
+      '<button class="btn btn-outline btn-sm" onclick="openCreateCSTask(' + s.id + ')">Criar Tarefa</button>' +
+      '<button class="btn btn-primary btn-sm" onclick="state.csView=\'profile\';state.csSelectedStudent=' + s.id + ';renderCS()">Abrir Perfil</button>' +
+      '</div></div></div>';
+  });
+
+  return html;
+}
+
+function renderCSPortfolio() {
+  var students = state.csStudents || [];
+  var html = '';
+
+  // Filters
+  if (!state.csFilters) state.csFilters = {};
+  var filters = state.csFilters;
+
+  html += '<div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">' +
+    '<label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted);">Filtros:</label>' +
+    '<select class="filter-select" id="cs-f-programa" onchange="state.csFilters.programa=this.value;renderCS()">' +
+    '<option value="">Todos Programas</option>' +
+    '<option value="Golden"' + (filters.programa === 'Golden' ? ' selected' : '') + '>Golden Group</option>' +
+    '<option value="A Mesa"' + (filters.programa === 'A Mesa' ? ' selected' : '') + '>A Mesa</option></select>' +
+    '<select class="filter-select" id="cs-f-risco" onchange="state.csFilters.risco=this.value;renderCS()">' +
+    '<option value="">Todos Riscos</option>' +
+    '<option value="critico"' + (filters.risco === 'critico' ? ' selected' : '') + '>Critico (&lt;30)</option>' +
+    '<option value="risco"' + (filters.risco === 'risco' ? ' selected' : '') + '>Em Risco (&lt;50)</option>' +
+    '<option value="atencao"' + (filters.risco === 'atencao' ? ' selected' : '') + '>Atencao (&lt;70)</option>' +
+    '<option value="saudavel"' + (filters.risco === 'saudavel' ? ' selected' : '') + '>Saudavel (&gt;=70)</option></select>' +
+    '<select class="filter-select" id="cs-f-financeiro" onchange="state.csFilters.financeiro=this.value;renderCS()">' +
+    '<option value="">Todos Status Fin.</option>' +
+    '<option value="adimplente"' + (filters.financeiro === 'adimplente' ? ' selected' : '') + '>Adimplente</option>' +
+    '<option value="parcial"' + (filters.financeiro === 'parcial' ? ' selected' : '') + '>Parcial</option>' +
+    '<option value="inadimplente"' + (filters.financeiro === 'inadimplente' ? ' selected' : '') + '>Inadimplente</option></select>' +
+    '<select class="filter-select" id="cs-f-status" onchange="state.csFilters.statusAluno=this.value;renderCS()">' +
+    '<option value="">Todos Status</option>' +
+    '<option value="ativo"' + (filters.statusAluno === 'ativo' ? ' selected' : '') + '>Ativo</option>' +
+    '<option value="onboarding"' + (filters.statusAluno === 'onboarding' ? ' selected' : '') + '>Onboarding</option>' +
+    '<option value="inativo"' + (filters.statusAluno === 'inativo' ? ' selected' : '') + '>Inativo</option>' +
+    '<option value="cancelado"' + (filters.statusAluno === 'cancelado' ? ' selected' : '') + '>Cancelado</option></select>' +
+    '<select class="filter-select" id="cs-f-renovacao" onchange="state.csFilters.renovacao=this.value;renderCS()">' +
+    '<option value="">Todas Renovacoes</option>' +
+    '<option value="30"' + (filters.renovacao === '30' ? ' selected' : '') + '>Ate 30 dias</option>' +
+    '<option value="60"' + (filters.renovacao === '60' ? ' selected' : '') + '>Ate 60 dias</option>' +
+    '<option value="90"' + (filters.renovacao === '90' ? ' selected' : '') + '>Ate 90 dias</option></select>' +
+    '<input type="text" class="search-input" placeholder="Buscar nome..." id="cs-f-search" value="' + escHtml(filters.search || '') + '" oninput="state.csFilters.search=this.value;renderCS()" style="max-width:180px;padding:6px 12px;font-size:12px;border:1px solid var(--border);border-radius:6px;">' +
+    '<button class="btn btn-outline btn-sm" onclick="state.csFilters={};renderCS()">Limpar</button>' +
+    '</div>';
+
+  // Apply filters
+  var filtered = students.slice();
+
+  if (filters.programa) {
+    filtered = filtered.filter(function(s) { return s.mentoria === filters.programa; });
+  }
+  if (filters.risco === 'critico') {
+    filtered = filtered.filter(function(s) { return s.healthScore < 30; });
+  } else if (filters.risco === 'risco') {
+    filtered = filtered.filter(function(s) { return s.healthScore < 50; });
+  } else if (filters.risco === 'atencao') {
+    filtered = filtered.filter(function(s) { return s.healthScore < 70; });
+  } else if (filters.risco === 'saudavel') {
+    filtered = filtered.filter(function(s) { return s.healthScore >= 70; });
+  }
+  if (filters.financeiro) {
+    filtered = filtered.filter(function(s) { return s.financialStatus === filters.financeiro; });
+  }
+  if (filters.statusAluno) {
+    filtered = filtered.filter(function(s) { return s.status === filters.statusAluno; });
+  }
+  if (filters.renovacao) {
+    var maxDays = parseInt(filters.renovacao);
+    filtered = filtered.filter(function(s) {
+      if (!s.renewalDate) return false;
+      var d = dealDaysFromNow(s.renewalDate);
+      return d !== null && d >= 0 && d <= maxDays;
+    });
+  }
+  if (filters.search) {
+    var q = filters.search.toLowerCase();
+    filtered = filtered.filter(function(s) { return s.name.toLowerCase().indexOf(q) >= 0 || (s.email || '').toLowerCase().indexOf(q) >= 0; });
+  }
+
+  // Sort by health (lowest first)
+  filtered.sort(function(a, b) { return (a.healthScore || 0) - (b.healthScore || 0); });
+
+  html += '<div style="margin-bottom:10px;font-size:13px;color:var(--text-muted);">' + filtered.length + ' mentorado(s) encontrado(s)</div>';
+
+  if (filtered.length === 0) {
+    html += '<div class="empty-state"><div class="icon" style="font-size:48px;">&#128101;</div><h3>Nenhum mentorado encontrado</h3><p>Ajuste os filtros ou adicione novos mentorados</p></div>';
+    return html;
+  }
+
+  html += '<div class="cs-grid">';
+  filtered.forEach(function(s) {
+    var healthColor = s.healthScore >= 70 ? 'var(--green)' : s.healthScore >= 40 ? 'var(--yellow)' : 'var(--red)';
+    var riskClass = s.healthScore < 50 ? ' at-risk' : '';
+    var renewDays = s.renewalDate ? dealDaysFromNow(s.renewalDate) : null;
+    var renewClass = (renewDays !== null && renewDays >= 0 && renewDays <= 60) ? ' renewal-soon' : '';
+    var statusLabel = s.status === 'onboarding' ? 'Onboarding' : s.status === 'inativo' ? 'Inativo' : s.status === 'cancelado' ? 'Cancelado' : 'Ativo';
+    var statusColor = s.status === 'ativo' ? 'var(--green)' : s.status === 'onboarding' ? 'var(--blue)' : s.status === 'inativo' ? 'var(--yellow)' : 'var(--red)';
+
+    html += '<div class="cs-student-card' + riskClass + renewClass + '" style="cursor:default;">' +
+      '<div class="cs-student-top">' +
+      '<div class="cs-student-avatar">' + initials(s.name) + '</div>' +
+      '<div class="cs-student-info"><h4>' + escHtml(s.name) + '</h4>' +
+      '<p>' + escHtml(s.mentoria) + ' &middot; ' + escHtml(s.profession || '') + '</p></div>' +
+      '<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">' +
+      '<span class="badge ' + (s.mentoria === 'Golden' ? 'badge-yellow' : 'badge-purple') + '">' + escHtml(s.mentoria) + '</span>' +
+      '<span style="font-size:10px;font-weight:600;color:' + statusColor + ';">' + statusLabel + '</span>' +
+      '</div></div>';
+
+    // Tags
+    if (s.tags && s.tags.length > 0) {
+      html += '<div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap;">';
+      s.tags.forEach(function(tag) {
+        var tagColor = tag === 'VIP' ? 'var(--yellow)' : tag === 'novo' ? 'var(--blue)' : 'var(--purple)';
+        html += '<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:700;background:' + tagColor + '20;color:' + tagColor + ';">' + escHtml(tag) + '</span>';
+      });
+      html += '</div>';
+    }
+
+    // Metrics
+    html += '<div class="cs-student-metrics">' +
+      '<div class="metric"><div class="val" style="color:' + healthColor + ';">' + s.healthScore + '</div><div class="lbl">Health</div></div>' +
+      '<div class="metric"><div class="val">' + (s.nps || '—') + '</div><div class="lbl">NPS</div></div>' +
+      '<div class="metric"><div class="val">' + (s.attendance || 0) + '%</div><div class="lbl">Presenca</div></div>' +
+      '<div class="metric"><div class="val">' + formatCurrency(s.ticket || 0) + '</div><div class="lbl">Ticket</div></div>' +
+      '</div>';
+
+    // CS info row
+    html += '<div style="display:flex;gap:12px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);flex-wrap:wrap;">' +
+      '<span>CS: ' + escHtml(s.csResponsible || 'N/A') + '</span>' +
+      '<span>Ultimo contato: ' + (s.lastContactDate ? dealFmtDate(s.lastContactDate) : 'Nunca') + '</span>' +
+      '<span>Dias s/ contato: ' + (typeof s.daysSinceContact === 'number' ? s.daysSinceContact + 'd' : '—') + '</span>' +
+      '</div>';
+
+    // Risk reason if exists
+    if (s.riskReason && s.healthScore < 70) {
+      html += '<div style="margin-top:8px;padding:6px 10px;background:var(--red-bg);border-radius:6px;font-size:11px;color:var(--red);">' +
+        '<strong>Risco:</strong> ' + escHtml(s.riskReason) + '</div>';
+    }
+
+    // Renewal info
+    if (renewDays !== null && renewDays >= 0 && renewDays <= 90) {
+      html += '<div style="margin-top:6px;padding:6px 10px;background:var(--yellow-bg);border-radius:6px;font-size:11px;color:#92400E;">' +
+        'Renovacao em ' + renewDays + ' dias (' + dealFmtDate(s.renewalDate) + ')</div>';
+    }
+
+    // Next action
+    if (s.nextAction) {
+      html += '<div style="margin-top:6px;font-size:11px;color:var(--purple);font-weight:600;">Proxima acao: ' + escHtml(s.nextAction) + '</div>';
+    }
+
+    // Action buttons
+    html += '<div style="display:flex;gap:6px;margin-top:10px;">' +
+      '<button class="btn btn-primary btn-sm" style="flex:1;" onclick="state.csView=\'profile\';state.csSelectedStudent=' + s.id + ';renderCS()">Perfil</button>' +
+      '<button class="btn btn-outline btn-sm" onclick="openRegisterContact(' + s.id + ')">Registrar</button>' +
+      '<button class="btn btn-outline btn-sm" onclick="openCreateCSTask(' + s.id + ')">Tarefa</button>' +
+      '</div>';
+
+    html += '</div>';
+  });
+  html += '</div>';
+
+  return html;
+}
+
+function renderCSOnboarding() {
+  var html = '';
+  var dismissed = false;
+  try { dismissed = localStorage.getItem('sp-os-cs-onboarding') === 'dismissed'; } catch(e) {}
+
+  html += '<div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px;box-shadow:var(--card-shadow);">' +
+    '<h3 style="font-size:18px;font-weight:700;margin-bottom:12px;">Como Usar Este Painel</h3>' +
+    '<p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:16px;">' +
+    'O painel de CS foi construido para que a equipe de Customer Success acompanhe de forma sistematica todos os mentorados dos programas Golden Group e A Mesa. ' +
+    'Abaixo voce encontra um guia rapido de uso diario e semanal.</p>' +
+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">' +
+    '<div style="background:var(--bg);border-radius:var(--radius);padding:16px;">' +
+    '<h4 style="font-size:14px;font-weight:700;margin-bottom:10px;">&#128197; Checklist Diario</h4>' +
+    csOnboardingChecklist('daily', [
+      'Verificar aba "Acoes de Hoje" e priorizar contatos',
+      'Registrar todos os contatos realizados',
+      'Atualizar tarefas concluidas',
+      'Verificar alertas criticos na Visao Geral',
+      'Responder mensagens pendentes de mentorados'
+    ]) +
+    '</div>' +
+    '<div style="background:var(--bg);border-radius:var(--radius);padding:16px;">' +
+    '<h4 style="font-size:14px;font-weight:700;margin-bottom:10px;">&#128203; Checklist Semanal</h4>' +
+    csOnboardingChecklist('weekly', [
+      'Revisar health score de toda carteira',
+      'Identificar mentorados sem contato >15 dias',
+      'Planejar contatos de renovacao proxima',
+      'Atualizar NPS e presenca de mentorados',
+      'Reuniao de alinhamento com equipe CS',
+      'Exportar relatorio semanal para gestao'
+    ]) +
+    '</div></div>';
+
+  // Playbook reference cards
+  html += '<h4 style="font-size:15px;font-weight:700;margin-bottom:12px;">Playbooks de Referencia</h4>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;">';
+
+  var playbooks = [
+    { id: 'novo_mentorado', name: 'Novo Mentorado', icon: '&#127891;', desc: 'Boas-vindas, kit de acesso, kickoff call, check-ins 7 e 30 dias' },
+    { id: 'baixa_presenca', name: 'Baixa Presenca', icon: '&#128680;', desc: 'Diagnostico, plano personalizado, lembretes proativos, check-in semanal' },
+    { id: 'nps_baixo', name: 'NPS Baixo', icon: '&#128548;', desc: 'Escuta ativa, plano de acao, acompanhamento semanal, re-avaliacao' },
+    { id: 'inadimplente', name: 'Inadimplente', icon: '&#128176;', desc: 'Contato amigavel, negociacao, proposta de parcelamento, escalonamento' },
+    { id: 'renovacao_proxima', name: 'Renovacao Proxima', icon: '&#128260;', desc: 'Relatorio de ROI, conversa de renovacao, follow-up, fechamento' },
+    { id: 'cliente_vip', name: 'Cliente VIP', icon: '&#11088;', desc: 'Check-in mensal, conteudo exclusivo, indicacao, surpresas' }
+  ];
+
+  playbooks.forEach(function(pb) {
+    html += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
+      '<span style="font-size:20px;">' + pb.icon + '</span>' +
+      '<span style="font-size:14px;font-weight:700;">' + pb.name + '</span></div>' +
+      '<p style="font-size:12px;color:var(--text-secondary);line-height:1.5;">' + pb.desc + '</p></div>';
+  });
+
+  html += '</div></div>';
+
+  return html;
+}
+
+function csOnboardingChecklist(prefix, items) {
+  var html = '<div style="display:flex;flex-direction:column;gap:6px;">';
+  items.forEach(function(item, idx) {
+    var key = 'sp-os-cs-checklist-' + prefix + '-' + idx;
+    var checked = false;
+    try { checked = localStorage.getItem(key) === 'true'; } catch(e) {}
+    html += '<label style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--text-secondary);cursor:pointer;' + (checked ? 'text-decoration:line-through;opacity:0.6;' : '') + '">' +
+      '<input type="checkbox" ' + (checked ? 'checked' : '') + ' onchange="csToggleChecklistItem(\'' + key + '\',this.checked)" style="margin-top:2px;">' +
+      '<span>' + escHtml(item) + '</span></label>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function csToggleChecklistItem(key, checked) {
+  try { localStorage.setItem(key, checked ? 'true' : 'false'); } catch(e) {}
+}
+
+function openStudentProfile(id) {
+  var s = (state.csStudents || []).find(function(st) { return st.id === id; });
+  if (!s) { state.csView = 'portfolio'; renderCS(); return; }
+
+  state.csSelectedStudent = id;
+  var healthResult = computeHealthScore(s);
+  var playbook = getPlaybook(s);
+  var alerts = getStudentAlerts(s);
+  var contacts = (state.csContacts || []).filter(function(c) { return c.studentId === id; });
+  var tasks = (state.csTasks || []).filter(function(t) { return t.studentId === id; });
+
+  contacts.sort(function(a, b) { return b.date > a.date ? 1 : -1; });
+  tasks.sort(function(a, b) { return (a.status === 'concluida' ? 1 : 0) - (b.status === 'concluida' ? 1 : 0); });
+
+  var profileTab = state.csProfileTab || 'resumo';
+
+  var healthColor = healthResult.total >= 70 ? 'var(--green)' : healthResult.total >= 40 ? 'var(--yellow)' : 'var(--red)';
+  var statusLabel = s.status === 'onboarding' ? 'Onboarding' : s.status === 'inativo' ? 'Inativo' : s.status === 'cancelado' ? 'Cancelado' : 'Ativo';
+
+  var html = '';
+
+  // Back button
+  html += '<div style="margin-bottom:16px;"><button class="btn btn-outline btn-sm" onclick="state.csView=\'portfolio\';state.csTab=\'carteira\';state.csProfileTab=\'resumo\';renderCS()">&#8592; Voltar para Carteira</button></div>';
+
+  // Header
+  html += '<div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:20px;box-shadow:var(--card-shadow);">' +
+    '<div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">' +
+    '<div style="width:64px;height:64px;border-radius:50%;background:var(--purple);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;flex-shrink:0;">' + initials(s.name) + '</div>' +
+    '<div style="flex:1;min-width:200px;">' +
+    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
+    '<h2 style="font-size:20px;font-weight:800;">' + escHtml(s.name) + '</h2>' +
+    '<span class="badge ' + (s.mentoria === 'Golden' ? 'badge-yellow' : 'badge-purple') + '">' + escHtml(s.mentoria) + '</span>' +
+    '<span class="badge ' + (s.financialStatus === 'adimplente' ? 'badge-green' : s.financialStatus === 'parcial' ? 'badge-yellow' : 'badge-red') + '">' + escHtml(s.financialStatus || 'N/A') + '</span>' +
+    '<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;background:' + (s.status === 'ativo' ? 'var(--green-bg)' : s.status === 'onboarding' ? 'var(--blue-bg)' : 'var(--red-bg)') + ';color:' + (s.status === 'ativo' ? 'var(--green)' : s.status === 'onboarding' ? 'var(--blue)' : 'var(--red)') + ';">' + statusLabel + '</span>';
+
+  if (s.tags && s.tags.length > 0) {
+    s.tags.forEach(function(tag) {
+      html += '<span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:var(--purple-light);color:var(--purple);">' + escHtml(tag) + '</span>';
+    });
+  }
+
+  html += '</div>' +
+    '<div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">' + escHtml(s.profession || '') + (s.company ? ' — ' + escHtml(s.company) : '') + ' &middot; ' + escHtml(s.city || '') + '</div>' +
+    '</div>';
+
+  // Health gauge (simplified)
+  html += '<div style="text-align:center;min-width:100px;">' +
+    '<div style="font-size:36px;font-weight:800;color:' + healthColor + ';">' + healthResult.total + '</div>' +
+    '<div style="font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Health Score</div></div>';
+
+  html += '</div>';
+
+  // Quick actions
+  html += '<div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">' +
+    '<button class="btn btn-primary btn-sm" onclick="openRegisterContact(' + s.id + ')">Registrar Contato</button>' +
+    '<button class="btn btn-outline btn-sm" onclick="openCreateCSTask(' + s.id + ')">Criar Tarefa</button>' +
+    '<button class="btn btn-outline btn-sm" onclick="openEditStudent(' + s.id + ')">Editar</button>' +
+    '</div>';
+
+  html += '</div>';
+
+  // Alerts
+  if (alerts.length > 0) {
+    html += '<div style="background:var(--yellow-bg);border:1px solid var(--yellow);border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;">';
+    html += '<div style="font-size:13px;font-weight:700;margin-bottom:8px;">&#9888; ' + alerts.length + ' Alerta(s)</div>';
+    alerts.forEach(function(a) {
+      var aColor = a.priority === 'critico' ? 'var(--red)' : a.priority === 'alto' ? '#E97000' : 'var(--text-secondary)';
+      html += '<div style="padding:6px 0;font-size:12px;color:' + aColor + ';">' +
+        '<strong>[' + a.priority.toUpperCase() + ']</strong> ' + escHtml(a.reason) + ' — <em>' + escHtml(a.action) + '</em></div>';
+    });
+    html += '</div>';
+  }
+
+  // Profile tabs
+  html += '<div class="tabs-nav" style="margin-bottom:16px;">' +
+    '<button class="tab-btn ' + (profileTab === 'resumo' ? 'active' : '') + '" onclick="state.csProfileTab=\'resumo\';openStudentProfile(' + s.id + ')">Resumo</button>' +
+    '<button class="tab-btn ' + (profileTab === 'contatos' ? 'active' : '') + '" onclick="state.csProfileTab=\'contatos\';openStudentProfile(' + s.id + ')">Contatos (' + contacts.length + ')</button>' +
+    '<button class="tab-btn ' + (profileTab === 'tarefas' ? 'active' : '') + '" onclick="state.csProfileTab=\'tarefas\';openStudentProfile(' + s.id + ')">Tarefas (' + tasks.length + ')</button>' +
+    '<button class="tab-btn ' + (profileTab === 'health' ? 'active' : '') + '" onclick="state.csProfileTab=\'health\';openStudentProfile(' + s.id + ')">Health</button>' +
+    '<button class="tab-btn ' + (profileTab === 'financeiro' ? 'active' : '') + '" onclick="state.csProfileTab=\'financeiro\';openStudentProfile(' + s.id + ')">Financeiro</button>' +
+    '</div>';
+
+  html += '<div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--card-shadow);">';
+
+  if (profileTab === 'resumo') {
+    html += renderProfileResumo(s, playbook);
+  } else if (profileTab === 'contatos') {
+    html += renderProfileContatos(s, contacts);
+  } else if (profileTab === 'tarefas') {
+    html += renderProfileTarefas(s, tasks);
+  } else if (profileTab === 'health') {
+    html += renderProfileHealth(s, healthResult);
+  } else if (profileTab === 'financeiro') {
+    html += renderProfileFinanceiro(s);
+  }
+
+  html += '</div>';
+
+  $('cs-content').innerHTML = html;
+}
+
+function renderProfileResumo(s, playbook) {
+  var html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">' +
+    infoBlock('Email', s.email) + infoBlock('WhatsApp', s.whatsapp) +
+    infoBlock('Instagram', s.instagram) + infoBlock('Cidade', s.city) +
+    infoBlock('Profissao', s.profession) + infoBlock('Empresa', s.company) +
+    infoBlock('Turma', s.turma) + infoBlock('Origem', s.origin || 'N/A') +
+    infoBlock('Data Entrada', dealFmtDate(s.entryDate)) + infoBlock('Data Renovacao', dealFmtDate(s.renewalDate)) +
+    infoBlock('Ticket', formatCurrency(s.ticket || 0)) + infoBlock('Responsavel CS', s.csResponsible) +
+    infoBlock('NPS', s.nps || '—') + infoBlock('Presenca', (s.attendance || 0) + '%') +
+    infoBlock('Engajamento', (s.engajamento || 0) + '%') + infoBlock('Prob. Renovacao', (s.renewalProbability || 0) + '%') +
+    infoBlock('Ultimo Contato', s.lastContactDate ? dealFmtDate(s.lastContactDate) : 'Nunca') +
+    infoBlock('Dias sem Contato', typeof s.daysSinceContact === 'number' ? s.daysSinceContact + ' dias' : '—') +
+    infoBlock('Total Contatos', s.contactCount || 0) + infoBlock('Canal Ultimo Contato', s.lastContactChannel || 'N/A') +
+    '</div>';
+
+  if (s.observations) {
+    html += '<div style="margin-bottom:12px;"><div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">Observacoes</div>' +
+      '<div style="font-size:13px;color:var(--text-secondary);line-height:1.5;">' + escHtml(s.observations) + '</div></div>';
+  }
+
+  if (s.riskReason) {
+    html += '<div style="padding:12px;background:var(--red-bg);border-radius:8px;margin-bottom:12px;"><div style="font-size:11px;font-weight:600;color:var(--red);text-transform:uppercase;margin-bottom:4px;">Motivo de Risco</div>' +
+      '<div style="font-size:13px;font-weight:600;color:var(--red);">' + escHtml(s.riskReason) + '</div></div>';
+  }
+
+  if (s.nextAction) {
+    html += '<div style="padding:12px;background:var(--purple-light);border-radius:8px;margin-bottom:12px;"><div style="font-size:11px;font-weight:600;color:var(--purple);text-transform:uppercase;margin-bottom:4px;">Proxima Acao</div>' +
+      '<div style="font-size:13px;font-weight:600;">' + escHtml(s.nextAction) + '</div></div>';
+  }
+
+  // Current playbook
+  html += '<div style="padding:14px;background:var(--bg);border-radius:var(--radius);margin-top:12px;">' +
+    '<div style="font-size:13px;font-weight:700;margin-bottom:10px;">Playbook Atual: ' + escHtml(playbook.name) + '</div>' +
+    '<div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">Gatilho: ' + escHtml(playbook.trigger) + '</div>';
+
+  playbook.steps.forEach(function(step, idx) {
+    html += '<div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">' +
+      '<span style="width:20px;height:20px;border-radius:50%;background:var(--purple);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">' + (idx + 1) + '</span>' +
+      '<div><div style="font-size:12px;font-weight:600;">' + escHtml(step.action) + ' <span style="font-size:10px;color:var(--text-muted);">(' + escHtml(step.channel) + ')</span></div>' +
+      '<div style="font-size:11px;color:var(--text-secondary);">' + escHtml(step.description) + '</div></div></div>';
+  });
+
+  html += '</div>';
+  return html;
+}
+
+function renderProfileContatos(s, contacts) {
+  var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">' +
+    '<h4 style="font-size:15px;font-weight:700;">Historico de Contatos</h4>' +
+    '<button class="btn btn-primary btn-sm" onclick="openRegisterContact(' + s.id + ')">+ Registrar Contato</button></div>';
+
+  if (contacts.length === 0) {
+    html += '<div style="text-align:center;padding:30px;color:var(--text-muted);"><p>Nenhum contato registrado ainda.</p></div>';
+    return html;
+  }
+
+  var channelIcons = { whatsapp: '&#128172;', ligacao: '&#128222;', email: '&#128231;', reuniao: '&#128101;', presencial: '&#127891;' };
+  var sentimentColors = { positivo: 'var(--green)', neutro: 'var(--text-muted)', negativo: 'var(--red)' };
+
+  contacts.forEach(function(c) {
+    var icon = channelIcons[c.channel] || '&#128172;';
+    var sentColor = sentimentColors[c.sentiment] || 'var(--text-muted)';
+    html += '<div style="padding:14px 16px;border-bottom:1px solid var(--border);">' +
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">' +
+      '<div style="flex:1;">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">' +
+      '<span style="font-size:16px;">' + icon + '</span>' +
+      '<span style="font-size:13px;font-weight:600;">' + escHtml(c.channel || '') + ' — ' + escHtml(c.type || '') + '</span>' +
+      '<span style="font-size:10px;font-weight:600;color:' + sentColor + ';">' + escHtml(c.sentiment || '') + '</span>' +
+      '<span class="badge ' + (c.status === 'realizado' ? 'badge-green' : 'badge-yellow') + '" style="font-size:9px;">' + (c.status === 'realizado' ? 'Realizado' : 'Pendente') + '</span></div>' +
+      '<div style="font-size:12px;color:var(--text-secondary);line-height:1.5;">' + escHtml(c.summary || '') + '</div>';
+
+    if (c.nextAction) {
+      html += '<div style="font-size:11px;color:var(--purple);margin-top:4px;"><strong>Proxima acao:</strong> ' + escHtml(c.nextAction) + (c.nextActionDate ? ' (' + dealFmtDate(c.nextActionDate) + ')' : '') + '</div>';
+    }
+
+    html += '</div>' +
+      '<div style="text-align:right;min-width:80px;">' +
+      '<div style="font-size:11px;color:var(--text-muted);">' + (c.date ? dealFmtDate(c.date) : '—') + '</div>' +
+      '<div style="font-size:10px;color:var(--text-muted);">' + escHtml(c.responsible || '') + '</div></div></div></div>';
+  });
+
+  return html;
+}
+
+function renderProfileTarefas(s, tasks) {
+  var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">' +
+    '<h4 style="font-size:15px;font-weight:700;">Tarefas</h4>' +
+    '<button class="btn btn-primary btn-sm" onclick="openCreateCSTask(' + s.id + ')">+ Nova Tarefa</button></div>';
+
+  if (tasks.length === 0) {
+    html += '<div style="text-align:center;padding:30px;color:var(--text-muted);"><p>Nenhuma tarefa criada ainda.</p></div>';
+    return html;
+  }
+
+  var priorityColors = { alta: 'var(--red)', media: 'var(--yellow)', baixa: 'var(--text-muted)' };
+
+  tasks.forEach(function(t) {
+    var pColor = priorityColors[t.priority] || 'var(--text-muted)';
+    var isOverdue = t.dueDate && dealDaysFromNow(t.dueDate) < 0 && t.status !== 'concluida';
+    var statusBadgeClass = t.status === 'concluida' ? 'badge-green' : t.status === 'em_andamento' ? 'badge-yellow' : 'badge-red';
+    var statusLabel = t.status === 'concluida' ? 'Concluida' : t.status === 'em_andamento' ? 'Em Andamento' : 'Pendente';
+
+    html += '<div style="padding:12px 16px;border-bottom:1px solid var(--border);' + (t.status === 'concluida' ? 'opacity:0.6;' : '') + (isOverdue ? 'background:var(--red-bg);' : '') + '">' +
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">' +
+      '<div style="flex:1;">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">' +
+      '<span style="width:8px;height:8px;border-radius:50%;background:' + pColor + ';flex-shrink:0;"></span>' +
+      '<span style="font-size:13px;font-weight:600;' + (t.status === 'concluida' ? 'text-decoration:line-through;' : '') + '">' + escHtml(t.title) + '</span>' +
+      '<span class="badge ' + statusBadgeClass + '" style="font-size:9px;">' + statusLabel + '</span>' +
+      '</div>' +
+      '<div style="font-size:11px;color:var(--text-secondary);">' + escHtml(t.type || '') + ' &middot; ' + escHtml(t.responsible || '') + '</div>';
+
+    if (t.description) {
+      html += '<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">' + escHtml(t.description) + '</div>';
+    }
+
+    html += '</div>' +
+      '<div style="text-align:right;min-width:100px;">' +
+      '<div style="font-size:11px;color:' + (isOverdue ? 'var(--red)' : 'var(--text-muted)') + ';">' + (t.dueDate ? dealFmtDate(t.dueDate) : '—') + (isOverdue ? ' (atrasada)' : '') + '</div>';
+
+    if (t.status !== 'concluida') {
+      html += '<div style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;">';
+      if (t.status === 'pendente') {
+        html += '<button class="btn btn-outline btn-sm" style="font-size:10px;padding:2px 6px;" onclick="updateCSTaskStatus(' + t.id + ',\'em_andamento\')">Iniciar</button>';
+      }
+      html += '<button class="btn btn-outline btn-sm" style="font-size:10px;padding:2px 6px;" onclick="updateCSTaskStatus(' + t.id + ',\'concluida\')">Concluir</button></div>';
+    }
+
+    html += '</div></div></div>';
+  });
+
+  return html;
+}
+
+function renderProfileHealth(s, healthResult) {
+  var html = '<h4 style="font-size:15px;font-weight:700;margin-bottom:16px;">Detalhamento do Health Score</h4>';
+
+  html += '<div style="text-align:center;margin-bottom:20px;">' +
+    '<div style="font-size:48px;font-weight:800;color:' + (healthResult.total >= 70 ? 'var(--green)' : healthResult.total >= 40 ? 'var(--yellow)' : 'var(--red)') + ';">' + healthResult.total + '</div>' +
+    '<div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Score Total</div></div>';
+
+  // Breakdown table
+  html += '<div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">' +
+    '<div style="display:grid;grid-template-columns:1fr 60px 60px 1fr 80px;gap:0;background:rgba(0,0,0,0.03);padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);">' +
+    '<span>Fator</span><span>Peso</span><span>Score</span><span>Fonte</span><span>Status</span></div>';
+
+  healthResult.breakdown.forEach(function(factor) {
+    var barColor = factor.score >= 70 ? 'var(--green)' : factor.score >= 40 ? 'var(--yellow)' : 'var(--red)';
+    html += '<div class="score-category">' +
+      '<div style="display:flex;align-items:center;gap:8px;">' +
+      '<span style="font-weight:600;font-size:13px;">' + escHtml(factor.factor) + '</span>' +
+      '<div class="score-bar"><div class="score-bar-fill" style="width:' + factor.score + '%;background:' + barColor + ';"></div></div></div>' +
+      '<span style="font-size:13px;font-weight:600;">' + factor.weight + '%</span>' +
+      '<span style="font-size:13px;font-weight:700;color:' + barColor + ';">' + factor.score + '</span>' +
+      '<span style="font-size:12px;color:var(--text-secondary);">' + escHtml(factor.source) + '</span>' +
+      '<span style="font-size:10px;font-weight:600;color:' + (factor.status === 'configured' ? 'var(--green)' : 'var(--yellow)') + ';">' + (factor.status === 'configured' ? 'Configurado' : 'A configurar') + '</span>' +
+      '</div>';
+  });
+
+  html += '</div>';
+
+  // Weighted contribution
+  html += '<div style="margin-top:16px;padding:14px;background:var(--bg);border-radius:var(--radius);">' +
+    '<div style="font-size:12px;font-weight:700;margin-bottom:8px;">Contribuicao Ponderada</div>';
+  healthResult.breakdown.forEach(function(factor) {
+    var contribution = Math.round(factor.score * factor.weight / 100);
+    html += '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;">' +
+      '<span>' + escHtml(factor.factor) + ' (' + factor.weight + '% x ' + factor.score + ')</span>' +
+      '<span style="font-weight:600;">+' + contribution + '</span></div>';
+  });
+  html += '<div style="display:flex;justify-content:space-between;padding:8px 0 0;border-top:1px solid var(--border);font-size:14px;font-weight:700;">' +
+    '<span>Total</span><span>' + healthResult.total + '/100</span></div>';
+  html += '</div>';
+
+  return html;
+}
+
+function renderProfileFinanceiro(s) {
+  var renewDays = s.renewalDate ? dealDaysFromNow(s.renewalDate) : null;
+  var html = '<h4 style="font-size:15px;font-weight:700;margin-bottom:16px;">Informacoes Financeiras</h4>';
+
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">' +
+    infoBlock('Ticket Mensal', formatCurrency(s.ticket || 0)) +
+    infoBlock('Ticket Anual', formatCurrency((s.ticket || 0) * 12)) +
+    infoBlock('Status', s.financialStatus || 'N/A') +
+    infoBlock('Data Renovacao', s.renewalDate ? dealFmtDate(s.renewalDate) : 'N/A') +
+    infoBlock('Dias para Renovacao', renewDays !== null ? renewDays + ' dias' : 'N/A') +
+    infoBlock('Prob. Renovacao', (s.renewalProbability || 0) + '%') +
+    '</div>';
+
+  // Financial status visual
+  var finColor = s.financialStatus === 'adimplente' ? 'var(--green)' : s.financialStatus === 'parcial' ? 'var(--yellow)' : 'var(--red)';
+  var finBg = s.financialStatus === 'adimplente' ? 'var(--green-bg)' : s.financialStatus === 'parcial' ? 'var(--yellow-bg)' : 'var(--red-bg)';
+  html += '<div style="padding:16px;background:' + finBg + ';border-radius:var(--radius);border:1px solid ' + finColor + ';">' +
+    '<div style="font-size:14px;font-weight:700;color:' + finColor + ';margin-bottom:6px;">' +
+    (s.financialStatus === 'adimplente' ? 'Pagamento em dia' : s.financialStatus === 'parcial' ? 'Pagamento parcial' : 'Pagamento em atraso') + '</div>' +
+    '<div style="font-size:12px;color:var(--text-secondary);">Mentoria: ' + escHtml(s.mentoria) + ' &middot; Turma: ' + escHtml(s.turma || 'N/A') + '</div></div>';
+
+  if (renewDays !== null && renewDays <= 90 && renewDays >= 0) {
+    html += '<div style="margin-top:12px;padding:14px;background:var(--yellow-bg);border-radius:var(--radius);border:1px solid var(--yellow);">' +
+      '<div style="font-size:13px;font-weight:700;color:#92400E;">Renovacao proxima em ' + renewDays + ' dias</div>' +
+      '<div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">Inicie o processo de renovacao seguindo o playbook "Renovacao Proxima".</div></div>';
+  }
+
+  return html;
+}
+
+function openRegisterContact(studentId) {
+  var s = (state.csStudents || []).find(function(st) { return st.id === studentId; });
+  if (!s) return;
+
+  var today = new Date().toISOString().slice(0, 10);
+
+  openModal('Registrar Contato — ' + escHtml(s.name),
+    '<div class="form-row"><div class="form-group"><label>Data</label><input type="date" class="form-control" id="cc-date" value="' + today + '"></div>' +
+    '<div class="form-group"><label>Canal</label><select class="form-control" id="cc-channel">' +
+    '<option value="whatsapp">WhatsApp</option><option value="ligacao">Ligacao</option><option value="email">Email</option><option value="reuniao">Reuniao</option><option value="presencial">Presencial</option></select></div></div>' +
+    '<div class="form-row"><div class="form-group"><label>Tipo de Contato</label><select class="form-control" id="cc-type">' +
+    '<option value="follow-up">Follow-up</option><option value="onboarding">Onboarding</option><option value="reengajamento">Reengajamento</option><option value="cobranca">Cobranca</option><option value="renovacao">Renovacao</option><option value="suporte">Suporte</option></select></div>' +
+    '<div class="form-group"><label>Sentimento</label><select class="form-control" id="cc-sentiment">' +
+    '<option value="positivo">Positivo</option><option value="neutro">Neutro</option><option value="negativo">Negativo</option></select></div></div>' +
+    '<div class="form-group"><label>Resumo do Contato</label><textarea class="form-control" id="cc-summary" rows="3" placeholder="Descreva o que foi conversado..."></textarea></div>' +
+    '<div class="form-row"><div class="form-group"><label>Proxima Acao</label><input class="form-control" id="cc-next-action" placeholder="O que fazer a seguir"></div>' +
+    '<div class="form-group"><label>Data Proxima Acao</label><input type="date" class="form-control" id="cc-next-action-date"></div></div>' +
+    '<input type="hidden" id="cc-student-id" value="' + studentId + '">',
+    '<button class="btn btn-outline" onclick="closeModal()">Cancelar</button>' +
+    '<button class="btn btn-primary" onclick="saveContact()">Salvar Contato</button>'
+  );
+}
+
+function saveContact() {
+  var studentId = parseInt($('cc-student-id')?.value);
+  var summary = $('cc-summary')?.value?.trim();
+  if (!summary) { alert('Preencha o resumo do contato.'); return; }
+
+  if (!state.csContacts) state.csContacts = [];
+  var maxId = state.csContacts.reduce(function(m, c) { return Math.max(m, c.id || 0); }, 0);
+
+  var userName = state.profile?.name || 'Equipe CS';
+
+  var contact = {
+    id: maxId + 1,
+    studentId: studentId,
+    date: $('cc-date')?.value || new Date().toISOString().slice(0, 10),
+    channel: $('cc-channel')?.value || 'whatsapp',
+    responsible: userName,
+    type: $('cc-type')?.value || 'follow-up',
+    summary: summary,
+    sentiment: $('cc-sentiment')?.value || 'neutro',
+    nextAction: $('cc-next-action')?.value || '',
+    nextActionDate: $('cc-next-action-date')?.value || '',
+    status: 'realizado'
+  };
+
+  state.csContacts.push(contact);
+
+  // Update student
+  var s = (state.csStudents || []).find(function(st) { return st.id === studentId; });
+  if (s) {
+    s.lastContactDate = contact.date;
+    s.lastContactChannel = contact.channel;
+    s.lastContactSummary = contact.summary;
+    s.contactCount = (s.contactCount || 0) + 1;
+    s.daysSinceContact = daysDiff(contact.date) ? Math.abs(daysDiff(contact.date)) : 0;
+    if (contact.nextAction) s.nextAction = contact.nextAction;
+
+    // Recalculate health
+    var hResult = computeHealthScore(s);
+    s.healthScore = hResult.total;
+  }
+
+  saveCSData();
+  closeModal();
+  renderCS();
+}
+
+function openCreateCSTask(studentId) {
+  var s = (state.csStudents || []).find(function(st) { return st.id === studentId; });
+  if (!s) return;
+
+  var tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  var tomorrowStr = tomorrow.toISOString().slice(0, 10);
+
+  openModal('Nova Tarefa CS — ' + escHtml(s.name),
+    '<div class="form-group"><label>Titulo</label><input class="form-control" id="ct-title" placeholder="Titulo da tarefa"></div>' +
+    '<div class="form-row"><div class="form-group"><label>Tipo</label><select class="form-control" id="ct-type">' +
+    '<option value="contato">Contato</option><option value="follow-up">Follow-up</option><option value="renovacao">Renovacao</option><option value="cobranca">Cobranca</option><option value="onboarding">Onboarding</option><option value="escalonamento">Escalonamento</option></select></div>' +
+    '<div class="form-group"><label>Prioridade</label><select class="form-control" id="ct-priority">' +
+    '<option value="media">Media</option><option value="alta">Alta</option><option value="baixa">Baixa</option></select></div></div>' +
+    '<div class="form-row"><div class="form-group"><label>Vencimento</label><input type="date" class="form-control" id="ct-due" value="' + tomorrowStr + '"></div>' +
+    '<div class="form-group"><label>Responsavel</label><input class="form-control" id="ct-responsible" value="Equipe CS" placeholder="Responsavel"></div></div>' +
+    '<div class="form-group"><label>Descricao</label><textarea class="form-control" id="ct-description" rows="2" placeholder="Detalhes da tarefa..."></textarea></div>' +
+    '<input type="hidden" id="ct-student-id" value="' + studentId + '">',
+    '<button class="btn btn-outline" onclick="closeModal()">Cancelar</button>' +
+    '<button class="btn btn-primary" onclick="saveCSTask()">Criar Tarefa</button>'
+  );
+}
+
+function saveCSTask() {
+  var studentId = parseInt($('ct-student-id')?.value);
+  var title = $('ct-title')?.value?.trim();
+  if (!title) { alert('Preencha o titulo da tarefa.'); return; }
+
+  if (!state.csTasks) state.csTasks = [];
+  var maxId = state.csTasks.reduce(function(m, t) { return Math.max(m, t.id || 0); }, 0);
+
+  var task = {
+    id: maxId + 1,
+    studentId: studentId,
+    title: title,
+    responsible: $('ct-responsible')?.value || 'Equipe CS',
+    priority: $('ct-priority')?.value || 'media',
+    dueDate: $('ct-due')?.value || '',
+    status: 'pendente',
+    type: $('ct-type')?.value || 'contato',
+    description: $('ct-description')?.value || ''
+  };
+
+  state.csTasks.push(task);
+  saveCSData();
+  closeModal();
+  renderCS();
+}
+
+function updateCSTaskStatus(taskId, newStatus) {
+  var task = (state.csTasks || []).find(function(t) { return t.id === taskId; });
+  if (task) {
+    task.status = newStatus;
+    saveCSData();
+    renderCS();
+  }
+}
+
 function loadCSData() {
-  if (state.csStudents) return;
-  try { const s = localStorage.getItem('sp-os-cs-students'); if(s) state.csStudents = JSON.parse(s); } catch(e) {}
-  if (!state.csStudents || state.csStudents.length === 0) seedCSData();
+  // Load students
+  if (!state.csStudents) {
+    try {
+      var s = localStorage.getItem('sp-os-cs-students');
+      if (s) state.csStudents = JSON.parse(s);
+    } catch(e) {}
+  }
+
+  // Load contacts
+  if (!state.csContacts) {
+    try {
+      var c = localStorage.getItem('sp-os-cs-contacts');
+      if (c) state.csContacts = JSON.parse(c);
+    } catch(e) {}
+    if (!state.csContacts) state.csContacts = [];
+  }
+
+  // Load tasks
+  if (!state.csTasks) {
+    try {
+      var t = localStorage.getItem('sp-os-cs-tasks');
+      if (t) state.csTasks = JSON.parse(t);
+    } catch(e) {}
+    if (!state.csTasks) state.csTasks = [];
+  }
+
+  // Seed if no students
+  if (!state.csStudents || state.csStudents.length === 0) {
+    seedCSData();
+  }
+
+  // Initialize new state properties
+  if (!state.csFilters) state.csFilters = {};
+  if (!state.csView) state.csView = 'dashboard';
+  if (!state.csTab) state.csTab = 'visao_geral';
+
+  // Calculate daysSinceContact for each student
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+  (state.csStudents || []).forEach(function(s) {
+    if (s.lastContactDate) {
+      var lcDate = new Date(s.lastContactDate + 'T00:00:00');
+      s.daysSinceContact = Math.round((today - lcDate) / 86400000);
+      if (s.daysSinceContact < 0) s.daysSinceContact = 0;
+    } else {
+      s.daysSinceContact = 999;
+    }
+
+    // Recalculate health score
+    var hResult = computeHealthScore(s);
+    s.healthScore = hResult.total;
+  });
 }
 
 function seedCSData() {
+  var today = new Date();
+  var todayStr = today.toISOString().slice(0, 10);
+
+  var daysAgo = function(n) {
+    var d = new Date(today);
+    d.setDate(d.getDate() - n);
+    return d.toISOString().slice(0, 10);
+  };
+
+  var daysFromNow = function(n) {
+    var d = new Date(today);
+    d.setDate(d.getDate() + n);
+    return d.toISOString().slice(0, 10);
+  };
+
   state.csStudents = [
-    {id:1, name:'Dr. Ricardo Mendes', email:'ricardo@clinic.com', whatsapp:'11999990001', instagram:'@drricardo', city:'São Paulo', profession:'Médico', company:'Clínica Mendes', mentoria:'Golden', turma:'Turma 5', entryDate:'2025-06-01', renewalDate:'2026-06-01', ticket:60000, financialStatus:'adimplente', healthScore:85, nps:9, attendance:90, csResponsible:'Equipe CS', observations:'Engajado, participa de todos os encontros', nextAction:'Follow-up renovação em 30 dias'},
-    {id:2, name:'Dra. Camila Souza', email:'camila@nutri.com', whatsapp:'21999990002', instagram:'@dracamila', city:'Rio de Janeiro', profession:'Nutricionista', company:'NutriVida', mentoria:'Golden', turma:'Turma 5', entryDate:'2025-08-01', renewalDate:'2026-08-01', ticket:60000, financialStatus:'adimplente', healthScore:72, nps:8, attendance:75, csResponsible:'Equipe CS', observations:'Boa participação, mas faltou no último encontro', nextAction:'Verificar presença'},
-    {id:3, name:'Dr. Paulo Oliveira', email:'paulo@med.com', whatsapp:'31999990003', instagram:'@drpaulo', city:'Belo Horizonte', profession:'Médico', company:'Consultório Paulo', mentoria:'Golden', turma:'Turma 4', entryDate:'2025-01-01', renewalDate:'2026-01-15', ticket:55000, financialStatus:'adimplente', healthScore:45, nps:6, attendance:50, csResponsible:'Equipe CS', observations:'Frequência caindo, possível risco de cancelamento', nextAction:'Reunião urgente de CS'},
-    {id:4, name:'Dra. Fernanda Lima', email:'fernanda@clinic.com', whatsapp:'11999990004', instagram:'@drafernanda', city:'São Paulo', profession:'Nutricionista', company:'FL Nutrição', mentoria:'A Mesa', turma:'Edição Jun/26', entryDate:'2026-06-01', renewalDate:'2026-12-01', ticket:25000, financialStatus:'adimplente', healthScore:92, nps:10, attendance:100, csResponsible:'Equipe CS', observations:'Excelente participação, potencial de indicação', nextAction:'Pedir depoimento'},
-    {id:5, name:'Dr. Marcelo Pinto', email:'marcelo@med.com', whatsapp:'47999990005', instagram:'@drmarcelo', city:'Florianópolis', profession:'Médico', company:'Pinto Saúde', mentoria:'A Mesa', turma:'Edição Jun/26', entryDate:'2026-06-01', renewalDate:'2026-12-01', ticket:25000, financialStatus:'inadimplente', healthScore:38, nps:5, attendance:40, csResponsible:'Equipe CS', observations:'2 parcelas em atraso, não respondeu últimas mensagens', nextAction:'Acionar cobrança + CS'},
-    {id:6, name:'Dra. Ana Beatriz', email:'anab@nutri.com', whatsapp:'61999990006', instagram:'@draanab', city:'Brasília', profession:'Nutricionista', company:'AB Nutrição', mentoria:'Golden', turma:'Turma 5', entryDate:'2025-06-15', renewalDate:'2026-06-15', ticket:60000, financialStatus:'adimplente', healthScore:88, nps:9, attendance:95, csResponsible:'Equipe CS', observations:'Super engajada, já indicou 2 pessoas', nextAction:'Follow-up renovação'},
+    {
+      id: 1, name: 'Dr. Ricardo Mendes', email: 'ricardo@clinic.com', whatsapp: '11999990001',
+      instagram: '@drricardo', city: 'Sao Paulo', profession: 'Medico', company: 'Clinica Mendes',
+      mentoria: 'Golden', turma: 'Turma 5', entryDate: '2025-06-01', renewalDate: '2026-06-01',
+      ticket: 60000, financialStatus: 'adimplente', healthScore: 85, nps: 9, attendance: 90,
+      csResponsible: 'Equipe CS', observations: 'Engajado, participa de todos os encontros',
+      nextAction: 'Follow-up renovacao em 30 dias',
+      lastContactDate: daysAgo(5), lastContactChannel: 'whatsapp', lastContactSummary: 'Conversa sobre proximos temas do programa',
+      engajamento: 88, tags: ['VIP', 'indicador'], riskReason: '', playbook: 'cliente_vip',
+      renewalProbability: 90, origin: 'Indicacao', status: 'ativo', contactCount: 12, daysSinceContact: 5
+    },
+    {
+      id: 2, name: 'Dra. Camila Souza', email: 'camila@nutri.com', whatsapp: '21999990002',
+      instagram: '@dracamila', city: 'Rio de Janeiro', profession: 'Nutricionista', company: 'NutriVida',
+      mentoria: 'Golden', turma: 'Turma 5', entryDate: '2025-08-01', renewalDate: '2026-08-01',
+      ticket: 60000, financialStatus: 'adimplente', healthScore: 72, nps: 8, attendance: 75,
+      csResponsible: 'Equipe CS', observations: 'Boa participacao, mas faltou no ultimo encontro',
+      nextAction: 'Verificar presenca',
+      lastContactDate: daysAgo(8), lastContactChannel: 'email', lastContactSummary: 'Email de acompanhamento mensal',
+      engajamento: 70, tags: [], riskReason: '', playbook: '',
+      renewalProbability: 75, origin: 'Evento presencial', status: 'ativo', contactCount: 8, daysSinceContact: 8
+    },
+    {
+      id: 3, name: 'Dr. Paulo Oliveira', email: 'paulo@med.com', whatsapp: '31999990003',
+      instagram: '@drpaulo', city: 'Belo Horizonte', profession: 'Medico', company: 'Consultorio Paulo',
+      mentoria: 'Golden', turma: 'Turma 4', entryDate: '2025-01-01', renewalDate: daysFromNow(25),
+      ticket: 55000, financialStatus: 'adimplente', healthScore: 45, nps: 6, attendance: 50,
+      csResponsible: 'Equipe CS', observations: 'Frequencia caindo, possivel risco de cancelamento',
+      nextAction: 'Reuniao urgente de CS',
+      lastContactDate: daysAgo(22), lastContactChannel: 'ligacao', lastContactSummary: 'Ligacao para tentar reengajar, mencionou falta de tempo',
+      engajamento: 35, tags: [], riskReason: 'Presenca caindo e NPS baixo', playbook: 'baixa_presenca',
+      renewalProbability: 40, origin: 'Congresso SciencePlay', status: 'ativo', contactCount: 5, daysSinceContact: 22
+    },
+    {
+      id: 4, name: 'Dr. Marcos Ribeiro', email: 'marcos@med.com', whatsapp: '11999990007',
+      instagram: '@drmarcos', city: 'Sao Paulo', profession: 'Medico', company: 'Ribeiro Health',
+      mentoria: 'Golden', turma: 'Turma 4', entryDate: '2025-01-15', renewalDate: daysFromNow(55),
+      ticket: 60000, financialStatus: 'inadimplente', healthScore: 28, nps: 4, attendance: 30,
+      csResponsible: 'Equipe CS', observations: '2 parcelas em atraso, reclamou da qualidade do conteudo',
+      nextAction: 'Escalonamento para gestao',
+      lastContactDate: daysAgo(35), lastContactChannel: 'ligacao', lastContactSummary: 'Nao atendeu a ligacao, enviado WA sem resposta',
+      engajamento: 15, tags: [], riskReason: 'Inadimplente + NPS critico + baixa presenca', playbook: 'inadimplente',
+      renewalProbability: 10, origin: 'Trafego pago', status: 'ativo', contactCount: 3, daysSinceContact: 35
+    },
+    {
+      id: 5, name: 'Dra. Ana Beatriz', email: 'anab@nutri.com', whatsapp: '61999990006',
+      instagram: '@draanab', city: 'Brasilia', profession: 'Nutricionista', company: 'AB Nutricao',
+      mentoria: 'Golden', turma: 'Turma 5', entryDate: '2025-06-15', renewalDate: daysFromNow(75),
+      ticket: 60000, financialStatus: 'adimplente', healthScore: 88, nps: 9, attendance: 95,
+      csResponsible: 'Equipe CS', observations: 'Super engajada, ja indicou 2 pessoas',
+      nextAction: 'Follow-up renovacao',
+      lastContactDate: daysAgo(3), lastContactChannel: 'whatsapp', lastContactSummary: 'Parabens pelo resultado recente e alinhamento de renovacao',
+      engajamento: 92, tags: ['VIP', 'indicador'], riskReason: '', playbook: 'cliente_vip',
+      renewalProbability: 95, origin: 'Indicacao Dr. Ricardo', status: 'ativo', contactCount: 15, daysSinceContact: 3
+    },
+    {
+      id: 6, name: 'Dra. Fernanda Lima', email: 'fernanda@clinic.com', whatsapp: '11999990004',
+      instagram: '@drafernanda', city: 'Sao Paulo', profession: 'Nutricionista', company: 'FL Nutricao',
+      mentoria: 'A Mesa', turma: 'Edicao Jun/26', entryDate: '2026-06-01', renewalDate: '2026-12-01',
+      ticket: 25000, financialStatus: 'adimplente', healthScore: 92, nps: 10, attendance: 100,
+      csResponsible: 'Equipe CS', observations: 'Excelente participacao, potencial de indicacao',
+      nextAction: 'Pedir depoimento',
+      lastContactDate: daysAgo(2), lastContactChannel: 'reuniao', lastContactSummary: 'Participou da mentoria e ficou super satisfeita',
+      engajamento: 95, tags: ['VIP'], riskReason: '', playbook: '',
+      renewalProbability: 90, origin: 'Instagram', status: 'ativo', contactCount: 6, daysSinceContact: 2
+    },
+    {
+      id: 7, name: 'Dr. Marcelo Pinto', email: 'marcelo@med.com', whatsapp: '47999990005',
+      instagram: '@drmarcelo', city: 'Florianopolis', profession: 'Medico', company: 'Pinto Saude',
+      mentoria: 'A Mesa', turma: 'Edicao Jun/26', entryDate: '2026-06-01', renewalDate: '2026-12-01',
+      ticket: 25000, financialStatus: 'inadimplente', healthScore: 38, nps: 5, attendance: 40,
+      csResponsible: 'Equipe CS', observations: '2 parcelas em atraso, nao respondeu ultimas mensagens',
+      nextAction: 'Acionar cobranca + CS',
+      lastContactDate: daysAgo(18), lastContactChannel: 'whatsapp', lastContactSummary: 'Mensagem de cobranca enviada sem resposta',
+      engajamento: 25, tags: [], riskReason: 'Inadimplente e sem comunicacao', playbook: 'inadimplente',
+      renewalProbability: 20, origin: 'Trafego pago', status: 'ativo', contactCount: 4, daysSinceContact: 18
+    },
+    {
+      id: 8, name: 'Dra. Juliana Costa', email: 'juliana@clinic.com', whatsapp: '41999990008',
+      instagram: '@drajuliana', city: 'Curitiba', profession: 'Medica', company: 'JC Saude',
+      mentoria: 'A Mesa', turma: 'Edicao Jul/26', entryDate: daysAgo(5), renewalDate: daysFromNow(175),
+      ticket: 25000, financialStatus: 'adimplente', healthScore: 70, nps: 0, attendance: 0,
+      csResponsible: 'Equipe CS', observations: 'Recem-chegada, aguardando primeiro encontro',
+      nextAction: 'Enviar kit de boas-vindas e agendar kickoff',
+      lastContactDate: daysAgo(5), lastContactChannel: 'email', lastContactSummary: 'Email de boas-vindas enviado',
+      engajamento: 50, tags: ['novo'], riskReason: '', playbook: 'novo_mentorado',
+      renewalProbability: 70, origin: 'Congresso SciencePlay', status: 'onboarding', contactCount: 1, daysSinceContact: 5
+    }
   ];
+
+  state.csContacts = [
+    { id: 1, studentId: 1, date: daysAgo(5), channel: 'whatsapp', responsible: 'Equipe CS', type: 'follow-up', summary: 'Conversa sobre proximos temas do programa, mentorado muito satisfeito', sentiment: 'positivo', nextAction: 'Enviar material complementar', nextActionDate: daysFromNow(3), status: 'realizado' },
+    { id: 2, studentId: 1, date: daysAgo(15), channel: 'ligacao', responsible: 'Equipe CS', type: 'follow-up', summary: 'Ligacao mensal, discutiu resultados e proximos passos', sentiment: 'positivo', nextAction: '', nextActionDate: '', status: 'realizado' },
+    { id: 3, studentId: 2, date: daysAgo(8), channel: 'email', responsible: 'Equipe CS', type: 'follow-up', summary: 'Email de acompanhamento mensal com resumo de atividades', sentiment: 'neutro', nextAction: 'Verificar presenca no proximo encontro', nextActionDate: daysFromNow(5), status: 'realizado' },
+    { id: 4, studentId: 3, date: daysAgo(22), channel: 'ligacao', responsible: 'Equipe CS', type: 'reengajamento', summary: 'Ligacao para tentar reengajar, mencionou falta de tempo por conta da clinica', sentiment: 'negativo', nextAction: 'Agendar reuniao presencial', nextActionDate: daysAgo(15), status: 'realizado' },
+    { id: 5, studentId: 4, date: daysAgo(35), channel: 'ligacao', responsible: 'Equipe CS', type: 'cobranca', summary: 'Nao atendeu a ligacao, enviado WhatsApp sem resposta', sentiment: 'negativo', nextAction: 'Escalonar para gestao', nextActionDate: daysAgo(30), status: 'realizado' },
+    { id: 6, studentId: 5, date: daysAgo(3), channel: 'whatsapp', responsible: 'Equipe CS', type: 'follow-up', summary: 'Parabens pelo resultado recente e alinhamento sobre renovacao', sentiment: 'positivo', nextAction: 'Enviar proposta de renovacao', nextActionDate: daysFromNow(10), status: 'realizado' },
+    { id: 7, studentId: 6, date: daysAgo(2), channel: 'reuniao', responsible: 'Equipe CS', type: 'follow-up', summary: 'Participou da mentoria e ficou super satisfeita com os conteudos', sentiment: 'positivo', nextAction: 'Pedir depoimento', nextActionDate: daysFromNow(7), status: 'pendente' },
+    { id: 8, studentId: 7, date: daysAgo(18), channel: 'whatsapp', responsible: 'Equipe CS', type: 'cobranca', summary: 'Mensagem de cobranca enviada sem resposta', sentiment: 'negativo', nextAction: 'Ligar novamente', nextActionDate: daysAgo(14), status: 'realizado' },
+    { id: 9, studentId: 8, date: daysAgo(5), channel: 'email', responsible: 'Equipe CS', type: 'onboarding', summary: 'Email de boas-vindas com credenciais e links importantes', sentiment: 'positivo', nextAction: 'Agendar kickoff call', nextActionDate: daysFromNow(2), status: 'pendente' }
+  ];
+
+  state.csTasks = [
+    { id: 1, studentId: 3, title: 'Reuniao urgente de reengajamento', responsible: 'Equipe CS', priority: 'alta', dueDate: daysFromNow(2), status: 'pendente', type: 'contato', description: 'Agendar e realizar reuniao para entender queda de presenca' },
+    { id: 2, studentId: 4, title: 'Escalonar caso para gestao', responsible: 'Equipe CS', priority: 'alta', dueDate: daysAgo(2), status: 'pendente', type: 'escalonamento', description: 'Inadimplente sem resposta, escalonar para decisao' },
+    { id: 3, studentId: 5, title: 'Preparar proposta de renovacao', responsible: 'Equipe CS', priority: 'media', dueDate: daysFromNow(10), status: 'em_andamento', type: 'renovacao', description: 'Montar relatorio de ROI e proposta de renovacao' },
+    { id: 4, studentId: 7, title: 'Ligar para Dr. Marcelo sobre pagamento', responsible: 'Equipe CS', priority: 'alta', dueDate: daysAgo(1), status: 'pendente', type: 'cobranca', description: 'Tentar contato por telefone sobre parcelas em atraso' },
+    { id: 5, studentId: 8, title: 'Agendar kickoff com Dra. Juliana', responsible: 'Equipe CS', priority: 'media', dueDate: daysFromNow(2), status: 'pendente', type: 'onboarding', description: 'Agendar call de 30min para onboarding' },
+    { id: 6, studentId: 6, title: 'Solicitar depoimento Dra. Fernanda', responsible: 'Equipe CS', priority: 'baixa', dueDate: daysFromNow(7), status: 'pendente', type: 'follow-up', description: 'Pedir video depoimento para marketing' }
+  ];
+
   saveCSData();
 }
 
-function saveCSData() { localStorage.setItem('sp-os-cs-students', JSON.stringify(state.csStudents)); }
+function saveCSData() {
+  try {
+    localStorage.setItem('sp-os-cs-students', JSON.stringify(state.csStudents || []));
+    localStorage.setItem('sp-os-cs-contacts', JSON.stringify(state.csContacts || []));
+    localStorage.setItem('sp-os-cs-tasks', JSON.stringify(state.csTasks || []));
+  } catch(e) {}
+}
 
 function openAddStudent() {
   openModal('Novo Mentorado',
@@ -1749,49 +2992,178 @@ function openAddStudent() {
     '<div class="form-row"><div class="form-group"><label>WhatsApp</label><input class="form-control" id="cs-whatsapp" placeholder="11999999999"></div>' +
     '<div class="form-group"><label>Instagram</label><input class="form-control" id="cs-instagram" placeholder="@usuario"></div></div>' +
     '<div class="form-row"><div class="form-group"><label>Cidade</label><input class="form-control" id="cs-city" placeholder="Cidade"></div>' +
-    '<div class="form-group"><label>Profissão</label><input class="form-control" id="cs-profession" placeholder="Médico, Nutricionista..."></div></div>' +
+    '<div class="form-group"><label>Profissao</label><input class="form-control" id="cs-profession" placeholder="Medico, Nutricionista..."></div></div>' +
+    '<div class="form-row"><div class="form-group"><label>Empresa</label><input class="form-control" id="cs-company" placeholder="Nome da empresa"></div>' +
+    '<div class="form-group"><label>Origem</label><input class="form-control" id="cs-origin" placeholder="Indicacao, Evento, Trafego..."></div></div>' +
     '<div class="form-row"><div class="form-group"><label>Mentoria</label><select class="form-control" id="cs-mentoria"><option value="Golden">Golden Group</option><option value="A Mesa">A Mesa</option></select></div>' +
-    '<div class="form-group"><label>Ticket (R$)</label><input type="number" class="form-control" id="cs-ticket" placeholder="60000"></div></div>' +
+    '<div class="form-group"><label>Turma</label><input class="form-control" id="cs-turma" placeholder="Turma 5, Edicao Jun/26..."></div></div>' +
+    '<div class="form-row"><div class="form-group"><label>Ticket (R$)</label><input type="number" class="form-control" id="cs-ticket" placeholder="60000"></div>' +
+    '<div class="form-group"><label>Responsavel CS</label><input class="form-control" id="cs-responsible" value="Equipe CS" placeholder="Responsavel"></div></div>' +
     '<div class="form-row"><div class="form-group"><label>Data de Entrada</label><input type="date" class="form-control" id="cs-entry"></div>' +
-    '<div class="form-group"><label>Data de Renovação</label><input type="date" class="form-control" id="cs-renewal"></div></div>',
-    '<button class="btn btn-outline" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveStudent()">Salvar</button>'
+    '<div class="form-group"><label>Data de Renovacao</label><input type="date" class="form-control" id="cs-renewal"></div></div>' +
+    '<div class="form-row"><div class="form-group"><label>NPS (0-10)</label><input type="number" class="form-control" id="cs-nps" min="0" max="10" placeholder="0"></div>' +
+    '<div class="form-group"><label>Presenca (%)</label><input type="number" class="form-control" id="cs-attendance" min="0" max="100" placeholder="0"></div></div>' +
+    '<div class="form-group"><label>Tags (separadas por virgula)</label><input class="form-control" id="cs-tags" placeholder="VIP, indicador, novo"></div>' +
+    '<div class="form-group"><label>Observacoes</label><textarea class="form-control" id="cs-observations" rows="2" placeholder="Observacoes gerais..."></textarea></div>',
+    '<button class="btn btn-outline" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveStudent()">Salvar</button>',
+    true
   );
 }
 
 function saveStudent() {
-  const name = $('cs-name')?.value?.trim(); if(!name) return;
-  const maxId = (state.csStudents||[]).reduce((m,s) => Math.max(m,s.id), 0);
-  state.csStudents.push({
-    id: maxId+1, name, email:$('cs-email')?.value||'', whatsapp:$('cs-whatsapp')?.value||'',
-    instagram:$('cs-instagram')?.value||'', city:$('cs-city')?.value||'', profession:$('cs-profession')?.value||'',
-    company:'', mentoria:$('cs-mentoria')?.value||'Golden', turma:'',
-    entryDate:$('cs-entry')?.value||'', renewalDate:$('cs-renewal')?.value||'',
-    ticket:parseFloat($('cs-ticket')?.value)||0, financialStatus:'adimplente',
-    healthScore:70, nps:0, attendance:0, csResponsible:'Equipe CS',
-    observations:'', nextAction:'Onboarding'
-  });
-  saveCSData(); closeModal(); renderCS();
+  var name = $('cs-name')?.value?.trim();
+  if (!name) { alert('Preencha o nome do mentorado.'); return; }
+
+  var maxId = (state.csStudents || []).reduce(function(m, s) { return Math.max(m, s.id); }, 0);
+  var tagsRaw = $('cs-tags')?.value || '';
+  var tags = tagsRaw.split(',').map(function(t) { return t.trim(); }).filter(function(t) { return t.length > 0; });
+
+  var newStudent = {
+    id: maxId + 1,
+    name: name,
+    email: $('cs-email')?.value || '',
+    whatsapp: $('cs-whatsapp')?.value || '',
+    instagram: $('cs-instagram')?.value || '',
+    city: $('cs-city')?.value || '',
+    profession: $('cs-profession')?.value || '',
+    company: $('cs-company')?.value || '',
+    mentoria: $('cs-mentoria')?.value || 'Golden',
+    turma: $('cs-turma')?.value || '',
+    entryDate: $('cs-entry')?.value || new Date().toISOString().slice(0, 10),
+    renewalDate: $('cs-renewal')?.value || '',
+    ticket: parseFloat($('cs-ticket')?.value) || 0,
+    financialStatus: 'adimplente',
+    healthScore: 70,
+    nps: parseInt($('cs-nps')?.value) || 0,
+    attendance: parseInt($('cs-attendance')?.value) || 0,
+    csResponsible: $('cs-responsible')?.value || 'Equipe CS',
+    observations: $('cs-observations')?.value || '',
+    nextAction: 'Onboarding',
+    lastContactDate: '',
+    lastContactChannel: '',
+    lastContactSummary: '',
+    engajamento: 50,
+    tags: tags,
+    riskReason: '',
+    playbook: '',
+    renewalProbability: 70,
+    origin: $('cs-origin')?.value || '',
+    status: 'onboarding',
+    contactCount: 0,
+    daysSinceContact: 999
+  };
+
+  // Compute health
+  var hResult = computeHealthScore(newStudent);
+  newStudent.healthScore = hResult.total;
+
+  state.csStudents.push(newStudent);
+  saveCSData();
+  closeModal();
+  renderCS();
 }
 
-function openStudentDetail(id) {
-  const s = (state.csStudents||[]).find(st => st.id === id); if(!s) return;
-  const healthColor = s.healthScore >= 70 ? 'var(--green)' : s.healthScore >= 40 ? 'var(--yellow)' : 'var(--red)';
-  openModal(s.name,
-    '<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;"><span class="badge '+(s.mentoria==='Golden'?'badge-yellow':'badge-purple')+'">'+s.mentoria+'</span>' +
-    '<span class="badge '+(s.financialStatus==='adimplente'?'badge-green':'badge-red')+'">'+s.financialStatus+'</span>' +
-    '<span class="badge" style="background:'+(healthColor===('var(--green)')?'var(--green-bg)':'var(--red-bg)')+';color:'+healthColor+';">Health: '+s.healthScore+'</span></div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">' +
-    infoBlock('Email', s.email) + infoBlock('WhatsApp', s.whatsapp) +
-    infoBlock('Instagram', s.instagram) + infoBlock('Cidade', s.city) +
-    infoBlock('Profissão', s.profession) + infoBlock('Turma', s.turma) +
-    infoBlock('Entrada', dealFmtDate(s.entryDate)) + infoBlock('Renovação', dealFmtDate(s.renewalDate)) +
-    infoBlock('Ticket', formatCurrency(s.ticket)) + infoBlock('NPS', s.nps) +
-    infoBlock('Presença', s.attendance + '%') + infoBlock('Responsável CS', s.csResponsible) +
-    '</div>' +
-    (s.observations ? '<div style="margin-bottom:12px;"><div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">Observações</div><div style="font-size:13px;color:var(--text-secondary);line-height:1.5;">'+escHtml(s.observations)+'</div></div>' : '') +
-    (s.nextAction ? '<div style="padding:12px;background:var(--purple-light);border-radius:8px;"><div style="font-size:11px;font-weight:600;color:var(--purple);text-transform:uppercase;margin-bottom:4px;">Próxima Ação</div><div style="font-size:13px;font-weight:600;">'+escHtml(s.nextAction)+'</div></div>' : ''),
-    '<button class="btn btn-outline" onclick="closeModal()">Fechar</button>'
+function openEditStudent(id) {
+  var s = (state.csStudents || []).find(function(st) { return st.id === id; });
+  if (!s) return;
+
+  var tagsStr = (s.tags || []).join(', ');
+
+  openModal('Editar Mentorado — ' + escHtml(s.name),
+    '<div class="form-row"><div class="form-group"><label>Nome</label><input class="form-control" id="cse-name" value="' + escHtml(s.name) + '"></div>' +
+    '<div class="form-group"><label>Email</label><input type="email" class="form-control" id="cse-email" value="' + escHtml(s.email || '') + '"></div></div>' +
+    '<div class="form-row"><div class="form-group"><label>WhatsApp</label><input class="form-control" id="cse-whatsapp" value="' + escHtml(s.whatsapp || '') + '"></div>' +
+    '<div class="form-group"><label>Instagram</label><input class="form-control" id="cse-instagram" value="' + escHtml(s.instagram || '') + '"></div></div>' +
+    '<div class="form-row"><div class="form-group"><label>Cidade</label><input class="form-control" id="cse-city" value="' + escHtml(s.city || '') + '"></div>' +
+    '<div class="form-group"><label>Profissao</label><input class="form-control" id="cse-profession" value="' + escHtml(s.profession || '') + '"></div></div>' +
+    '<div class="form-row"><div class="form-group"><label>Empresa</label><input class="form-control" id="cse-company" value="' + escHtml(s.company || '') + '"></div>' +
+    '<div class="form-group"><label>Origem</label><input class="form-control" id="cse-origin" value="' + escHtml(s.origin || '') + '"></div></div>' +
+    '<div class="form-row"><div class="form-group"><label>Mentoria</label><select class="form-control" id="cse-mentoria"><option value="Golden"' + (s.mentoria === 'Golden' ? ' selected' : '') + '>Golden Group</option><option value="A Mesa"' + (s.mentoria === 'A Mesa' ? ' selected' : '') + '>A Mesa</option></select></div>' +
+    '<div class="form-group"><label>Turma</label><input class="form-control" id="cse-turma" value="' + escHtml(s.turma || '') + '"></div></div>' +
+    '<div class="form-row"><div class="form-group"><label>Status</label><select class="form-control" id="cse-status"><option value="ativo"' + (s.status === 'ativo' ? ' selected' : '') + '>Ativo</option><option value="onboarding"' + (s.status === 'onboarding' ? ' selected' : '') + '>Onboarding</option><option value="inativo"' + (s.status === 'inativo' ? ' selected' : '') + '>Inativo</option><option value="cancelado"' + (s.status === 'cancelado' ? ' selected' : '') + '>Cancelado</option></select></div>' +
+    '<div class="form-group"><label>Status Financeiro</label><select class="form-control" id="cse-financial"><option value="adimplente"' + (s.financialStatus === 'adimplente' ? ' selected' : '') + '>Adimplente</option><option value="parcial"' + (s.financialStatus === 'parcial' ? ' selected' : '') + '>Parcial</option><option value="inadimplente"' + (s.financialStatus === 'inadimplente' ? ' selected' : '') + '>Inadimplente</option></select></div></div>' +
+    '<div class="form-row"><div class="form-group"><label>Ticket (R$)</label><input type="number" class="form-control" id="cse-ticket" value="' + (s.ticket || 0) + '"></div>' +
+    '<div class="form-group"><label>Responsavel CS</label><input class="form-control" id="cse-responsible" value="' + escHtml(s.csResponsible || 'Equipe CS') + '"></div></div>' +
+    '<div class="form-row"><div class="form-group"><label>Data de Entrada</label><input type="date" class="form-control" id="cse-entry" value="' + (s.entryDate || '') + '"></div>' +
+    '<div class="form-group"><label>Data de Renovacao</label><input type="date" class="form-control" id="cse-renewal" value="' + (s.renewalDate || '') + '"></div></div>' +
+    '<div class="form-row"><div class="form-group"><label>NPS (0-10)</label><input type="number" class="form-control" id="cse-nps" min="0" max="10" value="' + (s.nps || 0) + '"></div>' +
+    '<div class="form-group"><label>Presenca (%)</label><input type="number" class="form-control" id="cse-attendance" min="0" max="100" value="' + (s.attendance || 0) + '"></div></div>' +
+    '<div class="form-row"><div class="form-group"><label>Engajamento (%)</label><input type="number" class="form-control" id="cse-engajamento" min="0" max="100" value="' + (s.engajamento || 0) + '"></div>' +
+    '<div class="form-group"><label>Prob. Renovacao (%)</label><input type="number" class="form-control" id="cse-renewal-prob" min="0" max="100" value="' + (s.renewalProbability || 0) + '"></div></div>' +
+    '<div class="form-group"><label>Tags (separadas por virgula)</label><input class="form-control" id="cse-tags" value="' + escHtml(tagsStr) + '"></div>' +
+    '<div class="form-group"><label>Motivo de Risco</label><input class="form-control" id="cse-risk-reason" value="' + escHtml(s.riskReason || '') + '"></div>' +
+    '<div class="form-group"><label>Proxima Acao</label><input class="form-control" id="cse-next-action" value="' + escHtml(s.nextAction || '') + '"></div>' +
+    '<div class="form-group"><label>Observacoes</label><textarea class="form-control" id="cse-observations" rows="2">' + escHtml(s.observations || '') + '</textarea></div>' +
+    '<input type="hidden" id="cse-id" value="' + s.id + '">',
+    '<button class="btn btn-outline" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveEditStudent()">Salvar</button>',
+    true
   );
+}
+
+function saveEditStudent() {
+  var id = parseInt($('cse-id')?.value);
+  var s = (state.csStudents || []).find(function(st) { return st.id === id; });
+  if (!s) return;
+
+  var name = $('cse-name')?.value?.trim();
+  if (!name) { alert('Preencha o nome do mentorado.'); return; }
+
+  var tagsRaw = $('cse-tags')?.value || '';
+  var tags = tagsRaw.split(',').map(function(t) { return t.trim(); }).filter(function(t) { return t.length > 0; });
+
+  s.name = name;
+  s.email = $('cse-email')?.value || '';
+  s.whatsapp = $('cse-whatsapp')?.value || '';
+  s.instagram = $('cse-instagram')?.value || '';
+  s.city = $('cse-city')?.value || '';
+  s.profession = $('cse-profession')?.value || '';
+  s.company = $('cse-company')?.value || '';
+  s.origin = $('cse-origin')?.value || '';
+  s.mentoria = $('cse-mentoria')?.value || 'Golden';
+  s.turma = $('cse-turma')?.value || '';
+  s.status = $('cse-status')?.value || 'ativo';
+  s.financialStatus = $('cse-financial')?.value || 'adimplente';
+  s.ticket = parseFloat($('cse-ticket')?.value) || 0;
+  s.csResponsible = $('cse-responsible')?.value || 'Equipe CS';
+  s.entryDate = $('cse-entry')?.value || '';
+  s.renewalDate = $('cse-renewal')?.value || '';
+  s.nps = parseInt($('cse-nps')?.value) || 0;
+  s.attendance = parseInt($('cse-attendance')?.value) || 0;
+  s.engajamento = parseInt($('cse-engajamento')?.value) || 0;
+  s.renewalProbability = parseInt($('cse-renewal-prob')?.value) || 0;
+  s.tags = tags;
+  s.riskReason = $('cse-risk-reason')?.value || '';
+  s.nextAction = $('cse-next-action')?.value || '';
+  s.observations = $('cse-observations')?.value || '';
+
+  // Recalculate health
+  var hResult = computeHealthScore(s);
+  s.healthScore = hResult.total;
+
+  saveCSData();
+  closeModal();
+  renderCS();
+}
+
+function exportCSReport(mentoria) {
+  loadCSData();
+  var students = (state.csStudents || []).filter(function(s) { return !mentoria || s.mentoria === mentoria; });
+  var headers = ['Nome', 'Email', 'WhatsApp', 'Mentoria', 'Turma', 'Health Score', 'NPS', 'Presenca', 'Engajamento', 'Ticket', 'Status Financeiro', 'Status', 'Responsavel CS', 'Ultimo Contato', 'Dias sem Contato', 'Renovacao', 'Prob. Renovacao', 'Tags', 'Risco', 'Proxima Acao'];
+  var rows = students.map(function(s) {
+    return [
+      s.name, s.email, s.whatsapp, s.mentoria, s.turma,
+      s.healthScore, s.nps, s.attendance + '%', (s.engajamento || 0) + '%',
+      s.ticket, s.financialStatus, s.status || 'ativo',
+      s.csResponsible, s.lastContactDate ? dealFmtDate(s.lastContactDate) : 'Nunca',
+      typeof s.daysSinceContact === 'number' ? s.daysSinceContact : 'N/A',
+      s.renewalDate ? dealFmtDate(s.renewalDate) : 'N/A',
+      (s.renewalProbability || 0) + '%',
+      (s.tags || []).join('; '),
+      s.riskReason || '',
+      s.nextAction || ''
+    ];
+  });
+  exportCSV('cs-' + (mentoria ? mentoria.replace(/\s/g, '-').toLowerCase() : 'todos') + '.csv', headers, rows);
 }
 
 function infoBlock(label, value) {
