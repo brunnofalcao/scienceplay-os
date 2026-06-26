@@ -709,7 +709,7 @@ textarea.form-control { resize:vertical; min-height:88px; }
     <div class="login-logo">Science Play OS</div>
     <div class="login-sub">Command Center</div>
     <div class="login-field"><label>Email</label><input type="email" id="login-email" placeholder="seu@email.com" autocomplete="email"></div>
-    <div class="login-field"><label>Senha</label><input type="password" id="login-password" placeholder="........" autocomplete="current-password"></div>
+    <div class="login-field"><label>Senha</label><div style="position:relative;"><input type="password" id="login-password" placeholder="........" autocomplete="current-password" style="padding-right:44px;"><button type="button" id="toggle-password" onclick="togglePasswordVisibility()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;padding:4px 8px;color:#9CA3AF;line-height:1;" title="Ver senha">&#128065;</button></div></div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
     <div class="login-error" id="login-error"></div>
   </div>
@@ -1358,7 +1358,6 @@ function renderCEOCommandCenter() {
     '<div class="card chart-card"><div class="card-header"><h3>Receita por Evento</h3></div><div class="card-body"><canvas id="chart-receita-evento"></canvas></div></div>' +
     '</div></div>';
 
-  $('dashboard-kpis').innerHTML = '';
   $('page-dashboard').innerHTML = html;
 
   updateGreeting();
@@ -2008,12 +2007,36 @@ function getTaskPhaseCode(task, eventDate) {
 // AUTH
 // ============================================================
 async function checkSession() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (session) {
-    state.user = session.user;
-    await loadProfile();
-    await loadAllData();
-    showApp();
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      state.user = session.user;
+      // Show loading feedback on login screen
+      const loginBtn = $('login-btn');
+      if (loginBtn) { loginBtn.textContent = 'Carregando...'; loginBtn.disabled = true; }
+      await loadProfile();
+      await loadAllData();
+      showApp();
+    }
+  } catch(e) {
+    console.error('Session check error:', e);
+    // Just show login screen
+    const loginBtn = $('login-btn');
+    if (loginBtn) { loginBtn.textContent = 'Entrar'; loginBtn.disabled = false; }
+  }
+}
+
+function togglePasswordVisibility() {
+  const input = $('login-password');
+  const btn = $('toggle-password');
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.innerHTML = '&#128064;'; // eyes emoji
+    btn.title = 'Ocultar senha';
+  } else {
+    input.type = 'password';
+    btn.innerHTML = '&#128065;'; // eye emoji
+    btn.title = 'Ver senha';
   }
 }
 
@@ -2022,13 +2045,22 @@ async function doLogin() {
   const password = $('login-password').value;
   if (!email || !password) { $('login-error').textContent = 'Preencha todos os campos'; return; }
   $('login-btn').disabled = true;
+  $('login-btn').textContent = 'Entrando...';
   $('login-error').textContent = '';
-  const { data, error } = await sb.auth.signInWithPassword({ email, password });
-  if (error) { $('login-error').textContent = 'Email ou senha invalidos'; $('login-btn').disabled = false; return; }
-  state.user = data.user;
-  await loadProfile();
-  await loadAllData();
-  showApp();
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) { $('login-error').textContent = 'Email ou senha inválidos'; $('login-btn').disabled = false; $('login-btn').textContent = 'Entrar'; return; }
+    state.user = data.user;
+    $('login-btn').textContent = 'Carregando dados...';
+    await loadProfile();
+    await loadAllData();
+    showApp();
+  } catch(e) {
+    console.error('Login error:', e);
+    $('login-error').textContent = 'Erro de conexão. Tente novamente.';
+    $('login-btn').disabled = false;
+    $('login-btn').textContent = 'Entrar';
+  }
 }
 
 async function doLogout() {
@@ -2073,9 +2105,10 @@ function updateGreeting() {
   if (h < 12) g = 'Bom dia';
   else if (h < 18) g = 'Boa tarde';
   const firstName = (state.profile?.name || '').split(' ')[0] || '';
-  $('dashboard-greeting').textContent = g + ', ' + firstName;
-  const today = new Date();
-  $('dashboard-date').textContent = today.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const greetEl = $('dashboard-greeting');
+  if (greetEl) greetEl.textContent = g + ', ' + firstName;
+  const dateEl = $('dashboard-date');
+  if (dateEl) dateEl.textContent = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 // ============================================================
@@ -2255,7 +2288,9 @@ function renderDashboardCEO() {
   const eventosAtivos = state.events.filter(e => e.status === 'ativo' || e.status === 'execucao' || e.status === 'planejamento').length;
   const tarefasAtrasadas = state.tasks.filter(t => getEffectiveStatus(t) === 'atrasada').length;
 
-  $('dashboard-kpis').innerHTML =
+  const kpiEl = $('dashboard-kpis');
+  if (!kpiEl) return; // Page was rewritten by new CEO Command Center
+  kpiEl.innerHTML =
     '<div class="kpi-card"><div class="kpi-label">Receita Total (Ano)</div><div class="kpi-value purple">' + formatCurrency(totalReceita) + '</div></div>' +
     '<div class="kpi-card"><div class="kpi-label">Custos Total</div><div class="kpi-value">' + formatCurrency(totalCusto) + '</div></div>' +
     '<div class="kpi-card"><div class="kpi-label">Resultado</div><div class="kpi-value ' + (resultado >= 0 ? 'green' : 'red') + '">' + formatCurrency(resultado) + '</div></div>' +
@@ -2270,8 +2305,8 @@ function renderDashboardCEO() {
   renderDashboardNextEvents();
 
   // Timeline + Charts (visible for admin)
-  $('dashboard-timeline-section').style.display = '';
-  $('dashboard-charts-section').style.display = '';
+  const tlSec = $('dashboard-timeline-section'); if (tlSec) tlSec.style.display = '';
+  const chSec = $('dashboard-charts-section'); if (chSec) chSec.style.display = '';
   renderDashboardTimeline(year);
   renderCharts(year);
 }
@@ -2450,12 +2485,14 @@ function renderDashboardAlerts() {
     alerts.push({ icon: '⚠️', bg: 'var(--yellow-bg)', border: 'var(--yellow)', title: upcomingCheckpoints.length + ' Go/No-Go em 7 dias', desc: 'Checkpoints que precisam de decisao em breve' });
   }
 
+  const alertsEl = $('dashboard-alerts-section');
+  if (!alertsEl) return;
   if (alerts.length === 0) {
-    $('dashboard-alerts-section').innerHTML = '';
+    alertsEl.innerHTML = '';
     return;
   }
 
-  $('dashboard-alerts-section').innerHTML =
+  alertsEl.innerHTML =
     '<h3 style="font-size:15px;font-weight:700;margin-bottom:14px;color:var(--red);">Alertas Criticos</h3>' +
     '<div class="alert-grid">' +
     alerts.map(a =>
