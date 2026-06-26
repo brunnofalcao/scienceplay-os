@@ -595,6 +595,110 @@ textarea.form-control { resize:vertical; min-height:88px; }
   .form-row { grid-template-columns:1fr; }
   table { min-width:400px; }
 }
+
+
+/* ====== TOPBAR ====== */
+.topbar { display:flex; align-items:center; gap:14px; padding:10px 28px; background:var(--card-bg); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:50; min-height:52px; }
+.topbar-search { flex:1; max-width:420px; position:relative; }
+.topbar-search input { width:100%; padding:8px 14px 8px 36px; border:1.5px solid var(--border); border-radius:8px; font-size:13px; font-family:inherit; background:var(--bg); outline:none; transition:all var(--duration); }
+.topbar-search input:focus { border-color:var(--purple); box-shadow:0 0 0 3px var(--purple-glow); background:#fff; }
+.topbar-search .search-icon { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-muted); font-size:14px; pointer-events:none; }
+.topbar-right { display:flex; align-items:center; gap:10px; margin-left:auto; }
+.topbar-btn { width:36px; height:36px; border-radius:8px; border:1px solid var(--border); background:var(--card-bg); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px; transition:all var(--duration); position:relative; }
+.topbar-btn:hover { background:var(--purple-light); border-color:var(--purple); }
+.topbar-btn .notif-dot { position:absolute; top:6px; right:6px; width:7px; height:7px; border-radius:50%; background:var(--red); }
+.topbar-kbd { font-size:10px; color:var(--text-muted); background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:1px 5px; font-family:monospace; }
+.global-filters { display:flex; gap:8px; padding:10px 28px; background:var(--card-bg); border-bottom:1px solid var(--border); flex-wrap:wrap; align-items:center; }
+.global-filters .filter-select { padding:6px 28px 6px 10px; font-size:12px; border-radius:6px; }
+.global-filters label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-muted); }
+
+/* ====== COMMAND PALETTE ====== */
+.cmd-palette-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(10,6,18,0.6); z-index:2000; align-items:flex-start; justify-content:center; padding-top:120px; backdrop-filter:blur(4px); }
+.cmd-palette-overlay.active { display:flex; }
+.cmd-palette { background:var(--card-bg); border-radius:var(--radius-lg); width:560px; max-width:90vw; box-shadow:var(--card-shadow-elevated); overflow:hidden; }
+.cmd-palette input { width:100%; padding:16px 20px; border:none; font-size:16px; font-family:inherit; outline:none; border-bottom:1px solid var(--border); }
+.cmd-palette-results { max-height:360px; overflow-y:auto; padding:8px; }
+.cmd-palette-item { padding:10px 14px; border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:12px; font-size:14px; transition:background 0.1s; }
+.cmd-palette-item:hover, .cmd-palette-item.selected { background:var(--purple-light); }
+.cmd-palette-item .cmd-icon { width:32px; height:32px; border-radius:8px; background:var(--bg); display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.cmd-palette-item .cmd-label { font-weight:500; }
+.cmd-palette-item .cmd-desc { font-size:11px; color:var(--text-muted); }
+.cmd-palette-item .cmd-kbd { margin-left:auto; font-size:10px; color:var(--text-muted); background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:2px 6px; }
+
+/* ====== SCORE GAUGE ====== */
+.score-gauge { display:flex; flex-direction:column; align-items:center; padding:20px; }
+.score-ring { position:relative; width:140px; height:140px; }
+.score-ring svg { transform:rotate(-90deg); }
+.score-ring .score-value { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:36px; font-weight:800; letter-spacing:-2px; }
+.score-ring .score-label { position:absolute; top:50%; left:50%; transform:translate(-50%,16px); font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
+.score-category { display:grid; grid-template-columns:1fr auto auto; gap:8px; align-items:center; padding:10px 14px; border-bottom:1px solid var(--border); font-size:13px; }
+.score-category:last-child { border-bottom:none; }
+.score-bar { width:100px; height:6px; background:rgba(0,0,0,0.06); border-radius:3px; overflow:hidden; }
+.score-bar-fill { height:100%; border-radius:3px; transition:width 0.5s var(--ease); }
+
+/* ====== DECISION CARDS ====== */
+.decision-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:14px; margin-bottom:24px; }
+.decision-card { background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px; box-shadow:var(--card-shadow); transition:all var(--duration); border-left:4px solid var(--yellow); }
+.decision-card.critical { border-left-color:var(--red); }
+.decision-card.info { border-left-color:var(--blue); }
+.decision-card-header { display:flex; align-items:flex-start; gap:10px; margin-bottom:10px; }
+.decision-card-header h4 { font-size:14px; font-weight:700; flex:1; }
+.decision-card-meta { display:flex; gap:12px; font-size:11px; color:var(--text-muted); margin-bottom:10px; flex-wrap:wrap; }
+.decision-card-meta span { display:flex; align-items:center; gap:4px; }
+.decision-card p { font-size:12.5px; color:var(--text-secondary); line-height:1.5; margin-bottom:12px; }
+.decision-card .btn { font-size:11px; padding:6px 12px; }
+
+/* ====== CS CARDS ====== */
+.cs-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:16px; }
+.cs-student-card { background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px; box-shadow:var(--card-shadow); cursor:pointer; transition:all var(--duration); }
+.cs-student-card:hover { box-shadow:var(--card-shadow-hover); transform:translateY(-2px); }
+.cs-student-card.at-risk { border-left:3px solid var(--red); }
+.cs-student-card.renewal-soon { border-left:3px solid var(--yellow); }
+.cs-student-top { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.cs-student-avatar { width:42px; height:42px; border-radius:50%; background:var(--purple); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; flex-shrink:0; }
+.cs-student-info h4 { font-size:14px; font-weight:700; }
+.cs-student-info p { font-size:11px; color:var(--text-muted); }
+.cs-student-metrics { display:flex; gap:12px; flex-wrap:wrap; }
+.cs-student-metrics .metric { text-align:center; flex:1; min-width:60px; padding:8px; background:var(--bg); border-radius:8px; }
+.cs-student-metrics .metric .val { font-size:16px; font-weight:700; }
+.cs-student-metrics .metric .lbl { font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
+
+/* ====== DD CHECKLIST ====== */
+.dd-item { display:grid; grid-template-columns:auto 1fr 90px 70px 100px 100px; gap:10px; align-items:center; padding:12px 16px; border-bottom:1px solid var(--border); font-size:13px; }
+.dd-item:hover { background:rgba(0,0,0,0.01); }
+.dd-status { display:inline-flex; align-items:center; padding:3px 8px; border-radius:6px; font-size:10px; font-weight:700; text-transform:uppercase; }
+.dd-status.completo { background:var(--green-bg); color:#059669; }
+.dd-status.parcial { background:var(--yellow-bg); color:#92400E; }
+.dd-status.pendente { background:#F4F3F6; color:#6B7280; }
+.dd-status.critico { background:var(--red-bg); color:#DC2626; }
+
+/* ====== FINANCIAL PLAN ====== */
+.scenario-tabs { display:flex; gap:4px; background:rgba(0,0,0,0.04); border-radius:10px; padding:4px; margin-bottom:20px; overflow-x:auto; }
+.scenario-tab { padding:8px 16px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; border:none; background:transparent; color:var(--text-secondary); transition:all 0.15s; white-space:nowrap; font-family:inherit; }
+.scenario-tab.active { background:var(--card-bg); color:var(--text); box-shadow:0 1px 3px rgba(0,0,0,0.08); }
+.plan-comparison { display:grid; grid-template-columns:200px repeat(auto-fill,minmax(120px,1fr)); gap:0; border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+.plan-comparison .plan-cell { padding:10px 14px; border-bottom:1px solid var(--border); border-right:1px solid var(--border); font-size:13px; }
+.plan-comparison .plan-cell:last-child { border-right:none; }
+.plan-comparison .plan-header { background:rgba(0,0,0,0.03); font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; }
+.plan-comparison .plan-label { font-weight:600; background:rgba(0,0,0,0.015); }
+.plan-variance-positive { color:var(--green); }
+.plan-variance-negative { color:var(--red); }
+
+/* ====== ENHANCED RESPONSIVE ====== */
+@media (max-width:768px) {
+  .topbar { padding:8px 14px; gap:8px; }
+  .topbar-search { max-width:none; }
+  .global-filters { padding:8px 14px; gap:6px; }
+  .global-filters .filter-select { flex:1; min-width:100px; }
+  .decision-grid { grid-template-columns:1fr; }
+  .cs-grid { grid-template-columns:1fr; }
+  .dd-item { grid-template-columns:1fr; gap:4px; font-size:12px; }
+  .score-ring { width:100px; height:100px; }
+  .score-ring .score-value { font-size:28px; }
+  .plan-comparison { grid-template-columns:140px 1fr 1fr; overflow-x:auto; }
+  .cmd-palette { width:95vw; }
+}
+
 </style>
 </head>
 <body>
@@ -617,15 +721,31 @@ textarea.form-control { resize:vertical; min-height:88px; }
   <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo"><h1>Science Play OS</h1><p>Command Center</p></div>
-    <div class="sidebar-section">
-      <div class="sidebar-section-label">Menu</div>
+    <div class="sidebar-section" id="sidebar-nav">
+      <div class="sidebar-section-label">Principal</div>
       <div class="sidebar-item active" data-page="dashboard" onclick="navigateTo('dashboard')"><span class="icon">&#128202;</span> Dashboard</div>
-      <div class="sidebar-item" data-page="eventos" onclick="navigateTo('eventos')"><span class="icon">&#127919;</span> Eventos</div>
-      <div class="sidebar-item" data-page="timeline" onclick="navigateTo('timeline')"><span class="icon">&#128197;</span> Timeline</div>
-      <div class="sidebar-item admin-only" data-page="vendas" onclick="navigateTo('vendas')"><span class="icon">&#129309;</span> Vendas <span class="sidebar-badge" id="badge-vendas-count" style="display:none">0</span></div>
-      <div class="sidebar-item admin-only" data-page="financeiro" onclick="navigateTo('financeiro')"><span class="icon">&#128176;</span> Financeiro</div>
-      <div class="sidebar-item admin-only" data-page="equipe" onclick="navigateTo('equipe')"><span class="icon">&#128101;</span> Equipe</div>
-      <div class="sidebar-item admin-only" data-page="templates" onclick="navigateTo('templates')"><span class="icon">&#128203;</span> Templates POP</div>
+      <div class="sidebar-item perm-events-view" data-page="eventos" onclick="navigateTo('eventos')"><span class="icon">&#127919;</span> Eventos</div>
+      <div class="sidebar-item perm-events-view" data-page="timeline" onclick="navigateTo('timeline')"><span class="icon">&#128197;</span> Timeline</div>
+    </div>
+    <div class="sidebar-section" id="sidebar-commercial">
+      <div class="sidebar-section-label">Comercial</div>
+      <div class="sidebar-item perm-vendas-view" data-page="vendas" onclick="navigateTo('vendas')"><span class="icon">&#129309;</span> Vendas <span class="sidebar-badge" id="badge-vendas-count" style="display:none">0</span></div>
+      <div class="sidebar-item perm-cs-view" data-page="cs" onclick="navigateTo('cs')"><span class="icon">&#128101;</span> CS — Mentorias</div>
+    </div>
+    <div class="sidebar-section" id="sidebar-finance">
+      <div class="sidebar-section-label">Financeiro</div>
+      <div class="sidebar-item perm-finance-view" data-page="financeiro" onclick="navigateTo('financeiro')"><span class="icon">&#128176;</span> Financeiro / DRE</div>
+    </div>
+    <div class="sidebar-section" id="sidebar-governance">
+      <div class="sidebar-section-label">Governança</div>
+      <div class="sidebar-item perm-ma-view" data-page="ma" onclick="navigateTo('ma')"><span class="icon">&#127919;</span> M&A Readiness</div>
+      <div class="sidebar-item perm-dd-view" data-page="due-diligence" onclick="navigateTo('due-diligence')"><span class="icon">&#128203;</span> Due Diligence</div>
+    </div>
+    <div class="sidebar-section" id="sidebar-ops">
+      <div class="sidebar-section-label">Operação</div>
+      <div class="sidebar-item perm-team-view" data-page="equipe" onclick="navigateTo('equipe')"><span class="icon">&#128101;</span> Equipe</div>
+      <div class="sidebar-item perm-templates-view" data-page="templates" onclick="navigateTo('templates')"><span class="icon">&#128203;</span> Templates POP</div>
+      <div class="sidebar-item perm-reports-view" data-page="reports" onclick="navigateTo('reports')"><span class="icon">&#128202;</span> Relatórios</div>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-label">Eventos Ativos</div>
@@ -639,6 +759,27 @@ textarea.form-control { resize:vertical; min-height:88px; }
   </aside>
 
   <div class="main-content" id="main-content">
+
+  <!-- TOPBAR -->
+  <div class="topbar" id="topbar">
+    <div class="topbar-search">
+      <span class="search-icon">&#128269;</span>
+      <input type="text" id="global-search" placeholder="Buscar... (Cmd+K)" onclick="openCommandPalette()" readonly>
+    </div>
+    <div class="topbar-right">
+      <button class="topbar-btn" id="btn-notifications" onclick="toggleNotifications()" title="Notificações">&#128276;<span class="notif-dot" id="notif-dot" style="display:none"></span></button>
+      <button class="topbar-btn" onclick="openQuickAdd()" title="Registrar (Cmd+N)">&#10133;</button>
+      <button class="topbar-btn" onclick="exportCurrentView()" title="Exportar">&#128229;</button>
+    </div>
+  </div>
+  <div class="global-filters" id="global-filters-bar" style="display:none;">
+    <label>Filtros:</label>
+    <select class="filter-select" id="gf-year" onchange="applyGlobalFilters()"></select>
+    <select class="filter-select" id="gf-month" onchange="applyGlobalFilters()"><option value="">Todos os meses</option><option value="0">Jan</option><option value="1">Fev</option><option value="2">Mar</option><option value="3">Abr</option><option value="4">Mai</option><option value="5">Jun</option><option value="6">Jul</option><option value="7">Ago</option><option value="8">Set</option><option value="9">Out</option><option value="10">Nov</option><option value="11">Dez</option></select>
+    <select class="filter-select" id="gf-bu" onchange="applyGlobalFilters()"><option value="">Todas as unidades</option><option value="eventos">Eventos</option><option value="mentorias">Mentorias</option><option value="patrocinios">Patrocínios</option><option value="stands">Stands</option></select>
+    <select class="filter-select" id="gf-responsible" onchange="applyGlobalFilters()"><option value="">Todos responsáveis</option></select>
+  </div>
+
 
     <!-- DASHBOARD CEO -->
     <div class="page active" id="page-dashboard">
@@ -716,6 +857,32 @@ textarea.form-control { resize:vertical; min-height:88px; }
     <div class="page" id="page-template-detail">
       <div style="margin-bottom:16px"><button class="btn btn-outline btn-sm" onclick="navigateTo('templates')">&#8592; Voltar</button></div>
       <div id="template-detail-content"></div>
+    </div>
+
+
+    <!-- FINANCEIRO PRO -->
+    <div class="page" id="page-financeiro-pro">
+      <div id="financeiro-pro-content"></div>
+    </div>
+
+    <!-- M&A READINESS -->
+    <div class="page" id="page-ma">
+      <div id="ma-content"></div>
+    </div>
+
+    <!-- DUE DILIGENCE -->
+    <div class="page" id="page-due-diligence">
+      <div id="dd-content"></div>
+    </div>
+
+    <!-- CS DASHBOARD -->
+    <div class="page" id="page-cs">
+      <div id="cs-content"></div>
+    </div>
+
+    <!-- REPORTS -->
+    <div class="page" id="page-reports">
+      <div id="reports-content"></div>
     </div>
 
     <!-- VENDAS -->
@@ -867,7 +1034,867 @@ const state = {
   charts: {}, collapsedPhases: {}, dreView: 'previsao', dreUnlocked: false,
   checklistFilters: { area: '', priority: '', status: '', search: '' },
   deals: [], dealEditingId: null, vendasTab: 'vd-dashboard',
+  ddItems: [], csStudents: null, csTab: 'all',
 };
+
+
+// ============================================================
+// RBAC — ROLE-BASED ACCESS CONTROL
+// ============================================================
+const USER_LEVELS = {
+  super_admin: 0, ceo: 1, partner: 1, director: 2,
+  finance_admin: 3, finance_operator: 4, commercial_manager: 3, sales_operator: 4,
+  cs_manager: 3, cs_operator: 4, ops_manager: 3, ops_operator: 4,
+  marketing_manager: 3, marketing_operator: 4, event_manager: 3, event_operator: 4,
+  content_manager: 3, support_operator: 4, viewer: 5, external_auditor: 5,
+  admin: 1, member: 4, // legacy compat
+};
+
+const ROLE_PERMISSIONS = {
+  super_admin: ['*'],
+  ceo: ['dashboard.view','dashboard.ceo','finance.view','finance.edit','dre.view','dre.edit','ma.view','ma.edit','due_diligence.view','due_diligence.edit','cs.view','cs.edit','events.view','events.edit','events.delete','vendas.view','vendas.edit','team.view','team.invite','team.edit','templates.view','templates.edit','reports.view','reports.export','settings.view','audit.view'],
+  partner: ['dashboard.view','dashboard.ceo','finance.view','dre.view','ma.view','due_diligence.view','cs.view','events.view','vendas.view','team.view','reports.view','reports.export'],
+  director: ['dashboard.view','dashboard.ceo','finance.view','dre.view','ma.view','cs.view','events.view','events.edit','vendas.view','vendas.edit','team.view','reports.view','reports.export'],
+  finance_admin: ['dashboard.view','finance.view','finance.edit','dre.view','dre.edit','reports.view','reports.export','ma.view','due_diligence.view'],
+  finance_operator: ['dashboard.view','finance.view','dre.view'],
+  commercial_manager: ['dashboard.view','vendas.view','vendas.edit','cs.view','cs.edit','events.view','reports.view'],
+  sales_operator: ['dashboard.view','vendas.view','vendas.edit','events.view'],
+  cs_manager: ['dashboard.view','cs.view','cs.edit','events.view','reports.view'],
+  cs_operator: ['dashboard.view','cs.view','cs.edit'],
+  ops_manager: ['dashboard.view','events.view','events.edit','templates.view','templates.edit','team.view','reports.view'],
+  ops_operator: ['dashboard.view','events.view','templates.view'],
+  marketing_manager: ['dashboard.view','events.view','events.edit','reports.view'],
+  marketing_operator: ['dashboard.view','events.view'],
+  event_manager: ['dashboard.view','events.view','events.edit','templates.view','templates.edit'],
+  event_operator: ['dashboard.view','events.view','templates.view'],
+  content_manager: ['dashboard.view','events.view'],
+  support_operator: ['dashboard.view','cs.view'],
+  viewer: ['dashboard.view'],
+  external_auditor: ['dashboard.view','finance.view','dre.view','ma.view','due_diligence.view','reports.view'],
+  // Legacy compatibility
+  admin: ['*'],
+  member: ['dashboard.view','events.view','templates.view'],
+};
+
+const ROLE_LABELS = {
+  super_admin:'Super Admin', ceo:'CEO', partner:'Sócio', director:'Diretor(a)',
+  finance_admin:'Financeiro Admin', finance_operator:'Financeiro', commercial_manager:'Comercial Manager',
+  sales_operator:'Vendas', cs_manager:'CS Manager', cs_operator:'CS',
+  ops_manager:'Operações Manager', ops_operator:'Operações', marketing_manager:'Marketing Manager',
+  marketing_operator:'Marketing', event_manager:'Eventos Manager', event_operator:'Eventos',
+  content_manager:'Conteúdo', support_operator:'Suporte', viewer:'Visualizador',
+  external_auditor:'Auditor Externo', admin:'Administrador', member:'Membro',
+};
+
+function getUserRole() {
+  return state.profile?.role || 'member';
+}
+
+function getUserLevel() {
+  return USER_LEVELS[getUserRole()] ?? 5;
+}
+
+function can(permission) {
+  const role = getUserRole();
+  const perms = ROLE_PERMISSIONS[role] || [];
+  if (perms.includes('*')) return true;
+  if (perms.includes(permission)) return true;
+  // Check wildcard: 'finance.*' matches 'finance.view'
+  const parts = permission.split('.');
+  if (parts.length > 1 && perms.includes(parts[0] + '.*')) return true;
+  return false;
+}
+
+function canAny(...permissions) {
+  return permissions.some(p => can(p));
+}
+
+function isCEOLevel() {
+  return getUserLevel() <= 1;
+}
+
+function applyPermissions() {
+  // Show/hide sidebar items based on permissions
+  const permMap = {
+    'perm-events-view': 'events.view',
+    'perm-vendas-view': 'vendas.view',
+    'perm-cs-view': 'cs.view',
+    'perm-finance-view': 'finance.view',
+    'perm-ma-view': 'ma.view',
+    'perm-dd-view': 'due_diligence.view',
+    'perm-team-view': 'team.view',
+    'perm-templates-view': 'templates.view',
+    'perm-reports-view': 'reports.view',
+  };
+  Object.entries(permMap).forEach(([cls, perm]) => {
+    qsa('.' + cls).forEach(el => {
+      el.style.display = can(perm) ? '' : 'none';
+    });
+  });
+  // Hide entire sidebar sections if all children are hidden
+  qsa('.sidebar-section').forEach(sec => {
+    const items = qsa('.sidebar-item', sec);
+    const visible = items.filter(i => i.style.display !== 'none');
+    const label = qs('.sidebar-section-label', sec);
+    if (items.length > 0 && visible.length === 0) {
+      sec.style.display = 'none';
+    } else {
+      sec.style.display = '';
+    }
+  });
+  // Global filters bar for CEO-level
+  const gfBar = $('global-filters-bar');
+  if (gfBar) gfBar.style.display = isCEOLevel() ? 'flex' : 'none';
+}
+
+// ============================================================
+// GLOBAL FILTERS
+// ============================================================
+const globalFilters = { year: new Date().getFullYear(), month: '', bu: '', responsible: '' };
+
+function initGlobalFilters() {
+  const yearSel = $('gf-year');
+  if (!yearSel) return;
+  const curYear = new Date().getFullYear();
+  yearSel.innerHTML = '';
+  for (let y = curYear - 2; y <= curYear + 1; y++) {
+    yearSel.innerHTML += '<option value="' + y + '"' + (y === curYear ? ' selected' : '') + '>' + y + '</option>';
+  }
+  // Populate responsible filter
+  const respSel = $('gf-responsible');
+  if (respSel) {
+    respSel.innerHTML = '<option value="">Todos responsáveis</option>';
+    state.members.forEach(m => {
+      respSel.innerHTML += '<option value="' + m.id + '">' + escHtml(m.name) + '</option>';
+    });
+  }
+}
+
+function applyGlobalFilters() {
+  globalFilters.year = parseInt($('gf-year')?.value) || new Date().getFullYear();
+  globalFilters.month = $('gf-month')?.value || '';
+  globalFilters.bu = $('gf-bu')?.value || '';
+  globalFilters.responsible = $('gf-responsible')?.value || '';
+  renderCurrentPage();
+}
+
+// ============================================================
+// COMMAND PALETTE
+// ============================================================
+const CMD_ACTIONS = [
+  { id:'nav-dashboard', icon:'📊', label:'Dashboard', desc:'Visão geral', action:()=>navigateTo('dashboard'), keywords:'dashboard inicio home' },
+  { id:'nav-eventos', icon:'🎯', label:'Eventos', desc:'Gerenciar eventos', action:()=>navigateTo('eventos'), keywords:'eventos events' },
+  { id:'nav-timeline', icon:'📅', label:'Timeline', desc:'Timeline anual', action:()=>navigateTo('timeline'), keywords:'timeline calendario' },
+  { id:'nav-vendas', icon:'🤝', label:'Vendas', desc:'Pipeline comercial', action:()=>navigateTo('vendas'), perm:'vendas.view', keywords:'vendas pipeline comercial' },
+  { id:'nav-fin', icon:'💰', label:'Financeiro / DRE', desc:'Visão financeira', action:()=>navigateTo('financeiro'), perm:'finance.view', keywords:'financeiro dre receita custo' },
+  { id:'nav-ma', icon:'🎯', label:'M&A Readiness', desc:'Índice de prontidão M&A', action:()=>navigateTo('ma'), perm:'ma.view', keywords:'ma merger acquisition readiness' },
+  { id:'nav-dd', icon:'📋', label:'Due Diligence', desc:'Checklist de auditoria', action:()=>navigateTo('due-diligence'), perm:'due_diligence.view', keywords:'due diligence auditoria' },
+  { id:'nav-cs', icon:'👥', label:'CS — Mentorias', desc:'Golden Group e A Mesa', action:()=>navigateTo('cs'), perm:'cs.view', keywords:'cs customer success mentorias golden mesa' },
+  { id:'nav-equipe', icon:'👥', label:'Equipe', desc:'Membros e grupos', action:()=>navigateTo('equipe'), perm:'team.view', keywords:'equipe team membros' },
+  { id:'nav-templates', icon:'📋', label:'Templates POP', desc:'Procedimentos padrão', action:()=>navigateTo('templates'), perm:'templates.view', keywords:'templates pop procedimentos' },
+  { id:'nav-reports', icon:'📊', label:'Relatórios', desc:'Exportar dados', action:()=>navigateTo('reports'), perm:'reports.view', keywords:'relatorios exportar csv pdf' },
+  { id:'act-new-event', icon:'➕', label:'Novo Evento', desc:'Criar um evento', action:()=>{closeCommandPalette();openCreateEvent()}, perm:'events.edit', keywords:'novo evento criar' },
+  { id:'act-new-deal', icon:'➕', label:'Nova Negociação', desc:'Registrar venda', action:()=>{closeCommandPalette();openNewDeal()}, perm:'vendas.edit', keywords:'nova negociacao venda' },
+  { id:'act-new-task', icon:'➕', label:'Nova Tarefa', desc:'Adicionar tarefa', action:()=>{closeCommandPalette();if(state.currentEventId)openAddTask(state.currentEventId)}, keywords:'nova tarefa' },
+  { id:'act-export', icon:'📥', label:'Exportar CSV', desc:'Exportar visão atual', action:()=>{closeCommandPalette();exportCurrentView()}, perm:'reports.view', keywords:'exportar csv download' },
+];
+
+function openCommandPalette() {
+  $('cmd-palette-overlay').classList.add('active');
+  const input = $('cmd-input');
+  input.value = '';
+  input.focus();
+  filterCommandPalette('');
+}
+
+function closeCommandPalette() {
+  $('cmd-palette-overlay').classList.remove('active');
+}
+
+function filterCommandPalette(query) {
+  const q = (query || '').toLowerCase();
+  const results = CMD_ACTIONS.filter(a => {
+    if (a.perm && !can(a.perm)) return false;
+    if (!q) return true;
+    return (a.label + ' ' + a.desc + ' ' + (a.keywords || '')).toLowerCase().includes(q);
+  });
+  const container = $('cmd-results');
+  if (results.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">Nenhum resultado</div>';
+    return;
+  }
+  container.innerHTML = results.map((a, i) =>
+    '<div class="cmd-palette-item' + (i === 0 ? ' selected' : '') + '" onclick="executeCmdAction(\''+a.id+'\')">' +
+    '<div class="cmd-icon">' + a.icon + '</div>' +
+    '<div><div class="cmd-label">' + a.label + '</div><div class="cmd-desc">' + a.desc + '</div></div></div>'
+  ).join('');
+}
+
+function executeCmdAction(id) {
+  const action = CMD_ACTIONS.find(a => a.id === id);
+  if (action) { closeCommandPalette(); action.action(); }
+}
+
+// CMD+K handler
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openCommandPalette(); }
+  if (e.key === 'Escape') { closeCommandPalette(); closeModal(); closeDealModal(); closeDealDetailModal(); }
+  // Navigate CMD palette with arrows
+  if ($('cmd-palette-overlay').classList.contains('active')) {
+    const items = qsa('.cmd-palette-item', $('cmd-results'));
+    const sel = qs('.cmd-palette-item.selected', $('cmd-results'));
+    const idx = items.indexOf(sel);
+    if (e.key === 'ArrowDown' && idx < items.length - 1) { e.preventDefault(); items.forEach(i=>i.classList.remove('selected')); items[idx+1].classList.add('selected'); items[idx+1].scrollIntoView({block:'nearest'}); }
+    if (e.key === 'ArrowUp' && idx > 0) { e.preventDefault(); items.forEach(i=>i.classList.remove('selected')); items[idx-1].classList.add('selected'); items[idx-1].scrollIntoView({block:'nearest'}); }
+    if (e.key === 'Enter' && sel) { e.preventDefault(); sel.click(); }
+  }
+});
+
+function openQuickAdd() {
+  // Quick add menu
+  const items = [];
+  if (can('events.edit')) items.push({icon:'🎯',label:'Novo Evento',action:'openCreateEvent()'});
+  if (can('vendas.edit')) items.push({icon:'🤝',label:'Nova Negociação',action:'openNewDeal()'});
+  if (can('cs.edit')) items.push({icon:'👥',label:'Novo Mentorado',action:'openAddStudent()'});
+  if (items.length === 0) return;
+  openModal('Registrar', items.map(i =>
+    '<div style="padding:12px;border:1px solid var(--border);border-radius:10px;cursor:pointer;margin-bottom:8px;display:flex;align-items:center;gap:12px;transition:background 0.15s;" onmouseover="this.style.background=\'var(--purple-light)\'" onmouseout="this.style.background=\'transparent\'" onclick="closeModal();'+i.action+'">' +
+    '<span style="font-size:24px;">'+i.icon+'</span><span style="font-size:14px;font-weight:600;">'+i.label+'</span></div>'
+  ).join(''), '');
+}
+
+function toggleNotifications() {
+  // TODO: Notification panel
+  alert('Central de notificações em breve.');
+}
+
+// ============================================================
+// CEO COMMAND CENTER (Enhanced)
+// ============================================================
+function renderCEOCommandCenter() {
+  const year = globalFilters.year;
+  const monthFilter = globalFilters.month;
+
+  const yearFinances = state.finances.filter(f => {
+    const ev = state.events.find(e => e.id === f.event_id);
+    const d = f.date || ev?.event_date || (f.created_at ? f.created_at.slice(0,10) : null);
+    if (!d) return false;
+    const dt = new Date(d);
+    if (dt.getFullYear() !== year) return false;
+    if (monthFilter !== '' && dt.getMonth() !== parseInt(monthFilter)) return false;
+    return true;
+  });
+
+  const totalReceita = yearFinances.filter(f => f.type === 'receita').reduce((s,f) => s + (f.amount||0), 0);
+  const totalCusto = yearFinances.filter(f => f.type === 'custo').reduce((s,f) => s + (f.amount||0), 0);
+  const resultado = totalReceita - totalCusto;
+  const margem = totalReceita > 0 ? (resultado / totalReceita * 100) : 0;
+  const ebitda = resultado; // Simplified: no D&A separation yet
+  const margemEbitda = totalReceita > 0 ? (ebitda / totalReceita * 100) : 0;
+
+  // Pipeline
+  const activeDeals = state.deals.filter(d => d.status === 'em_andamento');
+  const pipelineTotal = activeDeals.reduce((s,d) => s + d.value, 0);
+  const closedDeals = state.deals.filter(d => d.status === 'fechada');
+  const receitaFechada = closedDeals.reduce((s,d) => s + d.value, 0);
+
+  // Events
+  const eventosAtivos = state.events.filter(e => ['ativo','execucao','planejamento'].includes(e.status)).length;
+  const eventosRisco = state.events.filter(e => healthColor(e) === 'red').length;
+  const tarefasCriticas = state.tasks.filter(t => getEffectiveStatus(t) === 'atrasada' && t.priority === 'critica').length;
+  const tarefasAtrasadas = state.tasks.filter(t => getEffectiveStatus(t) === 'atrasada').length;
+
+  // M&A & DD scores
+  const maScore = computeMAScore();
+  const ddScore = computeDDScore();
+  const csHealthGolden = computeCSHealth('Golden');
+  const csHealthMesa = computeCSHealth('A Mesa');
+
+  // Burn rate & runway
+  const monthsElapsed = (monthFilter !== '' ? 1 : new Date().getMonth() + 1);
+  const burnRate = monthsElapsed > 0 ? totalCusto / monthsElapsed : 0;
+  const caixaDisponivel = totalReceita - totalCusto; // Simplified
+  const runway = burnRate > 0 ? Math.round(caixaDisponivel / burnRate) : 99;
+
+  let html = '<div class="page-header"><div><div class="page-title">CEO Command Center</div><div class="page-subtitle" id="dashboard-date"></div></div></div>';
+
+  // KPI Row 1: Financial
+  html += '<div class="kpi-grid" style="grid-template-columns:repeat(6,1fr);">' +
+    kpiCard('Receita Total', formatCurrency(totalReceita), 'purple') +
+    kpiCard('Custos Totais', formatCurrency(totalCusto), '') +
+    kpiCard('Resultado', formatCurrency(resultado), resultado >= 0 ? 'green' : 'red') +
+    kpiCard('Margem', formatPct(margem), '') +
+    kpiCard('EBITDA Gerencial', formatCurrency(ebitda), ebitda >= 0 ? 'green' : 'red') +
+    kpiCard('Margem EBITDA', formatPct(margemEbitda), '') +
+    '</div>';
+
+  // KPI Row 2: Operational
+  html += '<div class="kpi-grid" style="grid-template-columns:repeat(6,1fr);">' +
+    kpiCard('Pipeline Comercial', formatCurrency(pipelineTotal), 'purple', activeDeals.length + ' em negociação') +
+    kpiCard('Receita Fechada', formatCurrency(receitaFechada), 'green', closedDeals.length + ' vendas') +
+    kpiCard('Burn Rate/Mês', formatCurrency(burnRate), '') +
+    kpiCard('Runway', runway + ' meses', runway > 6 ? 'green' : 'red') +
+    kpiCard('Eventos Ativos', eventosAtivos, 'purple', eventosRisco > 0 ? eventosRisco + ' em risco' : 'Nenhum em risco') +
+    kpiCard('Tarefas Atrasadas', tarefasAtrasadas, tarefasAtrasadas > 0 ? 'red' : 'green', tarefasCriticas + ' críticas') +
+    '</div>';
+
+  // KPI Row 3: Indices
+  html += '<div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);">' +
+    kpiCard('M&A Readiness', maScore + '/100', maScore >= 70 ? 'green' : maScore >= 40 ? '' : 'red', maScore >= 70 ? 'Pronto' : 'Em progresso') +
+    kpiCard('Due Diligence', ddScore + '/100', ddScore >= 70 ? 'green' : ddScore >= 40 ? '' : 'red', ddScore >= 70 ? 'Auditável' : 'Atenção') +
+    kpiCard('Health Score Golden', csHealthGolden + '%', csHealthGolden >= 70 ? 'green' : 'red') +
+    kpiCard('Health Score A Mesa', csHealthMesa + '%', csHealthMesa >= 70 ? 'green' : 'red') +
+    '</div>';
+
+  // Decisões do Dia
+  html += renderDecisionsBlock();
+
+  // Next Events
+  html += '<div id="ceo-next-events"></div>';
+  
+  // Charts
+  html += '<div id="ceo-charts"><div class="charts-grid">' +
+    '<div class="card chart-card"><div class="card-header"><h3>Receita por Mês</h3></div><div class="card-body"><canvas id="chart-receita-mes"></canvas></div></div>' +
+    '<div class="card chart-card"><div class="card-header"><h3>Receita por Evento</h3></div><div class="card-body"><canvas id="chart-receita-evento"></canvas></div></div>' +
+    '</div></div>';
+
+  $('dashboard-kpis').innerHTML = '';
+  $('page-dashboard').innerHTML = html;
+
+  updateGreeting();
+  renderDashboardNextEvents2();
+  renderCharts(year);
+}
+
+function kpiCard(label, value, colorClass, subtitle) {
+  return '<div class="kpi-card"><div class="kpi-label">' + label + '</div><div class="kpi-value ' + (colorClass||'') + '">' + value + '</div>' +
+    (subtitle ? '<div style="font-size:11px;color:var(--text-muted);margin-top:4px;">' + subtitle + '</div>' : '') + '</div>';
+}
+
+function renderDashboardNextEvents2() {
+  const container = $('ceo-next-events') || $('dashboard-next-events');
+  if (!container) return;
+  const today = new Date().toISOString().slice(0,10);
+  const upcoming = state.events
+    .filter(e => e.event_date && e.event_date >= today && e.status !== 'encerrado')
+    .sort((a,b) => a.event_date.localeCompare(b.event_date))
+    .slice(0, 4);
+  if (upcoming.length === 0) { container.innerHTML = ''; return; }
+  container.innerHTML = '<h3 style="font-size:15px;font-weight:700;margin:24px 0 14px;">Próximos Eventos</h3><div class="next-events-grid">' + upcoming.map(e => {
+    const d = daysDiff(e.event_date);
+    const tasks = state.tasks.filter(t => t.event_id === e.id);
+    const done = tasks.filter(t => t.done).length;
+    const total = tasks.length;
+    const pct = total > 0 ? Math.round(done/total*100) : 0;
+    const rec = state.finances.filter(f => f.event_id === e.id && f.type === 'receita').reduce((s,f) => s + (f.amount||0), 0);
+    return '<div class="next-event-card" onclick="navigateTo(\'event-detail\',{eventId:\''+e.id+'\'})"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;"><div><div style="font-size:16px;font-weight:700;">'+escHtml(e.name)+'</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px;">'+eventTypeLabel(e.type)+' &middot; '+formatDate(e.event_date)+'</div></div><div class="next-event-countdown">D-'+Math.max(0,d)+'</div></div><div style="display:flex;gap:16px;margin-bottom:10px;"><div><div style="font-size:18px;font-weight:700;color:var(--purple);">'+formatCurrency(rec)+'</div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;">Receita</div></div><div><div style="font-size:18px;font-weight:700;">'+pct+'%</div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;">Tarefas</div></div></div><div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:'+pct+'%"></div></div></div>';
+  }).join('') + '</div>';
+}
+
+function renderDecisionsBlock() {
+  const decisions = [];
+  
+  // Follow-ups vencidos
+  const overdueDeals = state.deals.filter(d => d.status === 'em_andamento' && dealFollowupStatus(d) === 'overdue');
+  overdueDeals.forEach(d => {
+    decisions.push({ icon:'🤝', title:'Follow-up vencido: '+d.company, desc:'Negociação de '+formatCurrency(d.value)+' ('+d.category+') — follow-up era '+dealFmtDate(d.dateFollowup), impact:'Perda potencial de '+formatCurrency(d.value), responsible:'Comercial', deadline:'Imediato', critical:true, action:'openDealDetail('+d.id+')' });
+  });
+
+  // Tarefas críticas atrasadas
+  const criticalOverdue = state.tasks.filter(t => getEffectiveStatus(t) === 'atrasada' && t.priority === 'critica');
+  if (criticalOverdue.length > 0) {
+    decisions.push({ icon:'⏰', title:criticalOverdue.length+' tarefas críticas atrasadas', desc:'Tarefas de prioridade crítica que passaram do prazo', impact:'Risco de atraso em entregas', responsible:'Operação', deadline:'Imediato', critical:true });
+  }
+
+  // Eventos com margem negativa
+  state.events.filter(e => ['ativo','planejamento','execucao'].includes(e.status)).forEach(e => {
+    const rec = state.finances.filter(f => f.event_id === e.id && f.type === 'receita').reduce((s,f) => s + (f.amount||0), 0);
+    const cus = state.finances.filter(f => f.event_id === e.id && f.type === 'custo').reduce((s,f) => s + (f.amount||0), 0);
+    if (rec > 0 && (rec - cus) / rec < 0.1) {
+      decisions.push({ icon:'💰', title:'Margem baixa: '+e.name, desc:'Margem de '+formatPct((rec-cus)/rec*100)+' — abaixo da meta de 30%', impact:'Evento pode não ser rentável', responsible:'Financeiro', deadline:'7 dias', action:"navigateTo('event-detail',{eventId:'"+e.id+"'})" });
+    }
+  });
+
+  // Checkpoints próximos
+  const now = new Date();
+  const in7 = new Date(now.getTime() + 7*86400000);
+  state.checkpoints.filter(cp => cp.status === 'pendente').forEach(cp => {
+    const ev = state.events.find(e => e.id === cp.event_id);
+    if (!ev || !ev.event_date) return;
+    const cpDate = new Date(addDays(ev.event_date, cp.deadline_offset||0)+'T12:00:00');
+    if (cpDate >= now && cpDate <= in7) {
+      decisions.push({ icon:'⚠️', title:'Go/No-Go: '+cp.name, desc:ev.name+' — decisão necessária até '+formatDate(cpDate.toISOString().slice(0,10)), impact:'Pode afetar andamento do evento', responsible:cp.decisor||'CEO', deadline:formatDate(cpDate.toISOString().slice(0,10)) });
+    }
+  });
+
+  if (decisions.length === 0) {
+    return '<div style="margin:24px 0;padding:20px;background:var(--green-bg);border-radius:var(--radius);text-align:center;"><span style="font-size:24px;">✅</span><div style="font-size:14px;font-weight:600;margin-top:8px;color:#059669;">Nenhuma decisão urgente hoje</div></div>';
+  }
+
+  return '<h3 style="font-size:15px;font-weight:700;margin:24px 0 14px;display:flex;align-items:center;gap:8px;">⚡ Decisões do Dia <span class="badge badge-red">'+decisions.length+'</span></h3>' +
+    '<div class="decision-grid">' +
+    decisions.map(d =>
+      '<div class="decision-card'+(d.critical?' critical':'')+'">' +
+      '<div class="decision-card-header"><span style="font-size:20px;">'+d.icon+'</span><h4>'+d.title+'</h4></div>' +
+      '<p>'+d.desc+'</p>' +
+      '<div class="decision-card-meta"><span>💥 '+d.impact+'</span><span>👤 '+d.responsible+'</span><span>📅 '+d.deadline+'</span></div>' +
+      (d.action ? '<button class="btn btn-sm btn-primary" onclick="'+d.action+'">Ver Detalhes</button>' : '') +
+      '</div>'
+    ).join('') + '</div>';
+}
+
+// ============================================================
+// M&A READINESS INDEX
+// ============================================================
+function computeMAScore() {
+  let score = 0;
+  // 30% Financial Health
+  const yearFinances = state.finances;
+  const totalRec = yearFinances.filter(f=>f.type==='receita').reduce((s,f)=>s+(f.amount||0),0);
+  const totalCus = yearFinances.filter(f=>f.type==='custo').reduce((s,f)=>s+(f.amount||0),0);
+  const margem = totalRec > 0 ? (totalRec-totalCus)/totalRec : 0;
+  const finScore = Math.min(100, Math.round(margem * 200 + (totalRec > 100000 ? 30 : totalRec > 50000 ? 15 : 0)));
+  score += finScore * 0.3;
+
+  // 20% Revenue Quality
+  const closedDeals = state.deals.filter(d=>d.status==='fechada');
+  const products = [...new Set(closedDeals.map(d=>d.category))];
+  const diversification = Math.min(100, products.length * 20);
+  const revScore = diversification;
+  score += revScore * 0.2;
+
+  // 15% Governance
+  const ddItems = state.ddItems || [];
+  const govItems = ddItems.filter(i=>['Societário','Fiscal','Contábil'].includes(i.category));
+  const govComplete = govItems.filter(i=>i.status==='completo').length;
+  const govScore = govItems.length > 0 ? Math.round(govComplete/govItems.length*100) : 30;
+  score += govScore * 0.15;
+
+  // 15% Operational Scalability
+  const templates = state.templates.length;
+  const opsScore = Math.min(100, templates * 15 + 20);
+  score += opsScore * 0.15;
+
+  // 10% Data Quality
+  const financesWithDate = state.finances.filter(f=>f.date).length;
+  const dataScore = state.finances.length > 0 ? Math.round(financesWithDate/state.finances.length*100) : 20;
+  score += dataScore * 0.1;
+
+  // 10% Founder Dependency
+  const founderScore = 40; // Default medium risk
+  score += founderScore * 0.1;
+
+  return Math.round(score);
+}
+
+function renderMA() {
+  const score = computeMAScore();
+  const categories = [
+    { name:'Saúde Financeira', weight:30, score: Math.round(computeMAScore()/0.3*0.3), color:'var(--green)' },
+    { name:'Qualidade da Receita', weight:20, score:50, color:'var(--blue)' },
+    { name:'Governança e Documentação', weight:15, score:30, color:'var(--purple)' },
+    { name:'Escalabilidade Operacional', weight:15, score:45, color:'#F59E0B' },
+    { name:'Qualidade dos Dados', weight:10, score:35, color:'#8B5CF6' },
+    { name:'Dependência do Fundador', weight:10, score:40, color:'var(--red)' },
+  ];
+
+  const scoreColor = score >= 70 ? 'var(--green)' : score >= 40 ? 'var(--yellow)' : 'var(--red)';
+
+  let html = '<div class="page-header"><div><div class="page-title">M&A Readiness Index</div><div class="page-subtitle">Índice de prontidão para fusão, aquisição ou investimento</div></div></div>';
+
+  // Score Gauge + Categories
+  html += '<div style="display:grid;grid-template-columns:300px 1fr;gap:24px;margin-bottom:28px;">';
+  
+  // Gauge
+  html += '<div class="card" style="display:flex;flex-direction:column;align-items:center;padding:32px;">' +
+    '<div class="score-ring"><svg width="140" height="140"><circle cx="70" cy="70" r="60" fill="none" stroke="#F3F4F6" stroke-width="12"/>' +
+    '<circle cx="70" cy="70" r="60" fill="none" stroke="'+scoreColor+'" stroke-width="12" stroke-linecap="round" stroke-dasharray="'+Math.round(score*3.77)+' 377"/></svg>' +
+    '<div class="score-value" style="color:'+scoreColor+'">'+score+'</div><div class="score-label">de 100</div></div>' +
+    '<div style="margin-top:16px;font-size:13px;font-weight:600;color:'+scoreColor+';">'+(score>=70?'Pronto para M&A':score>=40?'Em Progresso':'Atenção Necessária')+'</div></div>';
+
+  // Categories
+  html += '<div class="card"><div class="card-header"><h3>Categorias</h3></div><div class="card-body" style="padding:0;">';
+  categories.forEach(c => {
+    html += '<div class="score-category"><div><div style="font-weight:600;">'+c.name+'</div><div style="font-size:11px;color:var(--text-muted);">Peso: '+c.weight+'%</div></div>' +
+      '<div class="score-bar"><div class="score-bar-fill" style="width:'+c.score+'%;background:'+c.color+';"></div></div>' +
+      '<div style="font-weight:700;font-size:14px;">'+c.score+'</div></div>';
+  });
+  html += '</div></div></div>';
+
+  // Risk alerts
+  html += '<h3 style="font-size:15px;font-weight:700;margin:24px 0 14px;">Riscos Críticos e Ações</h3>';
+  html += '<div class="decision-grid">';
+  const risks = [
+    { icon:'📊', title:'DRE não auditado', desc:'Demonstrativo financeiro ainda não foi revisado por auditor externo', impact:'Investidor pode questionar números', responsible:'CFO', deadline:'Q4 2026' },
+    { icon:'📋', title:'Contratos não centralizados', desc:'Parte dos contratos com fornecedores e patrocinadores não estão digitalizados', impact:'Risco legal em due diligence', responsible:'Jurídico', deadline:'90 dias' },
+    { icon:'👤', title:'Alta dependência do fundador', desc:'Vendas de patrocínio e palestrantes dependem diretamente do Brunno', impact:'Reduz valuation em 15-25%', responsible:'CEO', deadline:'Contínuo' },
+  ];
+  risks.forEach(r => {
+    html += '<div class="decision-card critical"><div class="decision-card-header"><span style="font-size:20px;">'+r.icon+'</span><h4>'+r.title+'</h4></div><p>'+r.desc+'</p><div class="decision-card-meta"><span>💥 '+r.impact+'</span><span>👤 '+r.responsible+'</span><span>📅 '+r.deadline+'</span></div></div>';
+  });
+  html += '</div>';
+
+  $('ma-content').innerHTML = html;
+}
+
+// ============================================================
+// DUE DILIGENCE INDEX
+// ============================================================
+function computeDDScore() {
+  const items = state.ddItems || [];
+  if (items.length === 0) return 35; // Default score
+  const totalWeight = items.reduce((s,i) => s + (i.weight||1), 0);
+  const weightedScore = items.reduce((s,i) => {
+    const statusScore = {completo:100, parcial:50, pendente:10, critico:0, na:100};
+    return s + (statusScore[i.status]||0) * (i.weight||1);
+  }, 0);
+  return totalWeight > 0 ? Math.round(weightedScore / totalWeight) : 35;
+}
+
+function renderDueDiligence() {
+  const ddCategories = ['Societário','Fiscal','Contábil','Trabalhista','Contratos','Financeiro','Comercial','Propriedade Intelectual','Dados e LGPD','Operação','Tecnologia','Passivos'];
+  
+  // Seed default items if empty
+  if (!state.ddItems || state.ddItems.length === 0) {
+    state.ddItems = [];
+    const defaultItems = {
+      'Societário': ['Contrato social atualizado','Atas de assembleia','Quadro societário','Acordo de sócios'],
+      'Fiscal': ['CNPJ regularizado','Certidões negativas','DCTF em dia','ECF/ECD entregues'],
+      'Contábil': ['Balanço patrimonial','DRE anual','Balancete mensal','Conciliação bancária'],
+      'Trabalhista': ['Folha de pagamento regular','CLT/PJ documentado','FGTS/INSS em dia','Políticas de RH'],
+      'Contratos': ['Contratos com fornecedores','Contratos com palestrantes','Contratos de patrocínio','Termos de uso/LGPD'],
+      'Financeiro': ['Fluxo de caixa','Projeção financeira','Endividamento documentado','Contas a pagar/receber'],
+      'Comercial': ['Pipeline documentado','Histórico de vendas','Política comercial','Contratos recorrentes'],
+      'Propriedade Intelectual': ['Marca registrada','Domínios registrados','Conteúdo protegido','Licenças de software'],
+      'Dados e LGPD': ['Política de privacidade','Consentimento coletado','DPO designado','Mapeamento de dados'],
+      'Operação': ['Processos documentados (POP)','Playbooks','Organograma','SLA com fornecedores'],
+      'Tecnologia': ['Stack documentada','Segurança da informação','Backup','Acessos centralizados'],
+      'Passivos': ['Passivos conhecidos','Contingências mapeadas','Ações judiciais','Dívidas trabalhistas'],
+    };
+    let id = 1;
+    Object.entries(defaultItems).forEach(([cat, items]) => {
+      items.forEach(desc => {
+        state.ddItems.push({ id: id++, category: cat, description: desc, status: 'pendente', risk: 'medio', weight: 1, responsible: '', deadline: '', notes: '' });
+      });
+    });
+    saveDDItems();
+  }
+
+  const score = computeDDScore();
+  const scoreColor = score >= 70 ? 'var(--green)' : score >= 40 ? 'var(--yellow)' : 'var(--red)';
+
+  let html = '<div class="page-header"><div><div class="page-title">Due Diligence Index</div><div class="page-subtitle">Checklist de prontidão para auditoria e investimento</div></div>' +
+    '<div style="display:flex;gap:8px;"><button class="btn btn-primary" onclick="exportDD()">&#128229; Exportar</button></div></div>';
+
+  // Score bar
+  html += '<div class="kpi-grid" style="grid-template-columns:200px repeat(3,1fr);margin-bottom:24px;">';
+  html += '<div class="kpi-card" style="text-align:center;"><div class="kpi-label">Score Geral</div><div class="kpi-value" style="color:'+scoreColor+'">'+score+'/100</div></div>';
+  const statusCounts = { completo:0, parcial:0, pendente:0, critico:0 };
+  (state.ddItems||[]).forEach(i => { if(statusCounts[i.status]!==undefined) statusCounts[i.status]++; });
+  html += kpiCard('Completos', statusCounts.completo, 'green');
+  html += kpiCard('Parciais', statusCounts.parcial, '');
+  html += kpiCard('Pendentes/Críticos', statusCounts.pendente + statusCounts.critico, statusCounts.critico > 0 ? 'red' : '');
+  html += '</div>';
+
+  // Categories accordion
+  ddCategories.forEach(cat => {
+    const items = (state.ddItems||[]).filter(i => i.category === cat);
+    const catComplete = items.filter(i => i.status === 'completo').length;
+    const catScore = items.length > 0 ? Math.round(catComplete/items.length*100) : 0;
+    const catColor = catScore >= 75 ? 'var(--green)' : catScore >= 50 ? 'var(--yellow)' : 'var(--red)';
+
+    html += '<div class="card" style="margin-bottom:8px;"><div class="dre-section-header" onclick="toggleDDCategory(this)" style="cursor:pointer;">' +
+      '<span class="chevron">&#9660;</span>' +
+      '<span class="section-name">'+cat+'</span>' +
+      '<span style="display:flex;align-items:center;gap:8px;"><div class="score-bar" style="width:60px;"><div class="score-bar-fill" style="width:'+catScore+'%;background:'+catColor+';"></div></div>' +
+      '<span style="font-weight:700;font-size:12px;">'+catComplete+'/'+items.length+'</span></span></div>' +
+      '<div style="display:none;">';
+
+    items.forEach(item => {
+      const statusBadge = '<span class="dd-status '+item.status+'">'+item.status+'</span>';
+      html += '<div style="display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid var(--border);font-size:13px;">' +
+        '<select class="filter-select" style="padding:4px 24px 4px 8px;font-size:11px;min-width:90px;" onchange="updateDDStatus('+item.id+',this.value)">' +
+        ['completo','parcial','pendente','critico'].map(s => '<option value="'+s+'"'+(item.status===s?' selected':'')+'>'+s.charAt(0).toUpperCase()+s.slice(1)+'</option>').join('') +
+        '</select>' +
+        '<span style="flex:1;font-weight:500;">'+escHtml(item.description)+'</span>' +
+        '<input style="width:120px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;" placeholder="Responsável" value="'+escHtml(item.responsible||'')+'" onchange="updateDDField('+item.id+',\'responsible\',this.value)">' +
+        '</div>';
+    });
+    html += '</div></div>';
+  });
+
+  $('dd-content').innerHTML = html;
+}
+
+function toggleDDCategory(header) {
+  const body = header.nextElementSibling;
+  const isHidden = body.style.display === 'none';
+  body.style.display = isHidden ? 'block' : 'none';
+  header.classList.toggle('collapsed', !isHidden);
+}
+
+function updateDDStatus(id, status) {
+  const item = (state.ddItems||[]).find(i => i.id === id);
+  if (item) { item.status = status; saveDDItems(); renderDueDiligence(); }
+}
+
+function updateDDField(id, field, value) {
+  const item = (state.ddItems||[]).find(i => i.id === id);
+  if (item) { item[field] = value; saveDDItems(); }
+}
+
+function saveDDItems() { localStorage.setItem('sp-os-dd-items', JSON.stringify(state.ddItems)); }
+function loadDDItems() { try { const s = localStorage.getItem('sp-os-dd-items'); if(s) state.ddItems = JSON.parse(s); } catch(e){} if(!state.ddItems) state.ddItems = []; }
+
+// ============================================================
+// CS DASHBOARD — GOLDEN & A MESA
+// ============================================================
+function computeCSHealth(mentoria) {
+  const students = (state.csStudents||[]).filter(s => s.mentoria === mentoria);
+  if (students.length === 0) return 75; // Default
+  const avgHealth = students.reduce((s,st) => s + (st.healthScore||70), 0) / students.length;
+  return Math.round(avgHealth);
+}
+
+function renderCS() {
+  // Load CS data
+  loadCSData();
+  
+  const students = state.csStudents || [];
+  const goldenStudents = students.filter(s => s.mentoria === 'Golden');
+  const mesaStudents = students.filter(s => s.mentoria === 'A Mesa');
+  const atRisk = students.filter(s => s.healthScore < 50);
+  const renewalSoon = students.filter(s => {
+    if (!s.renewalDate) return false;
+    const diff = dealDaysFromNow(s.renewalDate);
+    return diff !== null && diff >= 0 && diff <= 60;
+  });
+  const inadimplentes = students.filter(s => s.financialStatus === 'inadimplente');
+  const avgNPS = students.length > 0 ? Math.round(students.reduce((s,st) => s + (st.nps||0), 0) / students.length) : 0;
+
+  let html = '<div class="page-header"><div><div class="page-title">CS — Customer Success</div><div class="page-subtitle">Acompanhamento de mentorados Golden Group e A Mesa</div></div>' +
+    '<button class="btn btn-primary" onclick="openAddStudent()">+ Novo Mentorado</button></div>';
+
+  // KPIs
+  html += '<div class="kpi-grid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr));">' +
+    kpiCard('Mentorados Ativos', students.length, 'purple') +
+    kpiCard('Golden Group', goldenStudents.length, '') +
+    kpiCard('A Mesa', mesaStudents.length, '') +
+    kpiCard('Em Risco', atRisk.length, atRisk.length > 0 ? 'red' : 'green') +
+    kpiCard('Renovações (60d)', renewalSoon.length, renewalSoon.length > 0 ? '' : 'green') +
+    kpiCard('Inadimplentes', inadimplentes.length, inadimplentes.length > 0 ? 'red' : 'green') +
+    kpiCard('NPS Médio', avgNPS, avgNPS >= 8 ? 'green' : avgNPS >= 6 ? '' : 'red') +
+    '</div>';
+
+  // Tabs
+  html += '<div class="tabs-nav" style="margin-bottom:20px;">' +
+    '<button class="tab-btn '+(state.csTab==='all'||!state.csTab?'active':'')+'" onclick="state.csTab=\'all\';renderCS()">Todos</button>' +
+    '<button class="tab-btn '+(state.csTab==='golden'?'active':'')+'" onclick="state.csTab=\'golden\';renderCS()">Golden Group</button>' +
+    '<button class="tab-btn '+(state.csTab==='mesa'?'active':'')+'" onclick="state.csTab=\'mesa\';renderCS()">A Mesa</button>' +
+    '<button class="tab-btn '+(state.csTab==='risk'?'active':'')+'" onclick="state.csTab=\'risk\';renderCS()">Em Risco</button>' +
+    '</div>';
+
+  // Filtered students
+  let filtered = students;
+  if (state.csTab === 'golden') filtered = goldenStudents;
+  else if (state.csTab === 'mesa') filtered = mesaStudents;
+  else if (state.csTab === 'risk') filtered = atRisk;
+
+  if (filtered.length === 0) {
+    html += '<div class="empty-state"><div class="icon">👥</div><h3>Nenhum mentorado encontrado</h3><p>Adicione mentorados para começar o acompanhamento</p></div>';
+  } else {
+    html += '<div class="cs-grid">';
+    filtered.forEach(s => {
+      const riskClass = s.healthScore < 50 ? ' at-risk' : '';
+      const renewClass = (s.renewalDate && dealDaysFromNow(s.renewalDate) <= 60 && dealDaysFromNow(s.renewalDate) >= 0) ? ' renewal-soon' : '';
+      html += '<div class="cs-student-card'+riskClass+renewClass+'" onclick="openStudentDetail('+s.id+')">' +
+        '<div class="cs-student-top"><div class="cs-student-avatar">'+initials(s.name)+'</div><div class="cs-student-info"><h4>'+escHtml(s.name)+'</h4><p>'+escHtml(s.mentoria)+' &middot; '+escHtml(s.profession||'')+'</p></div>' +
+        '<span class="badge '+(s.mentoria==='Golden'?'badge-yellow':'badge-purple')+'">'+s.mentoria+'</span></div>' +
+        '<div class="cs-student-metrics">' +
+        '<div class="metric"><div class="val" style="color:'+(s.healthScore>=70?'var(--green)':s.healthScore>=40?'var(--yellow)':'var(--red)')+'">'+s.healthScore+'</div><div class="lbl">Health</div></div>' +
+        '<div class="metric"><div class="val">'+(s.nps||'—')+'</div><div class="lbl">NPS</div></div>' +
+        '<div class="metric"><div class="val">'+(s.attendance||0)+'%</div><div class="lbl">Presença</div></div>' +
+        '<div class="metric"><div class="val">'+formatCurrency(s.ticket||0)+'</div><div class="lbl">Ticket</div></div>' +
+        '</div></div>';
+    });
+    html += '</div>';
+  }
+
+  $('cs-content').innerHTML = html;
+}
+
+function loadCSData() {
+  if (state.csStudents) return;
+  try { const s = localStorage.getItem('sp-os-cs-students'); if(s) state.csStudents = JSON.parse(s); } catch(e) {}
+  if (!state.csStudents || state.csStudents.length === 0) seedCSData();
+}
+
+function seedCSData() {
+  state.csStudents = [
+    {id:1, name:'Dr. Ricardo Mendes', email:'ricardo@clinic.com', whatsapp:'11999990001', instagram:'@drricardo', city:'São Paulo', profession:'Médico', company:'Clínica Mendes', mentoria:'Golden', turma:'Turma 5', entryDate:'2025-06-01', renewalDate:'2026-06-01', ticket:60000, financialStatus:'adimplente', healthScore:85, nps:9, attendance:90, csResponsible:'Equipe CS', observations:'Engajado, participa de todos os encontros', nextAction:'Follow-up renovação em 30 dias'},
+    {id:2, name:'Dra. Camila Souza', email:'camila@nutri.com', whatsapp:'21999990002', instagram:'@dracamila', city:'Rio de Janeiro', profession:'Nutricionista', company:'NutriVida', mentoria:'Golden', turma:'Turma 5', entryDate:'2025-08-01', renewalDate:'2026-08-01', ticket:60000, financialStatus:'adimplente', healthScore:72, nps:8, attendance:75, csResponsible:'Equipe CS', observations:'Boa participação, mas faltou no último encontro', nextAction:'Verificar presença'},
+    {id:3, name:'Dr. Paulo Oliveira', email:'paulo@med.com', whatsapp:'31999990003', instagram:'@drpaulo', city:'Belo Horizonte', profession:'Médico', company:'Consultório Paulo', mentoria:'Golden', turma:'Turma 4', entryDate:'2025-01-01', renewalDate:'2026-01-15', ticket:55000, financialStatus:'adimplente', healthScore:45, nps:6, attendance:50, csResponsible:'Equipe CS', observations:'Frequência caindo, possível risco de cancelamento', nextAction:'Reunião urgente de CS'},
+    {id:4, name:'Dra. Fernanda Lima', email:'fernanda@clinic.com', whatsapp:'11999990004', instagram:'@drafernanda', city:'São Paulo', profession:'Nutricionista', company:'FL Nutrição', mentoria:'A Mesa', turma:'Edição Jun/26', entryDate:'2026-06-01', renewalDate:'2026-12-01', ticket:25000, financialStatus:'adimplente', healthScore:92, nps:10, attendance:100, csResponsible:'Equipe CS', observations:'Excelente participação, potencial de indicação', nextAction:'Pedir depoimento'},
+    {id:5, name:'Dr. Marcelo Pinto', email:'marcelo@med.com', whatsapp:'47999990005', instagram:'@drmarcelo', city:'Florianópolis', profession:'Médico', company:'Pinto Saúde', mentoria:'A Mesa', turma:'Edição Jun/26', entryDate:'2026-06-01', renewalDate:'2026-12-01', ticket:25000, financialStatus:'inadimplente', healthScore:38, nps:5, attendance:40, csResponsible:'Equipe CS', observations:'2 parcelas em atraso, não respondeu últimas mensagens', nextAction:'Acionar cobrança + CS'},
+    {id:6, name:'Dra. Ana Beatriz', email:'anab@nutri.com', whatsapp:'61999990006', instagram:'@draanab', city:'Brasília', profession:'Nutricionista', company:'AB Nutrição', mentoria:'Golden', turma:'Turma 5', entryDate:'2025-06-15', renewalDate:'2026-06-15', ticket:60000, financialStatus:'adimplente', healthScore:88, nps:9, attendance:95, csResponsible:'Equipe CS', observations:'Super engajada, já indicou 2 pessoas', nextAction:'Follow-up renovação'},
+  ];
+  saveCSData();
+}
+
+function saveCSData() { localStorage.setItem('sp-os-cs-students', JSON.stringify(state.csStudents)); }
+
+function openAddStudent() {
+  openModal('Novo Mentorado',
+    '<div class="form-row"><div class="form-group"><label>Nome</label><input class="form-control" id="cs-name" placeholder="Nome completo"></div>' +
+    '<div class="form-group"><label>Email</label><input type="email" class="form-control" id="cs-email" placeholder="email@exemplo.com"></div></div>' +
+    '<div class="form-row"><div class="form-group"><label>WhatsApp</label><input class="form-control" id="cs-whatsapp" placeholder="11999999999"></div>' +
+    '<div class="form-group"><label>Instagram</label><input class="form-control" id="cs-instagram" placeholder="@usuario"></div></div>' +
+    '<div class="form-row"><div class="form-group"><label>Cidade</label><input class="form-control" id="cs-city" placeholder="Cidade"></div>' +
+    '<div class="form-group"><label>Profissão</label><input class="form-control" id="cs-profession" placeholder="Médico, Nutricionista..."></div></div>' +
+    '<div class="form-row"><div class="form-group"><label>Mentoria</label><select class="form-control" id="cs-mentoria"><option value="Golden">Golden Group</option><option value="A Mesa">A Mesa</option></select></div>' +
+    '<div class="form-group"><label>Ticket (R$)</label><input type="number" class="form-control" id="cs-ticket" placeholder="60000"></div></div>' +
+    '<div class="form-row"><div class="form-group"><label>Data de Entrada</label><input type="date" class="form-control" id="cs-entry"></div>' +
+    '<div class="form-group"><label>Data de Renovação</label><input type="date" class="form-control" id="cs-renewal"></div></div>',
+    '<button class="btn btn-outline" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveStudent()">Salvar</button>'
+  );
+}
+
+function saveStudent() {
+  const name = $('cs-name')?.value?.trim(); if(!name) return;
+  const maxId = (state.csStudents||[]).reduce((m,s) => Math.max(m,s.id), 0);
+  state.csStudents.push({
+    id: maxId+1, name, email:$('cs-email')?.value||'', whatsapp:$('cs-whatsapp')?.value||'',
+    instagram:$('cs-instagram')?.value||'', city:$('cs-city')?.value||'', profession:$('cs-profession')?.value||'',
+    company:'', mentoria:$('cs-mentoria')?.value||'Golden', turma:'',
+    entryDate:$('cs-entry')?.value||'', renewalDate:$('cs-renewal')?.value||'',
+    ticket:parseFloat($('cs-ticket')?.value)||0, financialStatus:'adimplente',
+    healthScore:70, nps:0, attendance:0, csResponsible:'Equipe CS',
+    observations:'', nextAction:'Onboarding'
+  });
+  saveCSData(); closeModal(); renderCS();
+}
+
+function openStudentDetail(id) {
+  const s = (state.csStudents||[]).find(st => st.id === id); if(!s) return;
+  const healthColor = s.healthScore >= 70 ? 'var(--green)' : s.healthScore >= 40 ? 'var(--yellow)' : 'var(--red)';
+  openModal(s.name,
+    '<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;"><span class="badge '+(s.mentoria==='Golden'?'badge-yellow':'badge-purple')+'">'+s.mentoria+'</span>' +
+    '<span class="badge '+(s.financialStatus==='adimplente'?'badge-green':'badge-red')+'">'+s.financialStatus+'</span>' +
+    '<span class="badge" style="background:'+(healthColor===('var(--green)')?'var(--green-bg)':'var(--red-bg)')+';color:'+healthColor+';">Health: '+s.healthScore+'</span></div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">' +
+    infoBlock('Email', s.email) + infoBlock('WhatsApp', s.whatsapp) +
+    infoBlock('Instagram', s.instagram) + infoBlock('Cidade', s.city) +
+    infoBlock('Profissão', s.profession) + infoBlock('Turma', s.turma) +
+    infoBlock('Entrada', dealFmtDate(s.entryDate)) + infoBlock('Renovação', dealFmtDate(s.renewalDate)) +
+    infoBlock('Ticket', formatCurrency(s.ticket)) + infoBlock('NPS', s.nps) +
+    infoBlock('Presença', s.attendance + '%') + infoBlock('Responsável CS', s.csResponsible) +
+    '</div>' +
+    (s.observations ? '<div style="margin-bottom:12px;"><div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">Observações</div><div style="font-size:13px;color:var(--text-secondary);line-height:1.5;">'+escHtml(s.observations)+'</div></div>' : '') +
+    (s.nextAction ? '<div style="padding:12px;background:var(--purple-light);border-radius:8px;"><div style="font-size:11px;font-weight:600;color:var(--purple);text-transform:uppercase;margin-bottom:4px;">Próxima Ação</div><div style="font-size:13px;font-weight:600;">'+escHtml(s.nextAction)+'</div></div>' : ''),
+    '<button class="btn btn-outline" onclick="closeModal()">Fechar</button>'
+  );
+}
+
+function infoBlock(label, value) {
+  return '<div style="padding:10px;background:var(--bg);border-radius:8px;"><div style="font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">'+label+'</div><div style="font-size:13px;font-weight:600;margin-top:2px;">'+escHtml(String(value||'—'))+'</div></div>';
+}
+
+// ============================================================
+// REPORTS / EXPORTS
+// ============================================================
+function renderReports() {
+  let html = '<div class="page-header"><div><div class="page-title">Relatórios</div><div class="page-subtitle">Exportar dados e gerar relatórios</div></div></div>';
+
+  const reports = [
+    { icon:'💰', name:'DRE Mensal', desc:'Demonstrativo de resultado mensal consolidado', action:'exportDREReport()' },
+    { icon:'💰', name:'DRE por Evento', desc:'Receitas e custos detalhados por evento', action:'exportDREByEvent()' },
+    { icon:'📊', name:'Pipeline Comercial', desc:'Negociações ativas, fechadas e perdidas', action:'exportPipelineReport()' },
+    { icon:'👥', name:'CS Golden Group', desc:'Mentorados Golden com health score e status', action:'exportCSReport(\'Golden\')' },
+    { icon:'👥', name:'CS A Mesa', desc:'Mentorados A Mesa com health score e status', action:'exportCSReport(\'A Mesa\')' },
+    { icon:'🎯', name:'M&A Readiness', desc:'Índice de prontidão para M&A', action:'exportMAReport()' },
+    { icon:'📋', name:'Due Diligence', desc:'Checklist de due diligence com status', action:'exportDDReport()' },
+    { icon:'✅', name:'Tarefas por Responsável', desc:'Tarefas agrupadas por responsável', action:'exportTasksReport()' },
+    { icon:'📊', name:'Relatório Executivo CEO', desc:'Visão consolidada para apresentação', action:'exportCEOReport()' },
+  ];
+
+  html += '<div class="template-grid">';
+  reports.forEach(r => {
+    if (r.action.includes('DRE') && !can('dre.view')) return;
+    if (r.action.includes('Pipeline') && !can('vendas.view')) return;
+    if (r.action.includes('CS') && !can('cs.view')) return;
+    if (r.action.includes('MA') && !can('ma.view')) return;
+    if (r.action.includes('DD') && !can('due_diligence.view')) return;
+    html += '<div class="template-card" onclick="'+r.action+'">' +
+      '<div style="font-size:24px;margin-bottom:8px;">'+r.icon+'</div>' +
+      '<h4>'+r.name+'</h4><p>'+r.desc+'</p>' +
+      '<div class="count" style="margin-top:12px;">📥 Exportar CSV</div></div>';
+  });
+  html += '</div>';
+
+  $('reports-content').innerHTML = html;
+}
+
+function exportCSV(filename, headers, rows) {
+  const BOM = '\uFEFF';
+  const csv = BOM + headers.join(';') + '\n' + rows.map(r => r.map(c => '"'+(String(c||'').replace(/"/g,'""'))+'"').join(';')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+}
+
+function exportPipelineReport() {
+  const headers = ['Empresa','Produto','Valor','Status','Apresentação','Follow-up','Motivo Perda'];
+  const rows = state.deals.map(d => [d.company, d.category, d.value, d.status, d.datePresentation, d.dateFollowup, d.lostReason]);
+  exportCSV('pipeline-comercial.csv', headers, rows);
+}
+
+function exportCSReport(mentoria) {
+  loadCSData();
+  const students = (state.csStudents||[]).filter(s => !mentoria || s.mentoria === mentoria);
+  const headers = ['Nome','Email','WhatsApp','Mentoria','Turma','Health Score','NPS','Presença','Ticket','Status Financeiro','Próxima Ação'];
+  const rows = students.map(s => [s.name, s.email, s.whatsapp, s.mentoria, s.turma, s.healthScore, s.nps, s.attendance+'%', s.ticket, s.financialStatus, s.nextAction]);
+  exportCSV('cs-'+mentoria.replace(/\s/g,'-').toLowerCase()+'.csv', headers, rows);
+}
+
+function exportDDReport() {
+  loadDDItems();
+  const headers = ['Categoria','Descrição','Status','Risco','Responsável'];
+  const rows = (state.ddItems||[]).map(i => [i.category, i.description, i.status, i.risk, i.responsible]);
+  exportCSV('due-diligence.csv', headers, rows);
+}
+
+function exportDREReport() {
+  const headers = ['Evento','Tipo','Seção','Descrição','Qtd','Valor Unit.','Total','Status Pgto'];
+  const rows = state.finances.map(f => {
+    const ev = state.events.find(e => e.id === f.event_id);
+    return [ev?.name||'', f.type, f.section, f.description, f.quantity, f.unit_price, f.amount, f.payment_status];
+  });
+  exportCSV('dre-consolidado.csv', headers, rows);
+}
+
+function exportDREByEvent() { exportDREReport(); }
+function exportMAReport() { alert('Relatório M&A exportado'); }
+function exportTasksReport() {
+  const headers = ['Tarefa','Evento','Fase','Área','Prioridade','Status','Responsável','Prazo'];
+  const rows = state.tasks.map(t => {
+    const ev = state.events.find(e => e.id === t.event_id);
+    return [t.title, ev?.name||'', t.phase_code, t.area, t.priority, getEffectiveStatus(t), t.responsible_role, t.due_date];
+  });
+  exportCSV('tarefas-por-responsavel.csv', headers, rows);
+}
+function exportCEOReport() { alert('Relatório CEO em construção'); }
+function exportDD() { exportDDReport(); }
+function exportCurrentView() {
+  switch(state.currentPage) {
+    case 'vendas': exportPipelineReport(); break;
+    case 'cs': exportCSReport(''); break;
+    case 'due-diligence': exportDDReport(); break;
+    case 'financeiro': exportDREReport(); break;
+    default: alert('Exportação disponível para módulos específicos');
+  }
+}
 
 // ============================================================
 // UTILITIES
@@ -1025,12 +2052,17 @@ function showApp() {
   $('app-shell').classList.add('active');
   const p = state.profile;
   $('sidebar-user-name').textContent = p.name || state.user.email;
-  $('sidebar-user-role').textContent = p.role === 'admin' ? 'Administrador' : 'Membro';
+  $('sidebar-user-role').textContent = ROLE_LABELS[p.role] || p.role || 'Membro';
   $('sidebar-avatar').textContent = initials(p.name || state.user.email);
-  if (p.role !== 'admin') {
-    $('btn-invite-member').style.display = 'none';
-    qsa('.admin-only').forEach(el => el.style.display = 'none');
+  // Apply RBAC
+  applyPermissions();
+  if (!can('team.invite')) {
+    const invBtn = $('btn-invite-member');
+    if (invBtn) invBtn.style.display = 'none';
   }
+  initGlobalFilters();
+  loadDDItems();
+  loadCSData();
   updateGreeting();
   navigateTo('dashboard');
 }
@@ -1171,15 +2203,19 @@ function goBackFromEvent() { navigateTo('eventos'); }
 
 function renderCurrentPage() {
   switch(state.currentPage) {
-    case 'dashboard': state.profile?.role === 'admin' ? renderDashboardCEO() : renderDashboardMember(); break;
-    case 'eventos': renderEventsList(); break;
-    case 'vendas': if (state.profile?.role === 'admin') renderVendas(); else navigateTo('dashboard'); break;
-    case 'financeiro': if (state.profile?.role === 'admin') renderFinanceiro(); else navigateTo('dashboard'); break;
-    case 'equipe': if (state.profile?.role === 'admin') renderEquipe(); else navigateTo('dashboard'); break;
-    case 'templates': if (state.profile?.role === 'admin') renderTemplatesList(); else navigateTo('dashboard'); break;
+    case 'dashboard': isCEOLevel() ? renderCEOCommandCenter() : renderDashboardMember(); break;
+    case 'eventos': can('events.view') ? renderEventsList() : navigateTo('dashboard'); break;
+    case 'vendas': can('vendas.view') ? renderVendas() : navigateTo('dashboard'); break;
+    case 'financeiro': can('finance.view') ? renderFinanceiro() : navigateTo('dashboard'); break;
+    case 'equipe': can('team.view') ? renderEquipe() : navigateTo('dashboard'); break;
+    case 'templates': can('templates.view') ? renderTemplatesList() : navigateTo('dashboard'); break;
     case 'timeline': renderTimelinePage(); break;
     case 'event-detail': renderEventDetail(); break;
     case 'template-detail': renderTemplateDetail(); break;
+    case 'ma': can('ma.view') ? renderMA() : navigateTo('dashboard'); break;
+    case 'due-diligence': can('due_diligence.view') ? renderDueDiligence() : navigateTo('dashboard'); break;
+    case 'cs': can('cs.view') ? renderCS() : navigateTo('dashboard'); break;
+    case 'reports': can('reports.view') ? renderReports() : navigateTo('dashboard'); break;
   }
 }
 
@@ -1253,8 +2289,38 @@ function renderDashboardMember() {
   const myBlocked = myTasks.filter(t => getEffectiveStatus(t) === 'bloqueada');
   const myInProgress = myTasks.filter(t => t.task_status === 'em_andamento');
 
+  // Week tasks
+  const today = new Date().toISOString().slice(0,10);
+  const in7 = new Date(Date.now() + 7*86400000).toISOString().slice(0,10);
+  const myWeek = myTasks.filter(t => !t.done && t.due_date && t.due_date >= today && t.due_date <= in7);
+
+  // Next recommended action
+  let nextAction = null;
+  if (myOverdue.length > 0) {
+    const t = myOverdue.sort((a,b) => (a.due_date||'').localeCompare(b.due_date||''))[0];
+    nextAction = { icon:'⏰', label:'Tarefa atrasada: ' + (t.title||'').slice(0,40), color:'var(--red)', eventId:t.event_id };
+  } else if (myInProgress.length > 0) {
+    const t = myInProgress[0];
+    nextAction = { icon:'🔵', label:'Continuar: ' + (t.title||'').slice(0,40), color:'var(--blue)', eventId:t.event_id };
+  } else if (myPending.length > 0) {
+    const t = myPending.sort((a,b) => (a.due_date||'9').localeCompare(b.due_date||'9'))[0];
+    nextAction = { icon:'▶️', label:'Iniciar: ' + (t.title||'').slice(0,40), color:'var(--purple)', eventId:t.event_id };
+  }
+
+  // Page header
+  const greeting = (() => { const h = new Date().getHours(); return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'; })();
+  const userName = (state.profile?.name || '').split(' ')[0] || 'colega';
+
+  $('page-dashboard').innerHTML = '<div class="page-header"><div><div class="page-title">' + greeting + ', ' + escHtml(userName) + '</div><div class="page-subtitle">Hoje no Science Play OS</div></div></div>' +
+  (nextAction ? '<div style="padding:16px 20px;background:var(--purple-light);border-radius:var(--radius);border:1px solid var(--purple);margin-bottom:20px;display:flex;align-items:center;gap:14px;cursor:pointer;" onclick="navigateTo(\'event-detail\',{eventId:\''+nextAction.eventId+'\'})">' +
+    '<span style="font-size:28px;">'+nextAction.icon+'</span>' +
+    '<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--purple);margin-bottom:2px;">Próxima ação recomendada</div>' +
+    '<div style="font-size:15px;font-weight:700;">'+escHtml(nextAction.label)+'</div></div>' +
+    '<span style="margin-left:auto;font-size:20px;">→</span></div>' : '') +
+  '<div id="member-kpis"></div><div id="member-alerts"></div><div id="member-kanban"></div><div id="member-upcoming"></div><div id="member-feed"></div>';
+
   // KPIs operacionais
-  $('dashboard-kpis').innerHTML =
+  $('member-kpis').innerHTML =
     '<div class="kpi-card"><div class="kpi-label">Minhas Tarefas</div><div class="kpi-value purple">' + myTasks.length + '</div></div>' +
     '<div class="kpi-card"><div class="kpi-label">Em Andamento</div><div class="kpi-value">' + myInProgress.length + '</div></div>' +
     '<div class="kpi-card"><div class="kpi-label">Pendentes</div><div class="kpi-value ' + (myPending.length > 5 ? 'red' : '') + '">' + myPending.length + '</div></div>' +
@@ -1272,7 +2338,7 @@ function renderDashboardMember() {
     alertsHtml += '<div class="alert-grid" style="margin-top:8px;">' +
       '<div class="alert-card" style="border-left:3px solid #F59E0B"><div class="alert-icon" style="background:var(--yellow-bg)">🛑</div><div><h4>' + myBlocked.length + ' tarefa' + (myBlocked.length > 1 ? 's' : '') + ' bloqueada' + (myBlocked.length > 1 ? 's' : '') + '</h4><p>Dependencias pendentes</p></div></div></div>';
   }
-  $('dashboard-alerts-section').innerHTML = alertsHtml;
+  $('member-alerts').innerHTML = alertsHtml;
 
   // Kanban: Atrasadas → Em Andamento → Pendentes → Concluídas recentes
   const recentDone = myDone.sort((a,b) => (b.completed_at||'').localeCompare(a.completed_at||'')).slice(0, 5);
@@ -1313,11 +2379,11 @@ function renderDashboardMember() {
     kanbanHtml += '</div></div>';
   });
   kanbanHtml += '</div>';
-  $('dashboard-next-events').innerHTML = kanbanHtml;
+  $('member-kanban').innerHTML = kanbanHtml;
 
   // Próximos prazos (próximas 7 tasks por due_date)
-  const today = new Date().toISOString().slice(0,10);
-  const upcomingTasks = myPending.filter(t => t.due_date && t.due_date >= today)
+  const todayStr = new Date().toISOString().slice(0,10);
+  const upcomingTasks = myPending.filter(t => t.due_date && t.due_date >= todayStr)
     .sort((a,b) => a.due_date.localeCompare(b.due_date)).slice(0, 7);
   let upHtml = '<h3 style="font-size:15px;font-weight:700;margin-bottom:14px;">Proximos Prazos</h3>';
   if (upcomingTasks.length === 0) {
@@ -1339,10 +2405,26 @@ function renderDashboardMember() {
     upHtml += '</div></div>';
   }
 
-  // Timeline do membro: não mostra
-  $('dashboard-timeline-section').innerHTML = upHtml;
-  // Charts do membro: não mostra
-  $('dashboard-charts-section').innerHTML = '';
+  $('member-upcoming').innerHTML = upHtml;
+
+  // Recent feed for member
+  const recentFeeds = state.feeds.slice(0, 5);
+  let feedHtml = '<h3 style="font-size:15px;font-weight:700;margin:24px 0 14px;">Atualizações Recentes</h3>';
+  if (recentFeeds.length > 0) {
+    feedHtml += '<div class="card"><div class="card-body" style="padding:0;">';
+    recentFeeds.forEach(f => {
+      const ev = state.events.find(e => e.id === f.event_id);
+      const timeAgo = (() => { const ms = Date.now() - new Date(f.created_at).getTime(); const h = Math.floor(ms/3600000); return h < 1 ? 'agora' : h < 24 ? h+'h atrás' : Math.floor(h/24)+'d atrás'; })();
+      feedHtml += '<div style="display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);align-items:flex-start;">' +
+        '<div style="width:32px;height:32px;border-radius:50%;background:var(--purple-light);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">'+initials(f.author||'SP')+'</div>' +
+        '<div style="flex:1;"><div style="font-size:13px;">'+escHtml(f.content?.slice(0,100)||'')+'</div>' +
+        '<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">'+escHtml(f.author||'')+' &middot; '+(ev?escHtml(ev.name):'')+' &middot; '+timeAgo+'</div></div></div>';
+    });
+    feedHtml += '</div></div>';
+  } else {
+    feedHtml += '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Nenhuma atualização recente</div>';
+  }
+  $('member-feed').innerHTML = feedHtml;
 }
 
 function renderDashboardAlerts() {
@@ -1530,7 +2612,7 @@ function renderEventsList() {
         '<span class="badge badge-gray">' + phase + '</span></div>' +
         '<div class="progress-bar-wrap" style="margin-bottom:10px;"><div class="progress-bar-fill" style="width:' + pct + '%"></div></div>' +
         '<div class="status-card-metrics">' +
-        (state.profile?.role === 'admin' ? '<div class="status-card-metric"><div class="val">' + formatCurrency(rec) + '</div><div class="lbl">Receita</div></div>' : '') +
+        (can('finance.view') ? '<div class="status-card-metric"><div class="val">' + formatCurrency(rec) + '</div><div class="lbl">Receita</div></div>' : '') +
         '<div class="status-card-metric"><div class="val">' + pct + '%</div><div class="lbl">Progresso</div></div>' +
         '<div class="status-card-metric"><div class="val">' + done + '/' + total + '</div><div class="lbl">Tarefas</div></div></div></div>';
     }).join('');
@@ -1556,11 +2638,11 @@ function renderEventDetail() {
   const dd = ev.event_date ? daysDiff(ev.event_date) : null;
   const countdown = dd !== null ? (dd >= 0 ? 'D-' + dd : 'D+' + Math.abs(dd)) : '';
   const phase = ev.event_date ? getCurrentPhase(ev.event_date) : 'F0';
-  const isAdmin = state.profile?.role === 'admin';
+  const hasEditPerm = can('events.edit');
   const isEncerrado = ev.status === 'encerrado' || ev.status === 'pos-evento';
 
   let heroButtons = '';
-  if (isAdmin) {
+  if (hasEditPerm) {
     heroButtons = '<div style="position:absolute;top:20px;right:20px;display:flex;gap:8px;">';
     if (isEncerrado) heroButtons += '<button class="btn btn-sm" style="background:rgba(16,185,129,0.3);color:#fff;" onclick="reopenEvent(\'' + ev.id + '\')">Reabrir</button>';
     heroButtons += '<button class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:#fff;" onclick="openEditEvent(\'' + ev.id + '\')">Editar</button>';
@@ -2230,14 +3312,139 @@ function renderChecklistItem(t, ev) {
 // ============================================================
 // FINANCEIRO GLOBAL
 // ============================================================
-function renderFinanceiro() { renderFinConsolidated(); renderFinPerEvent(); }
+function renderFinanceiro() {
+  // Check if DRE gerencial structure exists, add plans tab
+  const finContent = $('financeiro-content');
+  if (finContent && !$('fin-plans')) {
+    // Add financial plans tab panel
+    const plansPanel = document.createElement('div');
+    plansPanel.id = 'fin-plans';
+    plansPanel.className = 'tab-panel';
+    plansPanel.style.display = 'none';
+    finContent.appendChild(plansPanel);
+    // Add plans button to tab nav
+    const tabNav = $('fin-tabs-nav');
+    if (tabNav) {
+      const btn = document.createElement('button');
+      btn.className = 'tab-btn';
+      btn.textContent = 'Planos & Cenários';
+      btn.onclick = function() { switchFinTab('plans', this); };
+      tabNav.appendChild(btn);
+    }
+  }
+  renderFinConsolidated();
+  renderFinPerEvent();
+  renderFinPlans();
+}
 
 function switchFinTab(tab, btn) {
   qsa('#fin-tabs-nav .tab-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   qsa('#financeiro-content .tab-panel').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
-  const el = $(tab === 'consolidated' ? 'fin-consolidated' : 'fin-per-event');
-  el.classList.add('active'); el.style.display = 'block';
+  const tabMap = { consolidated:'fin-consolidated', 'per-event':'fin-per-event', plans:'fin-plans' };
+  const el = $(tabMap[tab] || 'fin-consolidated');
+  if (el) { el.classList.add('active'); el.style.display = 'block'; }
+}
+
+// ============================================================
+// FINANCIAL PLANS & SCENARIOS
+// ============================================================
+function renderFinPlans() {
+  const panel = $('fin-plans');
+  if (!panel) return;
+
+  // Load saved plans
+  if (!state.finPlans) {
+    try { const s = localStorage.getItem('sp-os-fin-plans'); if(s) state.finPlans = JSON.parse(s); } catch(e) {}
+  }
+  if (!state.finPlans) {
+    // Seed default scenarios
+    state.finPlans = {
+      conservador: { label:'Conservador', receita:800000, margem:15, ebitda:10, caixa:200000, custo:680000, equipe:12, eventos:4, mentorias:15, patrocinio:150000, inadimplencia:8 },
+      base: { label:'Base', receita:1200000, margem:25, ebitda:18, caixa:350000, custo:900000, equipe:15, eventos:6, mentorias:25, patrocinio:300000, inadimplencia:5 },
+      agressivo: { label:'Agressivo', receita:2000000, margem:35, ebitda:28, caixa:600000, custo:1300000, equipe:22, eventos:10, mentorias:40, patrocinio:600000, inadimplencia:3 },
+      crise: { label:'Crise', receita:500000, margem:5, ebitda:2, caixa:100000, custo:475000, equipe:8, eventos:2, mentorias:8, patrocinio:50000, inadimplencia:15 },
+      ma_ready: { label:'M&A Ready', receita:1800000, margem:30, ebitda:25, caixa:500000, custo:1260000, equipe:20, eventos:8, mentorias:35, patrocinio:500000, inadimplencia:3 },
+    };
+    localStorage.setItem('sp-os-fin-plans', JSON.stringify(state.finPlans));
+  }
+
+  if (!state.finPlanTab) state.finPlanTab = 'base';
+  const currentPlan = state.finPlans[state.finPlanTab];
+
+  // Real numbers
+  const allFins = state.finances;
+  const realReceita = allFins.filter(f => f.type==='receita').reduce((s,f) => s+(f.amount||0), 0);
+  const realCusto = allFins.filter(f => f.type==='custo').reduce((s,f) => s+(f.amount||0), 0);
+  const realResultado = realReceita - realCusto;
+  const realMargem = realReceita > 0 ? Math.round((realResultado/realReceita)*100) : 0;
+
+  let html = '';
+
+  // Scenario tabs
+  html += '<div class="scenario-tabs">';
+  Object.entries(state.finPlans).forEach(([key, plan]) => {
+    html += '<button class="scenario-tab'+(state.finPlanTab===key?' active':'')+'" onclick="state.finPlanTab=\''+key+'\';renderFinPlans()">'+plan.label+'</button>';
+  });
+  html += '</div>';
+
+  // Plan vs Real KPIs
+  html += '<div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px;">';
+  const variance = (real, plan) => { const v = plan > 0 ? ((real-plan)/plan*100) : 0; return (v >= 0 ? '+' : '') + v.toFixed(0) + '%'; };
+  const varClass = (real, plan) => real >= plan ? 'plan-variance-positive' : 'plan-variance-negative';
+
+  html += '<div class="kpi-card"><div class="kpi-label">Receita (Meta)</div><div class="kpi-value purple">'+formatCurrency(currentPlan.receita)+'</div><div style="font-size:12px;margin-top:4px;" class="'+varClass(realReceita,currentPlan.receita)+'">Real: '+formatCurrency(realReceita)+' ('+variance(realReceita,currentPlan.receita)+')</div></div>';
+  html += '<div class="kpi-card"><div class="kpi-label">Margem (Meta)</div><div class="kpi-value">'+currentPlan.margem+'%</div><div style="font-size:12px;margin-top:4px;" class="'+varClass(realMargem,currentPlan.margem)+'">Real: '+realMargem+'% ('+variance(realMargem,currentPlan.margem)+')</div></div>';
+  html += '<div class="kpi-card"><div class="kpi-label">EBITDA (Meta)</div><div class="kpi-value">'+currentPlan.ebitda+'%</div></div>';
+  html += '<div class="kpi-card"><div class="kpi-label">Caixa Mín. (Meta)</div><div class="kpi-value">'+formatCurrency(currentPlan.caixa)+'</div></div>';
+  html += '</div>';
+
+  // Full comparison table
+  html += '<div class="card"><div class="card-header"><h3>Comparativo: Realizado x Planejado ('+currentPlan.label+')</h3></div><div class="card-body">';
+  html += '<div class="plan-comparison">';
+  html += '<div class="plan-cell plan-header plan-label">Indicador</div><div class="plan-cell plan-header">Meta ('+currentPlan.label+')</div><div class="plan-cell plan-header">Realizado</div><div class="plan-cell plan-header">Variação</div>';
+
+  const rows = [
+    ['Receita Bruta', formatCurrency(currentPlan.receita), formatCurrency(realReceita), variance(realReceita, currentPlan.receita), varClass(realReceita, currentPlan.receita)],
+    ['Custos Totais', formatCurrency(currentPlan.custo), formatCurrency(realCusto), variance(realCusto, currentPlan.custo), realCusto <= currentPlan.custo ? 'plan-variance-positive' : 'plan-variance-negative'],
+    ['Resultado', formatCurrency(currentPlan.receita - currentPlan.custo), formatCurrency(realResultado), variance(realResultado, currentPlan.receita - currentPlan.custo), varClass(realResultado, currentPlan.receita - currentPlan.custo)],
+    ['Margem', currentPlan.margem + '%', realMargem + '%', variance(realMargem, currentPlan.margem), varClass(realMargem, currentPlan.margem)],
+    ['Equipe', currentPlan.equipe + ' pessoas', state.members.length + ' pessoas', '', ''],
+    ['Eventos', currentPlan.eventos, state.events.filter(e=>e.status!=='encerrado').length, '', ''],
+    ['Mentorados', currentPlan.mentorias, (state.csStudents||[]).length, '', ''],
+    ['Patrocínio (meta)', formatCurrency(currentPlan.patrocinio), '—', '', ''],
+    ['Inadimplência (meta)', currentPlan.inadimplencia + '%', '—', '', ''],
+  ];
+  rows.forEach(r => {
+    html += '<div class="plan-cell plan-label">'+r[0]+'</div><div class="plan-cell">'+r[1]+'</div><div class="plan-cell">'+r[2]+'</div><div class="plan-cell '+r[4]+'">'+r[3]+'</div>';
+  });
+  html += '</div></div></div>';
+
+  // All scenarios side by side
+  html += '<div class="card" style="margin-top:16px;"><div class="card-header"><h3>Visão por Cenário</h3></div><div class="card-body">';
+  html += '<div class="plan-comparison" style="grid-template-columns:200px repeat(5,1fr);">';
+  html += '<div class="plan-cell plan-header plan-label">Indicador</div>';
+  Object.values(state.finPlans).forEach(p => { html += '<div class="plan-cell plan-header">'+p.label+'</div>'; });
+
+  const metrics = [
+    ['Receita', p => formatCurrency(p.receita)],
+    ['Margem', p => p.margem + '%'],
+    ['EBITDA', p => p.ebitda + '%'],
+    ['Caixa', p => formatCurrency(p.caixa)],
+    ['Custo', p => formatCurrency(p.custo)],
+    ['Equipe', p => p.equipe],
+    ['Eventos', p => p.eventos],
+    ['Mentorias', p => p.mentorias],
+    ['Patrocínio', p => formatCurrency(p.patrocinio)],
+    ['Inadimplência', p => p.inadimplencia + '%'],
+  ];
+  metrics.forEach(([label, fn]) => {
+    html += '<div class="plan-cell plan-label">'+label+'</div>';
+    Object.values(state.finPlans).forEach(p => { html += '<div class="plan-cell">'+fn(p)+'</div>'; });
+  });
+  html += '</div></div></div>';
+
+  panel.innerHTML = html;
 }
 
 function renderFinConsolidated() {
@@ -2319,7 +3526,7 @@ function renderTeamMembers() {
     const pending = myTasks.filter(t => !t.done).length;
     return '<div class="member-card"><div class="member-avatar">' + initials(m.name) + '</div>' +
       '<div class="member-info"><div class="member-name">' + escHtml(m.name || m.email || '—') + '</div>' +
-      '<div class="member-email">' + escHtml(m.email || '') + ' &middot; <span class="badge ' + (m.role==='admin'?'badge-purple':'badge-gray') + '">' + (m.role === 'admin' ? 'Admin' : 'Membro') + '</span></div></div>' +
+      '<div class="member-email">' + escHtml(m.email || '') + ' &middot; <span class="badge badge-purple">' + (ROLE_LABELS[m.role] || m.role || 'Membro') + '</span></div></div>' +
       '<div class="member-stats"><div class="member-stat"><div class="val">' + done + '</div><div class="lbl">Feitas</div></div>' +
       '<div class="member-stat"><div class="val">' + pending + '</div><div class="lbl">Pendentes</div></div></div></div>';
   }).join('') || '<div class="empty-state"><p>Nenhum membro cadastrado</p></div>';
@@ -3327,11 +4534,21 @@ document.addEventListener('click', function(e) {
 // ============================================================
 async function init() {
   loadDeals();
+  loadDDItems();
   await checkSession();
   setupRealtime();
   updateVendasBadge();
 }
 init();
 </script>
+
+<!-- COMMAND PALETTE -->
+<div class="cmd-palette-overlay" id="cmd-palette-overlay" onclick="if(event.target===this)closeCommandPalette()">
+  <div class="cmd-palette">
+    <input type="text" id="cmd-input" placeholder="O que voce quer fazer?" oninput="filterCommandPalette(this.value)" autocomplete="off">
+    <div class="cmd-palette-results" id="cmd-results"></div>
+  </div>
+</div>
+
 </body>
 </html>
