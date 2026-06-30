@@ -1500,7 +1500,7 @@ function renderMA() {
 
   const scoreColor = score >= 70 ? 'var(--green)' : score >= 40 ? 'var(--yellow)' : 'var(--red)';
 
-  let html = '<div class="page-header"><div><div class="page-title">M&A Readiness Index</div><div class="page-subtitle">Índice de prontidão para fusão, aquisição ou investimento</div></div></div>';
+  let html = demoBanner('M&A Readiness') + '<div class="page-header"><div><div class="page-title">M&A Readiness Index</div><div class="page-subtitle">Índice de prontidão para fusão, aquisição ou investimento</div></div></div>';
 
   // Score Gauge + Categories
   html += '<div style="display:grid;grid-template-columns:300px 1fr;gap:24px;margin-bottom:28px;">';
@@ -1583,7 +1583,7 @@ function renderDueDiligence() {
   const score = computeDDScore();
   const scoreColor = score >= 70 ? 'var(--green)' : score >= 40 ? 'var(--yellow)' : 'var(--red)';
 
-  let html = '<div class="page-header"><div><div class="page-title">Due Diligence Index</div><div class="page-subtitle">Checklist de prontidão para auditoria e investimento</div></div>' +
+  let html = demoBanner('Due Diligence') + '<div class="page-header"><div><div class="page-title">Due Diligence Index</div><div class="page-subtitle">Checklist de prontidão para auditoria e investimento</div></div>' +
     '<div style="display:flex;gap:8px;"><button class="btn btn-primary" onclick="exportDD()">&#128229; Exportar</button></div></div>';
 
   // Score bar
@@ -1901,7 +1901,7 @@ function renderCS() {
     return;
   }
 
-  var html = '<div class="page-header"><div><div class="page-title">CS — Customer Success</div>' +
+  var html = demoBanner('CS — Customer Success') + '<div class="page-header"><div><div class="page-title">CS — Customer Success</div>' +
     '<div class="page-subtitle">Painel operacional de acompanhamento de mentorados</div></div>' +
     '<div style="display:flex;gap:8px;">';
 
@@ -3168,6 +3168,13 @@ function exportCSReport(mentoria) {
 
 function infoBlock(label, value) {
   return '<div style="padding:10px;background:var(--bg);border-radius:8px;"><div style="font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">'+label+'</div><div style="font-size:13px;font-weight:600;margin-top:2px;">'+escHtml(String(value||'—'))+'</div></div>';
+}
+
+function demoBanner(moduleName) {
+  return '<div style="background:linear-gradient(135deg,#FEF3C7,#FDE68A);border:1px solid #F59E0B;border-radius:10px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:12px;">' +
+    '<div style="font-size:20px;">&#9888;&#65039;</div>' +
+    '<div><div style="font-size:13px;font-weight:700;color:#92400E;">Dados Demonstrativos</div>' +
+    '<div style="font-size:12px;color:#78350F;margin-top:2px;">O módulo <strong>' + escHtml(moduleName) + '</strong> está usando dados locais (localStorage). Estes dados não são compartilhados entre usuários e serão migrados para o Supabase em breve.</div></div></div>';
 }
 
 // ============================================================
@@ -4788,7 +4795,7 @@ function renderFinPlans() {
   const realResultado = realReceita - realCusto;
   const realMargem = realReceita > 0 ? Math.round((realResultado/realReceita)*100) : 0;
 
-  let html = '';
+  let html = demoBanner('Planos Financeiros');
 
   // Scenario tabs
   html += '<div class="scenario-tabs">';
@@ -5704,7 +5711,7 @@ function renderVendas() {
     case 'vd-fechadas': body = renderVendasBacklog('fechada'); break;
     case 'vd-perdidas': body = renderVendasBacklog('perdida'); break;
   }
-  container.innerHTML =
+  container.innerHTML = demoBanner('Vendas') +
     '<div class="page-header"><div><div class="page-title">Vendas</div><div class="page-subtitle">Controle de negociações e pipeline comercial</div></div>' +
     '<button class="btn btn-primary" onclick="openNewDeal()">+ Nova Negociação</button></div>' +
     tabsHtml + body;
