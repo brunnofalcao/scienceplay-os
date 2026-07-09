@@ -3209,136 +3209,6 @@ function loadCSData() {
   });
 }
 
-function seedCSData() {
-  var today = new Date();
-  var todayStr = today.toISOString().slice(0, 10);
-
-  var daysAgo = function(n) {
-    var d = new Date(today);
-    d.setDate(d.getDate() - n);
-    return d.toISOString().slice(0, 10);
-  };
-
-  var daysFromNow = function(n) {
-    var d = new Date(today);
-    d.setDate(d.getDate() + n);
-    return d.toISOString().slice(0, 10);
-  };
-
-  state.csStudents = [
-    {
-      id: 1, name: 'Dr. Ricardo Mendes', email: 'ricardo@clinic.com', whatsapp: '11999990001',
-      instagram: '@drricardo', city: 'Sao Paulo', profession: 'Medico', company: 'Clinica Mendes',
-      mentoria: 'Golden', turma: 'Turma 5', entryDate: '2025-06-01', renewalDate: '2026-06-01',
-      ticket: 60000, financialStatus: 'adimplente', healthScore: 85, nps: 9, attendance: 90,
-      csResponsible: 'Equipe CS', observations: 'Engajado, participa de todos os encontros',
-      nextAction: 'Follow-up renovacao em 30 dias',
-      lastContactDate: daysAgo(5), lastContactChannel: 'whatsapp', lastContactSummary: 'Conversa sobre proximos temas do programa',
-      engajamento: 88, tags: ['VIP', 'indicador'], riskReason: '', playbook: 'cliente_vip',
-      renewalProbability: 90, origin: 'Indicacao', status: 'ativo', contactCount: 12, daysSinceContact: 5
-    },
-    {
-      id: 2, name: 'Dra. Camila Souza', email: 'camila@nutri.com', whatsapp: '21999990002',
-      instagram: '@dracamila', city: 'Rio de Janeiro', profession: 'Nutricionista', company: 'NutriVida',
-      mentoria: 'Golden', turma: 'Turma 5', entryDate: '2025-08-01', renewalDate: '2026-08-01',
-      ticket: 60000, financialStatus: 'adimplente', healthScore: 72, nps: 8, attendance: 75,
-      csResponsible: 'Equipe CS', observations: 'Boa participacao, mas faltou no ultimo encontro',
-      nextAction: 'Verificar presenca',
-      lastContactDate: daysAgo(8), lastContactChannel: 'email', lastContactSummary: 'Email de acompanhamento mensal',
-      engajamento: 70, tags: [], riskReason: '', playbook: '',
-      renewalProbability: 75, origin: 'Evento presencial', status: 'ativo', contactCount: 8, daysSinceContact: 8
-    },
-    {
-      id: 3, name: 'Dr. Paulo Oliveira', email: 'paulo@med.com', whatsapp: '31999990003',
-      instagram: '@drpaulo', city: 'Belo Horizonte', profession: 'Medico', company: 'Consultorio Paulo',
-      mentoria: 'Golden', turma: 'Turma 4', entryDate: '2025-01-01', renewalDate: daysFromNow(25),
-      ticket: 55000, financialStatus: 'adimplente', healthScore: 45, nps: 6, attendance: 50,
-      csResponsible: 'Equipe CS', observations: 'Frequencia caindo, possivel risco de cancelamento',
-      nextAction: 'Reuniao urgente de CS',
-      lastContactDate: daysAgo(22), lastContactChannel: 'ligacao', lastContactSummary: 'Ligacao para tentar reengajar, mencionou falta de tempo',
-      engajamento: 35, tags: [], riskReason: 'Presenca caindo e NPS baixo', playbook: 'baixa_presenca',
-      renewalProbability: 40, origin: 'Congresso SciencePlay', status: 'ativo', contactCount: 5, daysSinceContact: 22
-    },
-    {
-      id: 4, name: 'Dr. Marcos Ribeiro', email: 'marcos@med.com', whatsapp: '11999990007',
-      instagram: '@drmarcos', city: 'Sao Paulo', profession: 'Medico', company: 'Ribeiro Health',
-      mentoria: 'Golden', turma: 'Turma 4', entryDate: '2025-01-15', renewalDate: daysFromNow(55),
-      ticket: 60000, financialStatus: 'inadimplente', healthScore: 28, nps: 4, attendance: 30,
-      csResponsible: 'Equipe CS', observations: '2 parcelas em atraso, reclamou da qualidade do conteudo',
-      nextAction: 'Escalonamento para gestao',
-      lastContactDate: daysAgo(35), lastContactChannel: 'ligacao', lastContactSummary: 'Nao atendeu a ligacao, enviado WA sem resposta',
-      engajamento: 15, tags: [], riskReason: 'Inadimplente + NPS critico + baixa presenca', playbook: 'inadimplente',
-      renewalProbability: 10, origin: 'Trafego pago', status: 'ativo', contactCount: 3, daysSinceContact: 35
-    },
-    {
-      id: 5, name: 'Dra. Ana Beatriz', email: 'anab@nutri.com', whatsapp: '61999990006',
-      instagram: '@draanab', city: 'Brasilia', profession: 'Nutricionista', company: 'AB Nutricao',
-      mentoria: 'Golden', turma: 'Turma 5', entryDate: '2025-06-15', renewalDate: daysFromNow(75),
-      ticket: 60000, financialStatus: 'adimplente', healthScore: 88, nps: 9, attendance: 95,
-      csResponsible: 'Equipe CS', observations: 'Super engajada, ja indicou 2 pessoas',
-      nextAction: 'Follow-up renovacao',
-      lastContactDate: daysAgo(3), lastContactChannel: 'whatsapp', lastContactSummary: 'Parabens pelo resultado recente e alinhamento de renovacao',
-      engajamento: 92, tags: ['VIP', 'indicador'], riskReason: '', playbook: 'cliente_vip',
-      renewalProbability: 95, origin: 'Indicacao Dr. Ricardo', status: 'ativo', contactCount: 15, daysSinceContact: 3
-    },
-    {
-      id: 6, name: 'Dra. Fernanda Lima', email: 'fernanda@clinic.com', whatsapp: '11999990004',
-      instagram: '@drafernanda', city: 'Sao Paulo', profession: 'Nutricionista', company: 'FL Nutricao',
-      mentoria: 'A Mesa', turma: 'Edicao Jun/26', entryDate: '2026-06-01', renewalDate: '2026-12-01',
-      ticket: 25000, financialStatus: 'adimplente', healthScore: 92, nps: 10, attendance: 100,
-      csResponsible: 'Equipe CS', observations: 'Excelente participacao, potencial de indicacao',
-      nextAction: 'Pedir depoimento',
-      lastContactDate: daysAgo(2), lastContactChannel: 'reuniao', lastContactSummary: 'Participou da mentoria e ficou super satisfeita',
-      engajamento: 95, tags: ['VIP'], riskReason: '', playbook: '',
-      renewalProbability: 90, origin: 'Instagram', status: 'ativo', contactCount: 6, daysSinceContact: 2
-    },
-    {
-      id: 7, name: 'Dr. Marcelo Pinto', email: 'marcelo@med.com', whatsapp: '47999990005',
-      instagram: '@drmarcelo', city: 'Florianopolis', profession: 'Medico', company: 'Pinto Saude',
-      mentoria: 'A Mesa', turma: 'Edicao Jun/26', entryDate: '2026-06-01', renewalDate: '2026-12-01',
-      ticket: 25000, financialStatus: 'inadimplente', healthScore: 38, nps: 5, attendance: 40,
-      csResponsible: 'Equipe CS', observations: '2 parcelas em atraso, nao respondeu ultimas mensagens',
-      nextAction: 'Acionar cobranca + CS',
-      lastContactDate: daysAgo(18), lastContactChannel: 'whatsapp', lastContactSummary: 'Mensagem de cobranca enviada sem resposta',
-      engajamento: 25, tags: [], riskReason: 'Inadimplente e sem comunicacao', playbook: 'inadimplente',
-      renewalProbability: 20, origin: 'Trafego pago', status: 'ativo', contactCount: 4, daysSinceContact: 18
-    },
-    {
-      id: 8, name: 'Dra. Juliana Costa', email: 'juliana@clinic.com', whatsapp: '41999990008',
-      instagram: '@drajuliana', city: 'Curitiba', profession: 'Medica', company: 'JC Saude',
-      mentoria: 'A Mesa', turma: 'Edicao Jul/26', entryDate: daysAgo(5), renewalDate: daysFromNow(175),
-      ticket: 25000, financialStatus: 'adimplente', healthScore: 70, nps: 0, attendance: 0,
-      csResponsible: 'Equipe CS', observations: 'Recem-chegada, aguardando primeiro encontro',
-      nextAction: 'Enviar kit de boas-vindas e agendar kickoff',
-      lastContactDate: daysAgo(5), lastContactChannel: 'email', lastContactSummary: 'Email de boas-vindas enviado',
-      engajamento: 50, tags: ['novo'], riskReason: '', playbook: 'novo_mentorado',
-      renewalProbability: 70, origin: 'Congresso SciencePlay', status: 'onboarding', contactCount: 1, daysSinceContact: 5
-    }
-  ];
-
-  state.csContacts = [
-    { id: 1, studentId: 1, date: daysAgo(5), channel: 'whatsapp', responsible: 'Equipe CS', type: 'follow-up', summary: 'Conversa sobre proximos temas do programa, mentorado muito satisfeito', sentiment: 'positivo', nextAction: 'Enviar material complementar', nextActionDate: daysFromNow(3), status: 'realizado' },
-    { id: 2, studentId: 1, date: daysAgo(15), channel: 'ligacao', responsible: 'Equipe CS', type: 'follow-up', summary: 'Ligacao mensal, discutiu resultados e proximos passos', sentiment: 'positivo', nextAction: '', nextActionDate: '', status: 'realizado' },
-    { id: 3, studentId: 2, date: daysAgo(8), channel: 'email', responsible: 'Equipe CS', type: 'follow-up', summary: 'Email de acompanhamento mensal com resumo de atividades', sentiment: 'neutro', nextAction: 'Verificar presenca no proximo encontro', nextActionDate: daysFromNow(5), status: 'realizado' },
-    { id: 4, studentId: 3, date: daysAgo(22), channel: 'ligacao', responsible: 'Equipe CS', type: 'reengajamento', summary: 'Ligacao para tentar reengajar, mencionou falta de tempo por conta da clinica', sentiment: 'negativo', nextAction: 'Agendar reuniao presencial', nextActionDate: daysAgo(15), status: 'realizado' },
-    { id: 5, studentId: 4, date: daysAgo(35), channel: 'ligacao', responsible: 'Equipe CS', type: 'cobranca', summary: 'Nao atendeu a ligacao, enviado WhatsApp sem resposta', sentiment: 'negativo', nextAction: 'Escalonar para gestao', nextActionDate: daysAgo(30), status: 'realizado' },
-    { id: 6, studentId: 5, date: daysAgo(3), channel: 'whatsapp', responsible: 'Equipe CS', type: 'follow-up', summary: 'Parabens pelo resultado recente e alinhamento sobre renovacao', sentiment: 'positivo', nextAction: 'Enviar proposta de renovacao', nextActionDate: daysFromNow(10), status: 'realizado' },
-    { id: 7, studentId: 6, date: daysAgo(2), channel: 'reuniao', responsible: 'Equipe CS', type: 'follow-up', summary: 'Participou da mentoria e ficou super satisfeita com os conteudos', sentiment: 'positivo', nextAction: 'Pedir depoimento', nextActionDate: daysFromNow(7), status: 'pendente' },
-    { id: 8, studentId: 7, date: daysAgo(18), channel: 'whatsapp', responsible: 'Equipe CS', type: 'cobranca', summary: 'Mensagem de cobranca enviada sem resposta', sentiment: 'negativo', nextAction: 'Ligar novamente', nextActionDate: daysAgo(14), status: 'realizado' },
-    { id: 9, studentId: 8, date: daysAgo(5), channel: 'email', responsible: 'Equipe CS', type: 'onboarding', summary: 'Email de boas-vindas com credenciais e links importantes', sentiment: 'positivo', nextAction: 'Agendar kickoff call', nextActionDate: daysFromNow(2), status: 'pendente' }
-  ];
-
-  state.csTasks = [
-    { id: 1, studentId: 3, title: 'Reuniao urgente de reengajamento', responsible: 'Equipe CS', priority: 'alta', dueDate: daysFromNow(2), status: 'pendente', type: 'contato', description: 'Agendar e realizar reuniao para entender queda de presenca' },
-    { id: 2, studentId: 4, title: 'Escalonar caso para gestao', responsible: 'Equipe CS', priority: 'alta', dueDate: daysAgo(2), status: 'pendente', type: 'escalonamento', description: 'Inadimplente sem resposta, escalonar para decisao' },
-    { id: 3, studentId: 5, title: 'Preparar proposta de renovacao', responsible: 'Equipe CS', priority: 'media', dueDate: daysFromNow(10), status: 'em_andamento', type: 'renovacao', description: 'Montar relatorio de ROI e proposta de renovacao' },
-    { id: 4, studentId: 7, title: 'Ligar para Dr. Marcelo sobre pagamento', responsible: 'Equipe CS', priority: 'alta', dueDate: daysAgo(1), status: 'pendente', type: 'cobranca', description: 'Tentar contato por telefone sobre parcelas em atraso' },
-    { id: 5, studentId: 8, title: 'Agendar kickoff com Dra. Juliana', responsible: 'Equipe CS', priority: 'media', dueDate: daysFromNow(2), status: 'pendente', type: 'onboarding', description: 'Agendar call de 30min para onboarding' },
-    { id: 6, studentId: 6, title: 'Solicitar depoimento Dra. Fernanda', responsible: 'Equipe CS', priority: 'baixa', dueDate: daysFromNow(7), status: 'pendente', type: 'follow-up', description: 'Pedir video depoimento para marketing' }
-  ];
-
-  saveCSData();
-}
 
 function saveCSData() {
   persistCollection('cs_students');
@@ -6202,11 +6072,16 @@ async function loadCollections() {
     const col = APP_COLLECTIONS[key];
     const server = serverMap[key];
     const local = readLocalCollection(key);
-    if (server && collectionHasData(server.data)) {
-      col.set(server.data);
-      writeLocalCollection(key, server.data);
+    if (server) {
+      // Linha existe no servidor: ela é a verdade, MESMO vazia.
+      // (Uma coleção limpa intencionalmente não pode ser repovoada
+      // por caches antigos de localStorage de outros navegadores.)
+      const value = collectionHasData(server.data) ? server.data : col.empty();
+      col.set(value);
+      writeLocalCollection(key, value == null ? [] : value);
       state.collectionSources[key] = 'server';
     } else if (collectionHasData(local)) {
+      // Sem linha no servidor: import único dos dados antigos do navegador
       col.set(local);
       const up = await sb.from('app_collections').upsert({ key: key, data: local, updated_at: new Date().toISOString(), updated_by: state.user?.id || null });
       state.collectionSources[key] = up.error ? 'local' : 'server';
@@ -6250,23 +6125,6 @@ function loadDeals() {
 }
 function saveDeals() { persistCollection('deals'); }
 
-function seedDeals() {
-  const today = new Date();
-  const d = (off) => { const dt = new Date(today); dt.setDate(dt.getDate()+off); return dt.toISOString().split('T')[0]; };
-  state.deals = [
-    { id:1, company:'Brasil Refrigerantes', category:'Patrocínio', desc:'Patrocínio master do Nutrição Brasil 2026. Logo em todos os materiais, 2 palestras e stand premium.', value:150000, datePresentation:d(-15), dateFollowup:d(-2), status:'em_andamento', closedAt:null, lostReason:'' },
-    { id:2, company:'FarmaVida', category:'Stand', desc:'Stand 9m² no Nutrição Brasil Brasília.', value:35000, datePresentation:d(-10), dateFollowup:d(1), status:'em_andamento', closedAt:null, lostReason:'' },
-    { id:3, company:'Dr. Ricardo Mendes', category:'Golden', desc:'Mentoria Golden anual. Indicação do Dr. Paulo.', value:60000, datePresentation:d(-20), dateFollowup:d(3), status:'em_andamento', closedAt:null, lostReason:'' },
-    { id:4, company:'NutriTech Labs', category:'Patrocínio', desc:'Patrocínio prata Arnold Conference.', value:80000, datePresentation:d(-30), dateFollowup:d(-5), status:'em_andamento', closedAt:null, lostReason:'' },
-    { id:5, company:'Dra. Camila Souza', category:'Palestre•se', desc:'PALESTRE•SE ELITE turma 8. Veio pelo Instagram.', value:12000, datePresentation:d(-8), dateFollowup:d(0), status:'em_andamento', closedAt:null, lostReason:'' },
-    { id:6, company:'Vitale Suplementos', category:'Stand', desc:'Stand 6m² Nutrição Brasil SP. Desconto 10%.', value:28000, datePresentation:d(-45), dateFollowup:null, status:'fechada', closedAt:d(-20), lostReason:'' },
-    { id:7, company:'Grupo Essência', category:'Patrocínio', desc:'Cota ouro NB Brasília.', value:100000, datePresentation:d(-40), dateFollowup:null, status:'fechada', closedAt:d(-18), lostReason:'' },
-    { id:8, company:'Dr. Marcelo Pinto', category:'A Mesa', desc:'A Mesa edição junho.', value:25000, datePresentation:d(-25), dateFollowup:null, status:'fechada', closedAt:d(-12), lostReason:'' },
-    { id:9, company:'BioSaúde Corp', category:'Patrocínio', desc:'Queriam exclusividade de categoria.', value:120000, datePresentation:d(-50), dateFollowup:null, status:'perdida', closedAt:null, lostReason:'Não aceitou modelo compartilhado' },
-    { id:10, company:'Dr. Fernanda Lima', category:'Palestre•se', desc:'Queria parcelamento em 12x.', value:12000, datePresentation:d(-35), dateFollowup:null, status:'perdida', closedAt:null, lostReason:'Condições de pagamento' },
-  ];
-  saveDeals();
-}
 
 function dealBadgeClass(cat) { return 'badge-' + (DEAL_PRODUCT_COLORS[cat]||'gray'); }
 function dealDaysFromNow(d) { if(!d) return null; const now=new Date(); now.setHours(0,0,0,0); return Math.round((new Date(d+'T00:00:00')-now)/86400000); }
