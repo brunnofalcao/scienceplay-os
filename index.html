@@ -4279,7 +4279,7 @@ function renderEventDetail() {
     '<h1>' + escHtml(ev.name) + '</h1>' +
     '<div class="meta">' + eventTypeLabel(ev.type) + ' &middot; ' + formatDate(ev.event_date) + (ev.end_date ? ' a ' + formatDate(ev.end_date) : '') + ' &middot; ' + (ev.status || '') + ' &middot; Fase ' + phase + '</div>' +
     '<div class="kpis">' +
-    (isAdmin ? '<div class="kpi"><div class="v">' + formatCurrency(rec) + '</div><div class="l">Receita</div></div>' +
+    (can('finance.view') ? '<div class="kpi"><div class="v">' + formatCurrency(rec) + '</div><div class="l">Receita</div></div>' +
     '<div class="kpi"><div class="v">' + formatCurrency(cus) + '</div><div class="l">Custos</div></div>' +
     '<div class="kpi"><div class="v">' + formatCurrency(resultado) + '</div><div class="l">Resultado</div></div>' +
     '<div class="kpi"><div class="v">' + formatPct(margem) + '</div><div class="l">Margem</div></div>' : '') +

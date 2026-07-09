@@ -1,34 +1,29 @@
 # Recuperação do Science Play OS — 09/07/2026
 
-## Diagnóstico
+## Diagnóstico final
 
-O site `https://scienceplay-os.vercel.app/` parou de responder, mas **nada do produto foi perdido**:
+O site `https://scienceplay-os.vercel.app/` está no ar e o backend funciona — o problema era um **bug de JavaScript na tela de detalhe de evento**:
+
+- Em `renderEventDetail()` (index.html), o código referenciava a variável `isAdmin`, que não existe em lugar nenhum do app.
+- Ao abrir qualquer evento, isso lançava `ReferenceError: isAdmin is not defined` e abortava a renderização no meio: o banner roxo (hero) ficava vazio e as abas e o conteúdo não apareciam.
 
 | Componente | Estado |
 |---|---|
-| Código-fonte | ✅ Intacto no GitHub (`brunnofalcao/scienceplay-os`, repositório público, branch `main`) |
-| Banco de dados (Supabase) | ✅ Projeto `scienceplay-os` (`vapsolcgnrnfmddcikca`, us-east-2) ativo e saudável |
-| Deploy na Vercel | ❌ O projeto não estava acessível na conta Vercel conectada (`falcao-2727s-projects`) |
+| Código-fonte | ✅ Intacto no GitHub (`brunnofalcao/scienceplay-os`, branch `main`) |
+| Banco de dados (Supabase) | ✅ Projeto `scienceplay-os` (`vapsolcgnrnfmddcikca`) ativo e saudável |
+| Deploy na Vercel | ✅ No ar — mas servindo a versão com o bug |
 
-Ou seja: o problema era **apenas o deploy/projeto na Vercel**, não o app nem os dados.
+## Correção
 
-## O que já foi feito
+`isAdmin` foi substituído por `can('finance.view')`, o mesmo padrão de permissão já usado na listagem de eventos para exibir os KPIs financeiros (Receita, Custos, Resultado, Margem). Com isso a tela de evento volta a renderizar por completo, e os KPIs financeiros aparecem apenas para quem tem a permissão `finance.view` (CEO, sócios, diretoria, financeiro).
 
-- Foi criado/recriado o projeto **`scienceplay-os`** na conta Vercel `falcao-2727s-projects`, com um deploy de **preview** gerado a partir do conteúdo deste repositório (branch `main`).
-- Painel do projeto: <https://vercel.com/falcao-2727s-projects/scienceplay-os>
+A correção foi verificada em navegador (Chromium/Playwright): antes do fix a tela morre com `isAdmin is not defined`; depois do fix o hero, as 6 abas e o conteúdo renderizam normalmente. Uma varredura de variáveis indefinidas (ESLint `no-undef`) em todo o JS do app não encontrou nenhum outro caso.
 
-O deploy usa um build mínimo (`build.js`) que baixa `index.html`, `vendas.html` e `manifest.json` direto do GitHub — o site é 100% estático (SPA em arquivo único + Supabase via CDN).
+## Como publicar a correção
 
-## Como colocar em produção de forma definitiva (recomendado)
-
-A forma mais robusta é conectar o repositório GitHub diretamente à Vercel, assim todo push na `main` publica automaticamente:
-
-1. Acesse <https://vercel.com/new> logado na conta correta.
-2. Em **Import Git Repository**, selecione `brunnofalcao/scienceplay-os`.
-3. Framework: **Other** (site estático — não precisa de build command nem output directory; deixe em branco para servir os arquivos da raiz).
-4. Clique em **Deploy**.
-5. Em **Settings → Domains** do projeto, confirme/adicione o domínio `scienceplay-os.vercel.app` (se o subdomínio ainda estiver preso a um projeto antigo de outra conta, será preciso removê-lo lá primeiro ou usar outro subdomínio/domínio próprio).
+1. Fazer merge do branch `claude/scienceplay-os-recovery-sitqxm` na `main`.
+2. Redeploy na Vercel (se o projeto estiver conectado ao GitHub, o deploy é automático após o merge; caso contrário, redeployar manualmente no painel).
 
 ## Backend (Supabase)
 
-O `index.html` aponta para `https://vapsolcgnrnfmddcikca.supabase.co` — esse projeto está ativo, nenhuma ação necessária. As migrações e seeds estão versionados neste repositório (`migration-*.sql`, `seed-*.sql`).
+O `index.html` aponta para `https://vapsolcgnrnfmddcikca.supabase.co` — projeto ativo, nenhuma ação necessária. Migrações e seeds estão versionados neste repositório (`migration-*.sql`, `seed-*.sql`).
