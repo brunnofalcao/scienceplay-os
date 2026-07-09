@@ -110,6 +110,31 @@ body { font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-seri
 
 /* KPI */
 .kpi-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:18px; margin-bottom:28px; }
+/* Command Center: variação, origem do dado, estados e listas críticas */
+.kpi-delta { font-size:11px; font-weight:600; margin-top:4px; }
+.kpi-delta.up { color:var(--green); }
+.kpi-delta.down { color:var(--red); }
+.kpi-delta.neutral { color:var(--text-muted); font-weight:500; }
+.kpi-source { font-size:10px; font-weight:600; margin-left:6px; padding:1px 6px; border-radius:6px; vertical-align:middle; }
+.kpi-source.warn { background:var(--yellow-bg); color:#92400E; }
+.data-freshness { font-size:12px; color:var(--text-muted); }
+.data-freshness.ok { color:var(--green); }
+.skeleton { position:relative; overflow:hidden; background:var(--card-bg); border-radius:var(--radius); }
+.skeleton::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(0,0,0,0.04),transparent); animation:skeleton-sweep 1.2s infinite; }
+@keyframes skeleton-sweep { from { transform:translateX(-100%);} to { transform:translateX(100%);} }
+.chart-note { font-size:11px; color:var(--text-muted); margin-top:8px; }
+.crit-row { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:10px 4px; border-bottom:1px solid var(--border); cursor:pointer; }
+.crit-row:last-child { border-bottom:none; }
+.crit-row:hover { background:var(--purple-glow); }
+.crit-title { font-size:13.5px; font-weight:600; }
+.crit-sub { font-size:11.5px; color:var(--text-muted); margin-top:2px; }
+.crit-value { font-size:13px; font-weight:700; white-space:nowrap; }
+.crit-value.red { color:var(--red); }
+.list-empty { padding:20px; text-align:center; font-size:13px; color:var(--text-muted); }
+.reliability-footer { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:8px 0 32px; padding:14px 16px; background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius); }
+.rel-badge { font-size:11px; font-weight:600; padding:3px 10px; border-radius:8px; background:var(--bg); color:var(--text-secondary); }
+.rel-badge.ok { background:var(--green-bg); color:#059669; }
+.rel-badge.warn { background:var(--yellow-bg); color:#92400E; }
 .kpi-card { background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius); padding:24px; box-shadow:var(--card-shadow); transition:all var(--duration) var(--ease); }
 .kpi-card:hover { box-shadow:var(--card-shadow-hover); transform:translateY(-1px); }
 .kpi-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px; }
@@ -812,7 +837,7 @@ textarea.form-control { resize:vertical; min-height:88px; }
       <div id="dashboard-charts-section">
         <div class="charts-grid">
           <div class="card chart-card"><div class="card-header"><h3>Receita por Mes</h3></div><div class="card-body"><canvas id="chart-receita-mes"></canvas></div></div>
-          <div class="card chart-card"><div class="card-header"><h3>Receita por Evento</h3></div><div class="card-body"><canvas id="chart-receita-evento"></canvas></div></div>
+          <div class="card chart-card"><div class="card-header"><h3>Margem por Evento</h3></div><div class="card-body"><canvas id="chart-margem-evento"></canvas></div></div>
         </div>
       </div>
     </div>
@@ -1051,6 +1076,7 @@ const state = {
   deals: [], dealEditingId: null, vendasTab: 'vd-dashboard',
   ddItems: [], csStudents: null, csTab: 'visao_geral',
   csContacts: [], csTasks: [], csFilters: {}, csView: 'dashboard', csSelectedStudent: null, csProfileTab: 'resumo',
+  dataLoading: false, dataLoadError: false, lastDataLoadAt: null, collectionSources: {},
 };
 
 
@@ -1480,102 +1506,232 @@ function toggleNotifications() {
 // ============================================================
 // CEO COMMAND CENTER (Enhanced)
 // ============================================================
-function renderCEOCommandCenter() {
-  const year = globalFilters.year;
-  const monthFilter = globalFilters.month;
-
-  const yearFinances = state.finances.filter(f => {
+// Totais financeiros de um período (ano + mês opcional).
+// Usa fallback de data (evento/criação) só quando o lançamento não tem data.
+function financeTotalsFor(year, monthFilter) {
+  let rec = 0, cus = 0;
+  state.finances.forEach(f => {
     const ev = state.events.find(e => e.id === f.event_id);
     const d = f.date || ev?.event_date || (f.created_at ? f.created_at.slice(0,10) : null);
-    if (!d) return false;
+    if (!d) return;
     const dt = new Date(d);
-    if (dt.getFullYear() !== year) return false;
-    if (monthFilter !== '' && dt.getMonth() !== parseInt(monthFilter)) return false;
-    return true;
+    if (dt.getFullYear() !== year) return;
+    if (monthFilter !== '' && dt.getMonth() !== parseInt(monthFilter)) return;
+    if (f.type === 'receita') rec += f.amount || 0; else cus += f.amount || 0;
   });
+  return { rec: rec, cus: cus };
+}
 
-  const totalReceita = yearFinances.filter(f => f.type === 'receita').reduce((s,f) => s + (f.amount||0), 0);
-  const totalCusto = yearFinances.filter(f => f.type === 'custo').reduce((s,f) => s + (f.amount||0), 0);
+// Variação vs período anterior. Sem base de comparação => mostra "—",
+// nunca um percentual enganoso.
+function deltaBadge(current, previous, label) {
+  if (previous == null || previous === 0) return '<div class="kpi-delta neutral">— sem base ' + label + '</div>';
+  const pct = ((current - previous) / Math.abs(previous)) * 100;
+  const up = pct >= 0;
+  return '<div class="kpi-delta ' + (up ? 'up' : 'down') + '">' + (up ? '▲' : '▼') + ' ' + Math.abs(pct).toFixed(0) + '% ' + label + '</div>';
+}
+
+function dashboardHeaderHtml() {
+  const fresh = state.lastDataLoadAt
+    ? '<span class="data-freshness ok" title="Dados carregados do Supabase em tempo real">☁ Atualizado ' + state.lastDataLoadAt.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}) + '</span>'
+    : '';
+  return '<div class="page-header"><div><div class="page-title">CEO Command Center</div><div class="page-subtitle" id="dashboard-date"></div></div><div>' + fresh + '</div></div>';
+}
+
+function renderCEOCommandCenter() {
+  const page = $('page-dashboard');
+
+  // Estado: carregando
+  if (state.dataLoading) {
+    page.innerHTML = dashboardHeaderHtml() +
+      '<div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);">' +
+      new Array(5).fill('<div class="kpi-card skeleton" style="height:96px;"></div>').join('') +
+      '</div><div class="card skeleton" style="height:180px;"></div>' +
+      '<div style="text-align:center;color:var(--text-muted);font-size:13px;margin-top:16px;">Carregando dados...</div>';
+    updateGreeting();
+    return;
+  }
+
+  // Estado: erro de carga — nunca renderizar zeros como se fossem dados
+  if (state.dataLoadError) {
+    page.innerHTML = dashboardHeaderHtml() +
+      '<div class="card" style="padding:40px;text-align:center;">' +
+      '<div style="font-size:36px;margin-bottom:12px;">⚠️</div>' +
+      '<div style="font-size:16px;font-weight:700;margin-bottom:6px;">Não foi possível carregar os dados.</div>' +
+      '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;">Os números não são exibidos para evitar decisões com base em dados incompletos.</div>' +
+      '<button class="btn btn-primary" onclick="loadAllData()">Tentar novamente</button></div>';
+    updateGreeting();
+    return;
+  }
+
+  const year = globalFilters.year;
+  const monthFilter = globalFilters.month;
+  const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+  // Período atual e anterior (comparação honesta)
+  const cur = financeTotalsFor(year, monthFilter);
+  let prev, prevLabel;
+  if (monthFilter !== '') {
+    const m = parseInt(monthFilter);
+    prev = m === 0 ? financeTotalsFor(year - 1, '11') : financeTotalsFor(year, String(m - 1));
+    prevLabel = 'vs mês anterior';
+  } else {
+    prev = financeTotalsFor(year - 1, '');
+    prevLabel = 'vs ' + (year - 1);
+  }
+  const totalReceita = cur.rec, totalCusto = cur.cus;
   const resultado = totalReceita - totalCusto;
   const margem = totalReceita > 0 ? (resultado / totalReceita * 100) : 0;
-  const ebitda = resultado; // Simplified: no D&A separation yet
-  const margemEbitda = totalReceita > 0 ? (ebitda / totalReceita * 100) : 0;
+  const prevMargem = prev.rec > 0 ? ((prev.rec - prev.cus) / prev.rec * 100) : null;
 
-  // Pipeline
+  // Pipeline (coleção compartilhada — origem sinalizada)
   const activeDeals = state.deals.filter(d => d.status === 'em_andamento');
-  const pipelineTotal = activeDeals.reduce((s,d) => s + d.value, 0);
+  const pipelineTotal = activeDeals.reduce((s,d) => s + (d.value||0), 0);
   const closedDeals = state.deals.filter(d => d.status === 'fechada');
-  const receitaFechada = closedDeals.reduce((s,d) => s + d.value, 0);
+  const receitaFechada = closedDeals.reduce((s,d) => s + (d.value||0), 0);
+  const dealsSource = state.collectionSources.deals || 'local';
 
-  // Events
-  const eventosAtivos = state.events.filter(e => ['ativo','execucao','planejamento'].includes(e.status)).length;
-  const eventosRisco = state.events.filter(e => healthColor(e) === 'red').length;
-  const tarefasCriticas = state.tasks.filter(t => getEffectiveStatus(t) === 'atrasada' && t.priority === 'critica').length;
+  // Operação
+  const eventosAtivosList = state.events.filter(e => ['ativo','execucao','planejamento'].includes(e.status));
+  const eventosRisco = eventosAtivosList.filter(e => healthColor(e) === 'red').length;
   const tarefasAtrasadas = state.tasks.filter(t => getEffectiveStatus(t) === 'atrasada').length;
+  const tarefasCriticas = state.tasks.filter(t => getEffectiveStatus(t) === 'atrasada' && t.priority === 'critica').length;
 
-  // M&A & DD scores
+  // Índices
   const maScore = computeMAScore();
   const ddScore = computeDDScore();
-  const csHealthGolden = computeCSHealth('Golden');
-  const csHealthMesa = computeCSHealth('A Mesa');
 
-  // Burn rate & runway
-  const monthsElapsed = (monthFilter !== '' ? 1 : new Date().getMonth() + 1);
-  const burnRate = monthsElapsed > 0 ? totalCusto / monthsElapsed : 0;
-  const caixaDisponivel = totalReceita - totalCusto; // Simplified
-  const runway = burnRate > 0 ? Math.round(caixaDisponivel / burnRate) : 99;
+  const receitaLabel = 'Receita ' + (monthFilter !== '' ? monthNames[parseInt(monthFilter)] + '/' : '') + year;
 
-  let html = '<div class="page-header"><div><div class="page-title">CEO Command Center</div><div class="page-subtitle" id="dashboard-date"></div></div></div>';
+  let html = dashboardHeaderHtml();
 
-  // KPI Row 1: Financial
-  html += '<div class="kpi-grid" style="grid-template-columns:repeat(6,1fr);">' +
-    kpiCard('Receita Total', formatCurrency(totalReceita), 'purple') +
-    kpiCard('Custos Totais', formatCurrency(totalCusto), '') +
-    kpiCard('Resultado', formatCurrency(resultado), resultado >= 0 ? 'green' : 'red') +
-    kpiCard('Margem', formatPct(margem), '') +
-    kpiCard('EBITDA Gerencial', formatCurrency(ebitda), ebitda >= 0 ? 'green' : 'red') +
-    kpiCard('Margem EBITDA', formatPct(margemEbitda), '') +
-    '</div>';
-
-  // KPI Row 2: Operational
-  html += '<div class="kpi-grid" style="grid-template-columns:repeat(6,1fr);">' +
-    kpiCard('Pipeline Comercial', formatCurrency(pipelineTotal), 'purple', activeDeals.length + ' em negociação') +
-    kpiCard('Receita Fechada', formatCurrency(receitaFechada), 'green', closedDeals.length + ' vendas') +
-    kpiCard('Burn Rate/Mês', formatCurrency(burnRate), '') +
-    kpiCard('Runway', runway + ' meses', runway > 6 ? 'green' : 'red') +
-    kpiCard('Eventos Ativos', eventosAtivos, 'purple', eventosRisco > 0 ? eventosRisco + ' em risco' : 'Nenhum em risco') +
-    kpiCard('Tarefas Atrasadas', tarefasAtrasadas, tarefasAtrasadas > 0 ? 'red' : 'green', tarefasCriticas + ' críticas') +
-    '</div>';
-
-  // KPI Row 3: Indices
-  html += '<div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);">' +
-    kpiCard('M&A Readiness', maScore + '/100', maScore >= 70 ? 'green' : maScore >= 40 ? '' : 'red', maScore >= 70 ? 'Pronto' : 'Em progresso') +
-    kpiCard('Due Diligence', ddScore + '/100', ddScore >= 70 ? 'green' : ddScore >= 40 ? '' : 'red', ddScore >= 70 ? 'Auditável' : 'Atenção') +
-    kpiCard('Health Score Golden', csHealthGolden + '%', csHealthGolden >= 70 ? 'green' : 'red') +
-    kpiCard('Health Score A Mesa', csHealthMesa + '%', csHealthMesa >= 70 ? 'green' : 'red') +
-    '</div>';
-
-  // Decisões do Dia
+  // ---- NÍVEL 1: Decisões do Dia (antes de qualquer número) ----
   html += renderDecisionsBlock();
 
-  // Next Events
-  html += '<div id="ceo-next-events"></div>';
-  
-  // Charts
-  html += '<div id="ceo-charts"><div class="charts-grid">' +
-    '<div class="card chart-card"><div class="card-header"><h3>Receita por Mês</h3></div><div class="card-body"><canvas id="chart-receita-mes"></canvas></div></div>' +
-    '<div class="card chart-card"><div class="card-header"><h3>Receita por Evento</h3></div><div class="card-body"><canvas id="chart-receita-evento"></canvas></div></div>' +
-    '</div></div>';
+  // ---- NÍVEL 2: KPIs principais (5) ----
+  html += '<div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);margin-top:24px;">' +
+    kpiCard(receitaLabel, formatCurrency(totalReceita), 'purple', null,
+      { delta: deltaBadge(totalReceita, prev.rec, prevLabel), onclick: "navigateTo('financeiro')", source: 'server' }) +
+    kpiCard('Margem', formatPct(margem), margem >= 30 ? 'green' : (margem >= 10 ? '' : 'red'), 'meta 30%',
+      { delta: prevMargem == null ? '' : deltaBadge(margem, prevMargem, prevLabel), onclick: "navigateTo('financeiro')", source: 'server' }) +
+    kpiCard('Pipeline Comercial', formatCurrency(pipelineTotal), 'purple', activeDeals.length + ' em negociação',
+      { onclick: "navigateTo('vendas')", source: dealsSource }) +
+    kpiCard('Eventos Ativos', eventosAtivosList.length, eventosRisco > 0 ? 'red' : 'purple',
+      eventosRisco > 0 ? eventosRisco + ' em risco' : 'nenhum em risco',
+      { onclick: "navigateTo('eventos')", source: 'server' }) +
+    kpiCard('Tarefas Atrasadas', tarefasAtrasadas, tarefasAtrasadas > 0 ? 'red' : 'green', tarefasCriticas + ' críticas',
+      { onclick: "navigateTo('eventos')", source: 'server' }) +
+    '</div>';
 
-  $('page-dashboard').innerHTML = html;
+  // ---- Linha contextual (menor peso) ----
+  html += '<div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);">' +
+    kpiCard('Resultado', formatCurrency(resultado), resultado >= 0 ? 'green' : 'red', null,
+      { onclick: "navigateTo('financeiro')", source: 'server' }) +
+    kpiCard('Receita Fechada (Vendas)', formatCurrency(receitaFechada), 'green', closedDeals.length + ' vendas',
+      { onclick: "navigateTo('vendas')", source: dealsSource }) +
+    kpiCard('M&A Readiness', maScore + '/100', maScore >= 70 ? 'green' : (maScore >= 40 ? '' : 'red'), null,
+      { onclick: "navigateTo('ma')" }) +
+    kpiCard('Due Diligence', ddScore + '/100', ddScore >= 70 ? 'green' : (ddScore >= 40 ? '' : 'red'), null,
+      { onclick: "navigateTo('due-diligence')", source: state.collectionSources.dd_items }) +
+    '</div>';
 
+  // ---- NÍVEL 3: Tendências ----
+  const estimadas = state.finances.filter(f => f.date_estimated).length;
+  html += '<div class="charts-grid">' +
+    '<div class="card chart-card"><div class="card-header"><h3>Receita × Custos por Mês</h3></div><div class="card-body"><canvas id="chart-receita-mes"></canvas>' +
+    (estimadas > 0 ? '<div class="chart-note">⚠️ ' + estimadas + ' lançamentos com data estimada pela data do evento</div>' : '') +
+    '</div></div>' +
+    '<div class="card chart-card"><div class="card-header"><h3>Margem por Evento</h3><span class="chart-note" style="margin:0;">meta 30%</span></div><div class="card-body"><canvas id="chart-margem-evento"></canvas></div></div>' +
+    '</div>';
+
+  // ---- NÍVEL 4: Listas operacionais críticas ----
+  html += '<div class="charts-grid">' + renderStalledDealsCard(activeDeals) + renderGoNoGoCard() + '</div>';
+
+  // ---- NÍVEL 5: Rodapé de confiabilidade ----
+  html += renderReliabilityFooter(estimadas);
+
+  page.innerHTML = html;
   updateGreeting();
-  renderDashboardNextEvents2();
   renderCharts(year);
 }
 
-function kpiCard(label, value, colorClass, subtitle) {
-  return '<div class="kpi-card"><div class="kpi-label">' + label + '</div><div class="kpi-value ' + (colorClass||'') + '">' + value + '</div>' +
+function renderStalledDealsCard(activeDeals) {
+  const stalled = activeDeals
+    .filter(d => { const st = dealFollowupStatus(d); return st === 'overdue' || !d.dateFollowup; })
+    .sort((a,b) => (b.value||0) - (a.value||0)).slice(0, 5);
+  let body;
+  if (!stalled.length) {
+    body = '<div class="list-empty">Nenhuma negociação parada ✅</div>';
+  } else {
+    body = stalled.map(d =>
+      '<div class="crit-row" onclick="openDealDetail(' + d.id + ')">' +
+      '<div><div class="crit-title">' + escHtml(d.company) + '</div>' +
+      '<div class="crit-sub">' + escHtml(d.category || '') + ' · ' + (d.dateFollowup ? 'follow-up ' + dealFmtDate(d.dateFollowup) : 'sem follow-up definido') + '</div></div>' +
+      '<div class="crit-value">' + formatCurrency(d.value || 0) + '</div></div>'
+    ).join('');
+  }
+  return '<div class="card"><div class="card-header"><h3>🤝 Negociações Paradas</h3>' +
+    '<button class="btn btn-outline btn-sm" onclick="navigateTo(\'vendas\')">Ver Vendas</button></div>' +
+    '<div class="card-body">' + body + '</div></div>';
+}
+
+function renderGoNoGoCard() {
+  const now = new Date();
+  const soon = new Date(now.getTime() + 14 * 86400000);
+  const items = [];
+  state.checkpoints.filter(cp => cp.status === 'pendente').forEach(cp => {
+    const ev = state.events.find(e => e.id === cp.event_id);
+    if (!ev || !ev.event_date) return;
+    if (ev.status === 'encerrado' || ev.status === 'pos-evento') return;
+    const cpDate = new Date(addDays(ev.event_date, cp.deadline_offset || 0) + 'T12:00:00');
+    if (cpDate <= soon) items.push({ cp: cp, ev: ev, cpDate: cpDate, overdue: cpDate < now });
+  });
+  items.sort((a,b) => a.cpDate - b.cpDate);
+  const top = items.slice(0, 5);
+  let body;
+  if (!top.length) {
+    body = '<div class="list-empty">Nenhum Go/No-Go vencendo em 14 dias ✅</div>';
+  } else {
+    body = top.map(i =>
+      '<div class="crit-row" onclick="openEventGoNoGo(\'' + i.ev.id + '\')">' +
+      '<div><div class="crit-title">' + escHtml(i.cp.name) + '</div>' +
+      '<div class="crit-sub">' + escHtml(i.ev.name) + '</div></div>' +
+      '<div class="crit-value' + (i.overdue ? ' red' : '') + '">' + (i.overdue ? 'vencido · ' : '') + formatDate(i.cpDate.toISOString().slice(0,10)) + '</div></div>'
+    ).join('');
+  }
+  return '<div class="card"><div class="card-header"><h3>⚠️ Go/No-Go Vencendo</h3></div><div class="card-body">' + body + '</div></div>';
+}
+
+function openEventGoNoGo(eventId) {
+  navigateTo('event-detail', { eventId: eventId });
+  switchEventTab('gonogo');
+}
+
+function renderReliabilityFooter(estimadas) {
+  const srcBadge = (key, label) => {
+    const s = state.collectionSources[key];
+    return s === 'server'
+      ? '<span class="rel-badge ok">' + label + ': Supabase ✓</span>'
+      : '<span class="rel-badge warn" title="Dados deste navegador — ainda não sincronizados com o servidor">' + label + ': local ⚠️</span>';
+  };
+  return '<div class="reliability-footer">' +
+    '<span class="rel-badge ok">Eventos · Tarefas · Financeiro: Supabase ✓ tempo real</span>' +
+    srcBadge('deals', 'Vendas') +
+    srcBadge('cs_students', 'CS') +
+    srcBadge('dd_items', 'Due Diligence') +
+    (estimadas > 0 ? '<span class="rel-badge warn">' + estimadas + ' lançamentos com data estimada</span>' : '') +
+    (state.lastDataLoadAt ? '<span class="rel-badge">Última atualização: ' + state.lastDataLoadAt.toLocaleTimeString('pt-BR') + '</span>' : '') +
+    '<button class="btn btn-outline btn-sm" onclick="navigateTo(\'reports\')">Relatórios & Export</button>' +
+    '</div>';
+}
+
+function kpiCard(label, value, colorClass, subtitle, opts) {
+  opts = opts || {};
+  let sourceBadge = '';
+  if (opts.source === 'local') sourceBadge = '<span class="kpi-source warn" title="Dados deste navegador — ainda não sincronizados com o servidor">⚠️ local</span>';
+  const clickAttr = opts.onclick ? ' onclick="' + opts.onclick + '" style="cursor:pointer;"' : '';
+  return '<div class="kpi-card"' + clickAttr + '><div class="kpi-label">' + label + sourceBadge + '</div><div class="kpi-value ' + (colorClass||'') + '">' + value + '</div>' +
+    (opts.delta || '') +
     (subtitle ? '<div style="font-size:11px;color:var(--text-muted);margin-top:4px;">' + subtitle + '</div>' : '') + '</div>';
 }
 
@@ -1851,8 +2007,8 @@ function updateDDField(id, field, value) {
   if (item) { item[field] = value; saveDDItems(); }
 }
 
-function saveDDItems() { localStorage.setItem('sp-os-dd-items', JSON.stringify(state.ddItems)); }
-function loadDDItems() { try { const s = localStorage.getItem('sp-os-dd-items'); if(s) state.ddItems = JSON.parse(s); } catch(e){} if(!state.ddItems) state.ddItems = []; }
+function saveDDItems() { persistCollection('dd_items'); }
+function loadDDItems() { if (!state.ddItems || !state.ddItems.length) { const local = readLocalCollection('dd_items'); if (collectionHasData(local)) state.ddItems = local; } if(!state.ddItems) state.ddItems = []; }
 
 // ============================================================
 // CS MODULE — Customer Success Operational Dashboard
@@ -3026,10 +3182,9 @@ function loadCSData() {
     if (!state.csTasks) state.csTasks = [];
   }
 
-  // Seed if no students
-  if (!state.csStudents || state.csStudents.length === 0) {
-    seedCSData();
-  }
+  // Sem seed automático: coleção vazia = estado vazio real.
+  // (Dados demonstrativos não são mais injetados silenciosamente.)
+  if (!state.csStudents) state.csStudents = [];
 
   // Initialize new state properties
   if (!state.csFilters) state.csFilters = {};
@@ -3186,11 +3341,9 @@ function seedCSData() {
 }
 
 function saveCSData() {
-  try {
-    localStorage.setItem('sp-os-cs-students', JSON.stringify(state.csStudents || []));
-    localStorage.setItem('sp-os-cs-contacts', JSON.stringify(state.csContacts || []));
-    localStorage.setItem('sp-os-cs-tasks', JSON.stringify(state.csTasks || []));
-  } catch(e) {}
+  persistCollection('cs_students');
+  persistCollection('cs_contacts');
+  persistCollection('cs_tasks');
 }
 
 function openAddStudent() {
@@ -3702,6 +3855,8 @@ function updateGreeting() {
 // DATA LOADING
 // ============================================================
 async function loadAllData() {
+  state.dataLoading = true;
+  state.dataLoadError = false;
   const results = await Promise.allSettled([
     sb.from('events').select('*').order('event_date', { ascending: true }),
     sb.from('tasks').select('*').order('due_date', { ascending: true }),
@@ -3716,6 +3871,12 @@ async function loadAllData() {
     sb.from('checkpoint_templates').select('*').order('deadline_offset', { ascending: true }),
     sb.from('finance_template_items').select('*').order('sort_order', { ascending: true }),
   ]);
+  // Falha em consulta crítica NUNCA pode virar zero silencioso:
+  // sinaliza erro para o dashboard exibir estado de erro com retry.
+  const failed = (r) => r.status === 'rejected' || (r.status === 'fulfilled' && r.value.error);
+  if ([results[0], results[1], results[2]].some(failed)) {
+    state.dataLoadError = true;
+  }
   const gd = (r) => r.status === 'fulfilled' ? (r.value.data || []) : [];
   state.events = gd(results[0]);
   state.tasks = gd(results[1]);
@@ -3729,8 +3890,12 @@ async function loadAllData() {
   state.checkpoints = gd(results[9]);
   state.checkpointTemplates = gd(results[10]);
   state.financeTemplateItems = gd(results[11]);
+  await loadCollections();
   await autoFinalizeEvents();
+  state.dataLoading = false;
+  state.lastDataLoadAt = new Date();
   updateBadges();
+  updateVendasBadge();
   renderSidebarEvents();
   renderCurrentPage();
 }
@@ -3764,6 +3929,16 @@ function setupRealtime() {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'feeds' }, () => refreshTable('feeds'))
     .on('postgres_changes', { event: '*', schema: 'public', table: 'checkpoints' }, () => refreshTable('checkpoints'))
     .on('postgres_changes', { event: '*', schema: 'public', table: 'finance_template_items' }, () => refreshTable('finance_template_items'))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'app_collections' }, (payload) => {
+      const key = payload.new?.key;
+      if (key && APP_COLLECTIONS[key] && collectionHasData(payload.new.data)) {
+        APP_COLLECTIONS[key].set(payload.new.data);
+        writeLocalCollection(key, payload.new.data);
+        state.collectionSources[key] = 'server';
+        updateVendasBadge();
+        if (state.currentPage === 'dashboard' || state.currentPage === 'vendas' || state.currentPage === 'cs') renderCurrentPage();
+      }
+    })
     .subscribe();
 }
 
@@ -3902,6 +4077,19 @@ function renderDashboardCEO() {
 // DASHBOARD MEMBER — Foco 100% operacional
 // ============================================================
 function renderDashboardMember() {
+  if (state.dataLoading) {
+    $('page-dashboard').innerHTML = '<div class="page-header"><div><div class="page-title">Bom dia</div></div></div>' +
+      '<div class="card skeleton" style="height:180px;"></div>' +
+      '<div style="text-align:center;color:var(--text-muted);font-size:13px;margin-top:16px;">Carregando dados...</div>';
+    return;
+  }
+  if (state.dataLoadError) {
+    $('page-dashboard').innerHTML = '<div class="card" style="padding:40px;text-align:center;margin-top:20px;">' +
+      '<div style="font-size:36px;margin-bottom:12px;">⚠️</div>' +
+      '<div style="font-size:16px;font-weight:700;margin-bottom:6px;">Não foi possível carregar os dados.</div>' +
+      '<button class="btn btn-primary" style="margin-top:12px;" onclick="loadAllData()">Tentar novamente</button></div>';
+    return;
+  }
   const myId = state.user?.id;
   const allTasks = state.tasks;
   const myTasks = allTasks.filter(t => t.assigned_to === myId);
@@ -4147,6 +4335,7 @@ function renderDashboardTimeline(year) {
 function renderCharts(year) {
   if (state.charts.receitaMes) state.charts.receitaMes.destroy();
   if (state.charts.receitaEvento) state.charts.receitaEvento.destroy();
+  if (state.charts.margemEvento) state.charts.margemEvento.destroy();
   const months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const receitaPorMes = new Array(12).fill(0);
   const custoPorMes = new Array(12).fill(0);
@@ -4172,21 +4361,29 @@ function renderCharts(year) {
       }
     });
   }
-  const eventReceita = {};
-  state.finances.filter(f => f.type === 'receita').forEach(f => {
-    const ev = state.events.find(e => e.id === f.event_id);
-    if (!ev) return;
-    eventReceita[ev.name] = (eventReceita[ev.name] || 0) + (f.amount || 0);
+  // Margem por evento: cor = decisão (verde ≥30% meta, amarelo 10–30%, vermelho <10%)
+  const margins = [];
+  state.events.forEach(ev => {
+    const rec = state.finances.filter(f => f.event_id === ev.id && f.type === 'receita').reduce((s,f) => s + (f.amount||0), 0);
+    if (rec <= 0) return;
+    const cus = state.finances.filter(f => f.event_id === ev.id && f.type === 'custo').reduce((s,f) => s + (f.amount||0), 0);
+    margins.push({ name: ev.name, margem: (rec - cus) / rec * 100 });
   });
-  const sorted = Object.entries(eventReceita).sort((a,b) => b[1] - a[1]).slice(0, 10);
-  const ctx2 = $('chart-receita-evento');
-  if (ctx2) {
-    state.charts.receitaEvento = new Chart(ctx2, {
+  margins.sort((a,b) => a.margem - b.margem);
+  const top = margins.slice(0, 10);
+  const ctx2 = $('chart-margem-evento');
+  if (ctx2 && top.length) {
+    state.charts.margemEvento = new Chart(ctx2, {
       type: 'bar',
-      data: { labels: sorted.map(s => s[0]), datasets: [{ label: 'Receita', data: sorted.map(s => s[1]), backgroundColor: '#7C3AED', borderRadius: 6 }] },
+      data: { labels: top.map(m => m.name), datasets: [{
+        label: 'Margem %',
+        data: top.map(m => Math.round(m.margem * 10) / 10),
+        backgroundColor: top.map(m => m.margem >= 30 ? '#10B981' : (m.margem >= 10 ? '#F59E0B' : '#EF4444')),
+        borderRadius: 6,
+      }] },
       options: { indexAxis: 'y', responsive: true, maintainAspectRatio: true,
-        plugins: { legend: { display: false } },
-        scales: { x: { beginAtZero: true, ticks: { callback: v => 'R$ ' + (v/1000).toFixed(0) + 'k', font: { family: 'Inter', size: 11 } }, grid: { color: '#F3F4F6' } }, y: { ticks: { font: { family: 'Inter', size: 11 } }, grid: { display: false } } }
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.x.toFixed(1) + '% (meta 30%)' } } },
+        scales: { x: { ticks: { callback: v => v + '%', font: { family: 'Inter', size: 11 } }, grid: { color: '#F3F4F6' } }, y: { ticks: { font: { family: 'Inter', size: 11 } }, grid: { display: false } } }
       }
     });
   }
@@ -4979,7 +5176,8 @@ function renderFinPlans() {
 
   // Load saved plans
   if (!state.finPlans) {
-    try { const s = localStorage.getItem('sp-os-fin-plans'); if(s) state.finPlans = JSON.parse(s); } catch(e) {}
+    const local = readLocalCollection('fin_plans');
+    if (collectionHasData(local)) state.finPlans = local;
   }
   if (!state.finPlans) {
     // Seed default scenarios
@@ -4990,7 +5188,7 @@ function renderFinPlans() {
       crise: { label:'Crise', receita:500000, margem:5, ebitda:2, caixa:100000, custo:475000, equipe:8, eventos:2, mentorias:8, patrocinio:50000, inadimplencia:15 },
       ma_ready: { label:'M&A Ready', receita:1800000, margem:30, ebitda:25, caixa:500000, custo:1260000, equipe:20, eventos:8, mentorias:35, patrocinio:500000, inadimplencia:3 },
     };
-    localStorage.setItem('sp-os-fin-plans', JSON.stringify(state.finPlans));
+    persistCollection('fin_plans');
   }
 
   if (!state.finPlanTab) state.finPlanTab = 'base';
@@ -5327,6 +5525,7 @@ async function saveEvent() {
     target_nps: $('ev-target-nps').value ? parseFloat($('ev-target-nps').value) : null,
   }).select().single();
   if (error) { alert('Erro ao criar evento: ' + error.message); return; }
+  logAudit('event.create','events',data?.id,{name:name});
 
   const templateId = $('ev-template').value;
   if (templateId && data) {
@@ -5441,6 +5640,7 @@ async function confirmDeleteEvent(eventId) {
   await sb.from('feeds').delete().eq('event_id', eventId);
   await sb.from('checkpoints').delete().eq('event_id', eventId);
   await sb.from('events').delete().eq('id', eventId);
+  logAudit('event.delete','events',eventId,{name:ev.name});
   closeModal();
   await loadAllData();
   navigateTo('eventos');
@@ -5741,6 +5941,7 @@ async function saveFinance(eventId) {
     notes: $('fin-notes').value || null,
     sort_order: maxSort + 10,
   });
+  logAudit('finance.create','finances',eventId,{type:$('fin-type').value,amount:total,description:desc||null});
   closeModal();
   await refreshTable('finances');
 }
@@ -5951,11 +6152,103 @@ async function saveTemplateTask(templateId) {
 const DEAL_PRODUCTS = ['Patrocínio','Stand','Palestre•se','Golden','A Mesa'];
 const DEAL_PRODUCT_COLORS = { 'Patrocínio':'purple', 'Stand':'blue', 'Palestre•se':'yellow', 'Golden':'yellow', 'A Mesa':'green' };
 
-function loadDeals() {
-  try { const s = localStorage.getItem('sp-os-deals'); if (s) state.deals = JSON.parse(s); } catch(e) {}
-  if (!state.deals.length) seedDeals();
+// ============================================================
+// COLEÇÕES COMPARTILHADAS (Supabase app_collections)
+// Fonte da verdade: Supabase. localStorage vira cache local +
+// origem de import único (migração dos dados antigos).
+// ============================================================
+const APP_COLLECTIONS = {
+  deals:       { ls: 'sp-os-deals',       get: () => state.deals,      set: v => { state.deals = v; },      empty: () => [] },
+  cs_students: { ls: 'sp-os-cs-students', get: () => state.csStudents, set: v => { state.csStudents = v; }, empty: () => [] },
+  cs_contacts: { ls: 'sp-os-cs-contacts', get: () => state.csContacts, set: v => { state.csContacts = v; }, empty: () => [] },
+  cs_tasks:    { ls: 'sp-os-cs-tasks',    get: () => state.csTasks,    set: v => { state.csTasks = v; },    empty: () => [] },
+  dd_items:    { ls: 'sp-os-dd-items',    get: () => state.ddItems,    set: v => { state.ddItems = v; },    empty: () => [] },
+  fin_plans:   { ls: 'sp-os-fin-plans',   get: () => state.finPlans,   set: v => { state.finPlans = v; },   empty: () => null },
+};
+
+function collectionHasData(v) {
+  if (v == null) return false;
+  if (Array.isArray(v)) return v.length > 0;
+  if (typeof v === 'object') return Object.keys(v).length > 0;
+  return false;
 }
-function saveDeals() { localStorage.setItem('sp-os-deals', JSON.stringify(state.deals)); }
+
+function readLocalCollection(key) {
+  try { const s = localStorage.getItem(APP_COLLECTIONS[key].ls); if (s) return JSON.parse(s); } catch(e) {}
+  return null;
+}
+
+function writeLocalCollection(key, value) {
+  try { localStorage.setItem(APP_COLLECTIONS[key].ls, JSON.stringify(value)); } catch(e) {}
+}
+
+// Carrega todas as coleções do Supabase após o login.
+// Se o servidor ainda não tem a coleção e o navegador tem dados antigos,
+// importa uma única vez (migração transparente do localStorage).
+async function loadCollections() {
+  let res;
+  try { res = await sb.from('app_collections').select('*'); } catch(e) { res = { error: e }; }
+  if (res.error) {
+    // Sem acesso ao servidor: mantém cache local e sinaliza a origem
+    Object.keys(APP_COLLECTIONS).forEach(key => {
+      const local = readLocalCollection(key);
+      if (collectionHasData(local)) { APP_COLLECTIONS[key].set(local); state.collectionSources[key] = 'local'; }
+    });
+    return;
+  }
+  const serverMap = {};
+  (res.data || []).forEach(r => { serverMap[r.key] = r; });
+  for (const key of Object.keys(APP_COLLECTIONS)) {
+    const col = APP_COLLECTIONS[key];
+    const server = serverMap[key];
+    const local = readLocalCollection(key);
+    if (server && collectionHasData(server.data)) {
+      col.set(server.data);
+      writeLocalCollection(key, server.data);
+      state.collectionSources[key] = 'server';
+    } else if (collectionHasData(local)) {
+      col.set(local);
+      const up = await sb.from('app_collections').upsert({ key: key, data: local, updated_at: new Date().toISOString(), updated_by: state.user?.id || null });
+      state.collectionSources[key] = up.error ? 'local' : 'server';
+    } else {
+      col.set(col.empty());
+      state.collectionSources[key] = 'server';
+    }
+  }
+}
+
+// Persiste uma coleção: cache local imediato + sync com Supabase.
+function persistCollection(key) {
+  const value = APP_COLLECTIONS[key].get();
+  writeLocalCollection(key, value == null ? APP_COLLECTIONS[key].empty() : value);
+  sb.from('app_collections')
+    .upsert({ key: key, data: value == null ? APP_COLLECTIONS[key].empty() : value, updated_at: new Date().toISOString(), updated_by: state.user?.id || null })
+    .then(r => { state.collectionSources[key] = r.error ? 'local' : 'server'; });
+}
+
+// Trilha de auditoria (audit_logs) — melhor esforço, nunca bloqueia a ação
+function logAudit(action, tableName, recordId, newData) {
+  try {
+    sb.from('audit_logs').insert({
+      user_id: state.user?.id || null,
+      user_email: state.user?.email || null,
+      user_role: state.profile?.role || null,
+      action: action,
+      table_name: tableName,
+      record_id: recordId != null ? String(recordId) : null,
+      new_data: newData || null,
+    }).then(() => {});
+  } catch(e) {}
+}
+
+function loadDeals() {
+  // Cache local para pintura rápida; a verdade vem de loadCollections()
+  if (!state.deals.length) {
+    const local = readLocalCollection('deals');
+    if (collectionHasData(local)) state.deals = local;
+  }
+}
+function saveDeals() { persistCollection('deals'); }
 
 function seedDeals() {
   const today = new Date();
@@ -6176,8 +6469,11 @@ function saveDeal() {
   if(state.dealEditingId) {
     const d=state.deals.find(x=>x.id===state.dealEditingId);
     if(d){d.company=company;d.category=category;d.value=value;d.desc=desc;d.datePresentation=datePresentation;d.dateFollowup=dateFollowup;}
+    logAudit('deal.update','app_collections:deals',state.dealEditingId,{company,category,value});
   } else {
-    state.deals.push({id:dealNextId(),company,category,desc,value,datePresentation,dateFollowup,status:'em_andamento',closedAt:null,lostReason:''});
+    const newId=dealNextId();
+    state.deals.push({id:newId,company,category,desc,value,datePresentation,dateFollowup,status:'em_andamento',closedAt:null,lostReason:''});
+    logAudit('deal.create','app_collections:deals',newId,{company,category,value});
   }
   saveDeals(); closeDealModal(); renderVendas();
 }
@@ -6186,6 +6482,7 @@ function closeDeal(id) {
   const d=state.deals.find(x=>x.id===id); if(!d) return;
   if(!confirm('Confirmar fechamento de "'+d.company+'" — '+formatCurrency(d.value)+'?')) return;
   d.status='fechada'; d.closedAt=new Date().toISOString().split('T')[0];
+  logAudit('deal.close','app_collections:deals',d.id,{company:d.company,value:d.value});
   saveDeals(); renderVendas();
 }
 
@@ -6194,6 +6491,7 @@ function loseDeal(id) {
   const reason=prompt('Motivo da perda para "'+d.company+'":');
   if(reason===null) return;
   d.status='perdida'; d.lostReason=reason||''; d.dateFollowup=null;
+  logAudit('deal.lose','app_collections:deals',d.id,{company:d.company,value:d.value,reason:d.lostReason});
   saveDeals(); renderVendas();
 }
 
