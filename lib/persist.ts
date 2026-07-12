@@ -29,6 +29,27 @@ async function getPool(): Promise<any | null> {
   return poolPromise as Promise<any | null>;
 }
 
+export function hasDatabase(): boolean {
+  return !!process.env.DATABASE_URL;
+}
+
+// Consulta de leitura. Retorna null quando não há banco configurado ou em erro
+// (o chamador cai para a seed). Nunca lança para não derrubar a página.
+export async function query<T = Record<string, unknown>>(
+  sql: string,
+  params: unknown[] = []
+): Promise<T[] | null> {
+  try {
+    const pool = await getPool();
+    if (!pool) return null;
+    const res = await pool.query(sql, params);
+    return res.rows as T[];
+  } catch (e) {
+    console.error("[persist:query] falhou", (e as Error).message);
+    return null;
+  }
+}
+
 export async function insert(table: string, row: Row): Promise<{ ok: boolean; persisted: boolean }> {
   try {
     const pool = await getPool();
