@@ -3,7 +3,6 @@ import { GlossarySearch } from "@/components/GlossarySearch";
 import { RScale } from "@/components/RScale";
 import { EvidenceBadge } from "@/components/EvidenceBadge";
 import { RChip } from "@/components/RScale";
-import { FIVE_RS } from "@/lib/five-rs";
 import { NEWS, newsOfTheDay } from "@/content/news";
 import { popularTerms } from "@/lib/search";
 import { ENTITY_TYPE_LABEL } from "@/lib/glossary-types";

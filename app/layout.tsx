@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { SITE } from "@/lib/site";
@@ -17,7 +17,14 @@ export const metadata: Metadata = {
   applicationName: SITE.name,
   authors: [{ name: SITE.legalName }],
   openGraph: { siteName: SITE.name, locale: "pt_BR", type: "website" },
-  icons: { icon: "/favicon.svg" },
+  icons: { icon: "/favicon.svg", apple: "/favicon.svg" },
+  manifest: "/manifest.webmanifest",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#131A45",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

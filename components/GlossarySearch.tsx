@@ -37,17 +37,12 @@ export function GlossarySearch({
     } catch {}
   }, []);
 
+  // Autocomplete local (base estruturada) — sem disparar eventos por tecla.
+  // Os eventos analíticos são emitidos apenas em uma busca real (ver go()).
   useEffect(() => {
     const t = setTimeout(() => {
-      if (q.trim().length >= 2) {
-        const r = autocomplete(q, 6);
-        setResults(r);
-        track("GlossarySearch", { query: q });
-        track(r.length ? "GlossaryResult" : "NoGlossaryResult", { query: q, count: r.length });
-      } else {
-        setResults([]);
-      }
-    }, 180);
+      setResults(q.trim().length >= 2 ? autocomplete(q, 6) : []);
+    }, 150);
     return () => clearTimeout(t);
   }, [q]);
 
@@ -68,9 +63,12 @@ export function GlossarySearch({
   }
 
   function go(term: string) {
-    if (!term.trim()) return;
-    pushHistory(term.trim());
-    router.push(`/glossario?q=${encodeURIComponent(term.trim())}`);
+    const t = term.trim();
+    if (!t) return;
+    pushHistory(t);
+    // Evento de busca real (não por tecla): alimenta "termos mais pesquisados".
+    track("GlossarySearch", { query: t });
+    router.push(`/glossario?q=${encodeURIComponent(t)}`);
     setOpen(false);
   }
 

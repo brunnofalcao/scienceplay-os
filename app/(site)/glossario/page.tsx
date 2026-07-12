@@ -5,10 +5,10 @@ import { EvidenceBadge, ConfidenceBadge } from "@/components/EvidenceBadge";
 import { RChip } from "@/components/RScale";
 import { StateBlock, STATE_COPY } from "@/components/States";
 import { NoResultLogger } from "@/components/NoResultLogger";
+import { ResultLogger } from "@/components/ResultLogger";
 import { searchGlossary, popularTerms } from "@/lib/search";
 import { GLOSSARY } from "@/content/glossary";
 import { ENTITY_TYPE_LABEL } from "@/lib/glossary-types";
-import { ENTITY_TYPE_LABEL as TYPES } from "@/lib/glossary-types";
 import { FIVE_RS } from "@/lib/five-rs";
 import { pageMetadata } from "@/lib/seo";
 
@@ -70,7 +70,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ q
               </StateBlock>
             </>
           ) : (
-            <ul className="grid gap-4 md:grid-cols-2">
+            <>
+              <ResultLogger query={q} count={hits.length} />
+              <ul className="grid gap-4 md:grid-cols-2">
               {hits.map(({ entry }) => (
                 <li key={entry.slug}>
                   <Link href={`/glossario/${entry.slug}`} className="card group block h-full transition-shadow hover:shadow-md">
@@ -86,7 +88,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ q
                   </Link>
                 </li>
               ))}
-            </ul>
+              </ul>
+            </>
           )}
         </section>
       ) : (
@@ -127,7 +130,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ q
               <h2 className="text-[20px]">Navegar por tipo</h2>
               <div className="mt-3 flex flex-wrap gap-2">
                 {Array.from(new Set(GLOSSARY.map((e) => e.type))).map((tp) => (
-                  <span key={tp} className="tag">{TYPES[tp]}</span>
+                  <span key={tp} className="tag">{ENTITY_TYPE_LABEL[tp]}</span>
                 ))}
               </div>
             </div>
