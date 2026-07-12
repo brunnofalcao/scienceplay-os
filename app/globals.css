@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --navy: #2b3990;
+  --navy-deep: #131a45;
+  --paper: #f7f4ee;
+  --amber: #c8842e;
+  --ink: #1e2126;
+  --line: #e3dfd5;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+    font-size: 16px;
+    line-height: 1.65;
+  }
+  h1, h2, h3, h4 {
+    @apply font-serif text-navy-deep;
+    font-weight: 500;
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+  ::selection {
+    background: #d8e0f7;
+    color: var(--navy-deep);
+  }
+  /* Foco visível e acessível em todos os elementos interativos. */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid var(--navy);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* Respeita quem prefere menos movimento. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer components {
+  .wrap {
+    @apply mx-auto w-full max-w-wrap px-6 md:px-8;
+  }
+  .kicker {
+    @apply font-mono text-[12px] uppercase tracking-kicker text-amber5r;
+  }
+  .prose-5r {
+    @apply max-w-prose text-[16.5px] leading-relaxed text-[#33373d];
+  }
+  .prose-5r p { @apply mb-4; }
+  .prose-5r h2 { @apply mt-10 mb-3 text-[26px]; }
+  .prose-5r h3 { @apply mt-8 mb-2 text-[20px]; }
+  .prose-5r ul { @apply mb-4 list-disc space-y-1 pl-5; }
+  .prose-5r a { @apply text-navy underline decoration-line underline-offset-2 hover:decoration-navy; }
+  .card {
+    @apply rounded-xl border border-line bg-white p-6;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-[15px] font-semibold transition-colors;
+  }
+  .btn-primary {
+    @apply btn bg-amber5r text-white hover:bg-[#b0731f];
+  }
+  .btn-navy {
+    @apply btn bg-navy text-white hover:bg-navy-deep;
+  }
+  .btn-ghost {
+    @apply btn border border-navy/25 text-navy hover:bg-mist;
+  }
+  .tag {
+    @apply inline-block rounded font-mono text-[11px] uppercase tracking-[0.1em] bg-mist text-navy px-2 py-[3px];
+  }
+}
