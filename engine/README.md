@@ -5,6 +5,23 @@ literatura, deduplica, avalia evidência com travas de proporcionalidade e
 **propõe** rascunhos de notícia. **Na Fase 1 o motor NUNCA publica sozinho** —
 ele propõe, o revisor humano aprova e assina.
 
+## Missão editorial: traduzir ciência para a população
+
+A notícia gerada **não é um resumo técnico** — é conteúdo jornalístico-educativo
+em **português claro** que traduz o estudo para uma pessoa leiga e curiosa
+(manchete popular, resposta direta, explicação do jargão, "o que isso significa
+na prática"), mantendo o rigor: nível de evidência, o que o estudo **não**
+permite concluir, e o aviso de que não substitui um profissional. O prompt de
+geração (`SYSTEM_PROMPT` em `generate.mjs`) define essa voz e inclui um exemplo
+do padrão editorial (few-shot) espelhado nas notícias-modelo de
+`content/news.ts`.
+
+> **Sobre o fallback sem IA:** sem `ANTHROPIC_API_KEY`, o gerador **não** produz
+> conteúdo popular publicável (não há como traduzir sem um modelo). Ele cria um
+> **esqueleto honesto** em português, marcado como `[A redigir]`, só para o
+> pipeline rodar de ponta a ponta em dev/CI. A redação popular de verdade exige
+> a IA (`AI_MODEL`, default `claude-sonnet-5`) + revisão humana.
+
 > Adaptado de um motor de referência (Microbiota.org), reorganizado em torno da
 > metodologia dos 5 Rs (**remover → recolocar → reparar → reinocular →
 > reequilibrar**) e do modelo de dados do Briefing §16.

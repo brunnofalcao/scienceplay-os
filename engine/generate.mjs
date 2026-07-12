@@ -118,51 +118,83 @@ export async function callAI(study) {
   }
 }
 
-// Prompt do redator científico do Protocolo 5R.
-const SYSTEM_PROMPT = `Você é o redator científico do Protocolo 5R. Recebe os metadados de um estudo e escreve uma análise estruturada para leigos e profissionais. Tom científico, seco, afirmativo. Frases curtas. Zero adjetivos de entusiasmo. Zero promessas de cura. Afirme só o que o estudo sustenta e aponte o que ele NÃO permite concluir.
-Atribua GRAU DE EVIDÊNCIA: A=revisão sistemática/meta-análise/diretriz; B=ensaio clínico ou coorte; C=observacional/amostra pequena; D=pré-clínico/mecanismo. Nível D NUNCA declara efeito clínico.
-Relacione com um ou mais dos 5 Rs (remover, recolocar, reparar, reinocular, reequilibrar).
-Responda APENAS JSON válido (sem markdown) com esta forma:
-{"title":"(título popular)","quickAnswer":"(resposta rápida em 1-2 frases)","category":"...","studied":"...","participants":"...","intervention":"...","found":"...","cannotConclude":"(o que NÃO permite concluir)","relationTo5R":"...","rTags":["remover"],"terms":["low-fodmap"],"grade":"A|B|C|D","direction":"favoravel|desfavoravel|neutro|insuficiente","limitations":"...","practical":"(aplicação educacional, nunca prescritiva)"}`;
+// Prompt do redator do Protocolo 5R.
+// MISSÃO: TRADUZIR ciência para a população. O leitor principal é uma pessoa
+// leiga, curiosa, que quer entender — não um médico lendo um abstract.
+// A notícia é conteúdo jornalístico-educativo em PORTUGUÊS claro, acolhedor e
+// preciso: explica o jargão, usa linguagem do dia a dia, e ao mesmo tempo é
+// honesta sobre limites e nível de evidência. Sem infantilizar, sem promessa.
+const SYSTEM_PROMPT = `Você é o redator do Protocolo 5R, um portal que TRADUZ ciência para a população brasileira.
+
+QUEM LÊ: uma pessoa comum, curiosa sobre saúde intestinal, sem formação médica. Ela quer entender o que um novo estudo significa para a vida dela — em português claro. Profissionais também leem, mas o texto é escrito para o público geral.
+
+COMO ESCREVER (voz de tradutor de ciência, não de abstract):
+- Em PORTUGUÊS do Brasil, acessível e acolhedor, mas preciso. O estudo geralmente vem em inglês e em linguagem técnica: TRADUZA e EXPLIQUE. Nunca copie o resumo em inglês.
+- Explique todo termo técnico na hora (ex.: "microbiota — o conjunto de micróbios que vivem no intestino").
+- Frases de tamanho variado e naturais, como uma boa reportagem de saúde. Pode ter ritmo e clareza — não precisa ser seco, mas também não é sensacionalista.
+- Conecte com o dia a dia da pessoa ("o que isso significa na prática", "quando vale procurar ajuda").
+
+LINHAS VERMELHAS (inegociáveis):
+- Zero promessa de cura, milagre, "elimina de vez", "definitivo". Zero urgência ou escassez.
+- Não dê dose, diagnóstico, prescrição ou conduta individual.
+- Deixe claro o que o estudo NÃO permite concluir. Evidência muda com o tempo.
+- Sempre lembre que não substitui a avaliação de um profissional de saúde.
+
+GRAU DE EVIDÊNCIA (seja rigoroso): A=revisão sistemática/meta-análise/diretriz; B=ensaio clínico ou coorte de boa qualidade; C=observacional/amostra pequena/preliminar; D=pré-clínico/mecanismo. Nível D NUNCA afirma efeito clínico em pessoas — resultado em laboratório não é prova de benefício.
+
+RELAÇÃO 5R: conecte a um ou mais dos cinco Rs (remover, recolocar, reparar, reinocular, reequilibrar) de forma educativa, sem transformar em prescrição.
+
+EXEMPLO do padrão editorial (estilo-alvo, resumido):
+{"title":"Dieta low-FODMAP na síndrome do intestino irritável: o que uma grande revisão de 2025 mostra","quickAnswer":"Uma revisão que reúne vários estudos indica que a fase de restrição da dieta low-FODMAP melhora sintomas em parte das pessoas com SII — mas a reintrodução é essencial e a dieta não deve ser permanente.","found":"Na fase de restrição, houve melhora de distensão e dor abdominal em parte dos participantes, em comparação com dietas de controle.","cannotConclude":"Não permite concluir que a restrição deva ser mantida a longo prazo, nem que funcione para todos — a resposta é individual."}
+
+RESPONDA APENAS JSON válido (sem markdown, sem comentários) nesta forma exata:
+{"title":"(manchete popular em português, curiosa mas honesta, sem clickbait)","quickAnswer":"(a resposta direta que a pessoa procura, 1-2 frases simples)","category":"(ex.: Alimentação e sintomas, Microbiota e suplementos, Eixo intestino-cérebro)","studied":"(o que foi estudado, em linguagem do dia a dia)","participants":"(quem participou ou qual modelo — traduzido)","intervention":"(a intervenção/exposição analisada, explicada)","found":"(o que o estudo encontrou, sem exagero)","cannotConclude":"(o que o estudo NÃO permite concluir)","relationTo5R":"(como se relaciona com o Protocolo 5R, educativo)","rTags":["remover"],"terms":["low-fodmap"],"grade":"A|B|C|D","direction":"favoravel|desfavoravel|neutro|insuficiente","limitations":"(limitações em linguagem simples)","practical":"(o que isso significa na prática, educacional e nunca prescritivo; lembre de procurar um profissional)"}`;
 
 function buildUserMessage(study) {
-  return `Estudo:
-Título: ${study.title}
+  return `Escreva a notícia popular (traduzindo a ciência para a população brasileira) a partir deste estudo. O material abaixo pode estar em inglês e em linguagem técnica — traduza e explique em português claro.
+
+Título original: ${study.title}
 Periódico: ${study.journal || "n/d"} (${study.year || "s/d"})
 DOI: ${study.doi || "n/d"}
-Tipo: ${study.study_type_slug || "n/d"}
-Resumo: ${study.abstract || "(sem resumo — seja conservador e baseie-se no título)"}`;
+Tipo de estudo: ${study.study_type_slug || "n/d"}
+Resumo (abstract): ${study.abstract || "(sem resumo disponível — seja conservador, baseie-se no título e não invente achados)"}
+
+Lembre: manchete e texto em PORTUGUÊS claro para o público geral; explique o jargão; seja honesto sobre limites; nada de promessa ou prescrição.`;
 }
 
 // ---------------------------------------------------------------------
-// FALLBACK determinístico — rascunho honesto montado dos metadados.
+// FALLBACK determinístico (SEM IA) — NÃO é conteúdo popular publicável.
+//   Sem um modelo de linguagem não há como traduzir o estudo (em geral em
+//   inglês/técnico) para uma notícia acessível ao público. Então o fallback
+//   é um ESQUELETO honesto, em português, EXPLICITAMENTE marcado como
+//   "aguardando redação popular" — jamais o abstract cru como se fosse a
+//   notícia. O revisor humano vê que precisa de redação de IA + revisão.
+//   Serve para o pipeline rodar de ponta a ponta em dev/CI, não para publicar.
 // ---------------------------------------------------------------------
 export function fallbackDraft(study) {
   const grade = TYPE_TO_GRADE[study.study_type_slug] || "C";
-  const yr = study.year || "";
+  const nota = "[Rascunho automático sem IA — precisa de redação popular e revisão editorial antes de publicar.]";
   return {
-    title: study.title,
-    quickAnswer: `Estudo (${study.study_type_slug || "artigo"}${yr ? ", " + yr : ""}) sobre ${
-      study.journal || "o tema"
-    }. Resultado preliminar — requer leitura crítica e revisão editorial antes de qualquer conclusão prática.`,
+    title: `[A redigir] Estudo sobre ${study.journal || "saúde intestinal"} (${study.year || "s/d"})`,
+    quickAnswer: nota,
     category: "Ciência e evidência",
-    studied: study.abstract
-      ? study.abstract.slice(0, 300)
-      : `O estudo investigou o tema descrito no título: "${study.title}".`,
-    participants: "Ver a fonte para população, tamanho amostral e critérios.",
-    intervention: "Ver a fonte para detalhes da intervenção ou exposição.",
-    found: study.abstract ? study.abstract.slice(0, 400) : "Achados a serem extraídos do texto/fonte.",
+    studied: `Estudo a ser traduzido para linguagem acessível. Título original: "${study.title}". ${nota}`,
+    participants: "A extrair e traduzir da fonte (população, tamanho amostral, critérios).",
+    intervention: "A extrair e traduzir da fonte (intervenção ou exposição analisada).",
+    found: "A redigir em linguagem clara para o público, a partir dos achados da fonte.",
     cannotConclude:
       grade === "D"
         ? "Evidência pré-clínica/mecanística: não permite concluir efeito clínico em pessoas."
         : "Não permite generalizar além da população, dose e desfechos efetivamente estudados; a resposta é individual.",
-    relationTo5R: "Relação com o Protocolo 5R a ser definida na revisão editorial.",
+    relationTo5R: "Relação com o Protocolo 5R a ser definida na redação e na revisão editorial.",
     rTags: [],
     terms: [],
     grade,
     direction: "insuficiente",
-    limitations: "Rascunho automático a partir de metadados; leitura crítica e revisão humana pendentes.",
-    practical: "Conteúdo educacional, não prescritivo. Decisões individuais pertencem a um profissional que avalie o caso.",
+    limitations: "Rascunho automático a partir de metadados; redação popular (IA) e revisão humana pendentes.",
+    practical:
+      "Conteúdo educacional, não prescritivo. Decisões individuais pertencem a um profissional que avalie o caso.",
+    _needsPopularWriting: true,
   };
 }
 
