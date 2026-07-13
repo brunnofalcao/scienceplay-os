@@ -4,6 +4,8 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { CertCTA } from "@/components/CertCTA";
 import { JsonLd } from "@/components/JsonLd";
 import { FIVE_RS, getR } from "@/lib/five-rs";
+import { FUNDAMENTAL_STUDIES } from "@/lib/five-r-studies";
+import { StudyCard } from "@/components/StudyCard";
 import { getEntry, entriesByR } from "@/lib/search";
 import { newsByR } from "@/content/news";
 import { ENTITY_TYPE_LABEL } from "@/lib/glossary-types";
@@ -31,6 +33,7 @@ export default async function Page({ params }: { params: Promise<{ r: string }> 
 
   const related = r.relatedTerms.map(getEntry).filter(Boolean);
   const news = newsByR(r.key);
+  const studies = FUNDAMENTAL_STUDIES[r.key] ?? [];
   const idx = FIVE_RS.findIndex((x) => x.key === r.key);
   const prev = FIVE_RS[idx - 1];
   const next = FIVE_RS[idx + 1];
@@ -124,6 +127,21 @@ export default async function Page({ params }: { params: Promise<{ r: string }> 
                         <p className="text-[14px] font-medium leading-snug group-hover:text-navy">{n.headline}</p>
                       </Link>
                     </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {studies.length > 0 && (
+              <div className="card">
+                <h3 className="text-[16px]">Estudos fundamentais deste R</h3>
+                <p className="mt-1.5 text-[12.5px] text-muted">
+                  Biblioteca de referência: revisões, meta-análises, diretrizes e consensos que
+                  sustentam a lógica desta etapa. Curadoria, não lista exaustiva — e não é notícia.
+                </p>
+                <ul className="mt-3 space-y-3">
+                  {studies.map((s) => (
+                    <StudyCard key={s.title} study={s} />
                   ))}
                 </ul>
               </div>

@@ -59,6 +59,46 @@ export interface SourceRef {
   year?: number;
 }
 
+// Camada comercial (para verbetes de produto/marca/ingrediente comercial).
+// Regra: NÃO confundir evidência de um ingrediente com evidência do produto final.
+export interface CommercialInfo {
+  isProduct: boolean;
+  manufacturer?: string; // fabricante ou responsável
+  category?: string; // categoria comercial
+  composition?: string[]; // ingredientes/ativos declarados
+  commercialClaim?: string; // para que é comercialmente apresentado
+  ingredientEvidenceNote?: string; // o que há de evidência sobre os ingredientes
+  productEvidenceNote?: string; // o que há de evidência sobre o produto final
+  commercialRelation?: string; // relação comercial declarada (patrocínio/parceria), quando houver
+  brandedPageSlug?: string; // liga a uma Branded Page, quando existir
+}
+
+// Camada de Medicina Funcional — PERSPECTIVA, separada da evidência.
+// Título de referência na UI: "Como a Medicina Funcional interpreta este tema".
+export interface FunctionalMedicineView {
+  conventional: string; // como a medicina convencional descreve
+  functionalPerspective: string; // como a MF costuma interpretar
+  mechanisms?: string; // mecanismos propostos
+  practices?: string; // práticas frequentemente associadas
+  consistent?: string; // pontos com sustentação mais consistente
+  hypothesis?: string; // pontos que permanecem hipótese/prática/teoria
+  divergences?: string; // onde há divergência
+}
+
+// Estudo/conexão para a biblioteca de evidências do verbete (/evidencias).
+export type EvidenceScope = "produto" | "ingrediente" | "categoria" | "mecanismo" | "editorial";
+export interface EvidenceLink {
+  label: string;
+  scope: EvidenceScope; // conexão direta (produto), com ingrediente, categoria, mecanismo, editorial
+  grade: EvidenceGrade;
+  type: string; // tipo de estudo
+  year?: number;
+  ingredient?: string; // quando scope = ingrediente
+  doi?: string;
+  pmid?: string;
+  url?: string;
+}
+
 export interface GlossaryEntry {
   slug: string;
   name: string;
@@ -81,4 +121,8 @@ export interface GlossaryEntry {
   status: "publicado" | "em-revisao";
   popularity?: number; // peso para a nuvem de palavras (não confundir com evidência)
   trending?: boolean;
+  // Camadas opcionais (não quebram verbetes existentes):
+  commercial?: CommercialInfo; // verbetes de produto/marca
+  functionalMedicine?: FunctionalMedicineView; // perspectiva, separada da evidência
+  evidenceLibrary?: EvidenceLink[]; // biblioteca de evidências (/evidencias)
 }

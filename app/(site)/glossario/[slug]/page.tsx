@@ -101,6 +101,44 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
             <h2>Como se relaciona com a saúde intestinal</h2>
             <p>{e.gutRelation}</p>
 
+            {e.commercial?.isProduct && (
+              <div className="not-prose my-6 rounded-xl border border-navy/15 bg-mist/40 p-5">
+                <span className="tag">Verbete comercial</span>
+                <h3 className="mt-2 font-serif text-[19px] text-navy-deep">Sobre o produto</h3>
+                <dl className="mt-3 grid gap-2 text-[14px] sm:grid-cols-2">
+                  {e.commercial.manufacturer && (<div><dt className="text-muted">Responsável</dt><dd>{e.commercial.manufacturer}</dd></div>)}
+                  {e.commercial.category && (<div><dt className="text-muted">Categoria</dt><dd>{e.commercial.category}</dd></div>)}
+                </dl>
+                {e.commercial.composition && e.commercial.composition.length > 0 && (
+                  <p className="mt-2 text-[14px]"><span className="text-muted">Composição declarada: </span>{e.commercial.composition.join(", ")}</p>
+                )}
+                {e.commercial.commercialClaim && <p className="mt-2 text-[14px] text-ink/80">{e.commercial.commercialClaim}</p>}
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {e.commercial.ingredientEvidenceNote && (
+                    <div className="rounded-lg border border-line bg-white p-3">
+                      <p className="text-[12px] font-semibold text-navy">Evidência dos ingredientes</p>
+                      <p className="mt-1 text-[13px] text-ink/75">{e.commercial.ingredientEvidenceNote}</p>
+                    </div>
+                  )}
+                  {e.commercial.productEvidenceNote && (
+                    <div className="rounded-lg border border-line bg-white p-3">
+                      <p className="text-[12px] font-semibold text-navy">Evidência do produto final</p>
+                      <p className="mt-1 text-[13px] text-ink/75">{e.commercial.productEvidenceNote}</p>
+                    </div>
+                  )}
+                </div>
+                <p className="mt-3 text-[12px] text-ink/55">
+                  Evidência sobre um ingrediente não se transfere automaticamente para o produto final.
+                  {e.commercial.commercialRelation ? ` ${e.commercial.commercialRelation}` : ""}
+                </p>
+                {e.commercial.brandedPageSlug && (
+                  <Link href={`/branded/${e.commercial.brandedPageSlug}`} className="mt-3 inline-block text-[13.5px] font-medium text-navy hover:underline">
+                    Ver a página da marca →
+                  </Link>
+                )}
+              </div>
+            )}
+
             <h2>Relação com os cinco Rs</h2>
             {insufficient ? (
               <div className="not-prose">
@@ -162,6 +200,36 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
               </p>
             </div>
 
+            {e.functionalMedicine && (
+              <div className="not-prose my-8 rounded-2xl border border-line bg-white p-6">
+                <span className="tag">Perspectiva</span>
+                <h2 className="mt-2 font-serif text-[22px] text-navy-deep">Como a Medicina Funcional interpreta este tema</h2>
+                <p className="mt-1 text-[13px] text-ink/60">
+                  Esta é uma perspectiva teórico-clínica adotada por determinados profissionais e instituições.
+                  A seção “O que as evidências sugerem”, acima, apresenta separadamente a sustentação científica
+                  disponível. A Medicina Funcional não é uma escola única e homogênea.
+                </p>
+                <dl className="mt-4 space-y-3 text-[14.5px]">
+                  {[
+                    ["Medicina convencional", e.functionalMedicine.conventional],
+                    ["Perspectiva funcional", e.functionalMedicine.functionalPerspective],
+                    ["Mecanismos propostos", e.functionalMedicine.mechanisms],
+                    ["Práticas associadas", e.functionalMedicine.practices],
+                    ["Pontos com sustentação mais consistente", e.functionalMedicine.consistent],
+                    ["Ainda hipótese / prática / teoria", e.functionalMedicine.hypothesis],
+                    ["Onde há divergência", e.functionalMedicine.divergences],
+                  ]
+                    .filter(([, v]) => v)
+                    .map(([k, v]) => (
+                      <div key={k as string} className="rounded-lg border border-line bg-paper/60 p-3">
+                        <dt className="text-[12px] font-semibold uppercase tracking-wide text-navy">{k}</dt>
+                        <dd className="mt-1 text-ink/80">{v}</dd>
+                      </div>
+                    ))}
+                </dl>
+              </div>
+            )}
+
             <h2>Fontes científicas</h2>
             <ul>
               {e.sources.map((s, i) => (
@@ -173,6 +241,13 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                 </li>
               ))}
             </ul>
+            {e.evidenceLibrary && e.evidenceLibrary.length > 0 && (
+              <p className="not-prose">
+                <Link href={`/glossario/${e.slug}/evidencias`} className="inline-flex items-center gap-1.5 rounded-lg border border-navy/25 px-4 py-2 text-[14px] font-medium text-navy hover:bg-mist">
+                  Estudos e conexões científicas ({e.evidenceLibrary.length}) →
+                </Link>
+              </p>
+            )}
             <p className="text-[13px] text-muted">
               Última revisão editorial: {new Date(e.lastReviewed).toLocaleDateString("pt-BR")}.
             </p>

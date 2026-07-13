@@ -10,6 +10,7 @@ const NAV = [
   { href: "/admin/glossario", label: "Glossário" },
   { href: "/admin/taxonomia", label: "Taxonomia" },
   { href: "/admin/certificacao", label: "Certificação" },
+  { href: "/admin/branded", label: "Branded Pages" },
 ];
 
 export function AdminShell({ children, badge }: { children: React.ReactNode; badge: "banco" | "seed" }) {

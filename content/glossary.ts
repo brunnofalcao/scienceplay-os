@@ -171,6 +171,22 @@ export const GLOSSARY: GlossaryEntry[] = [
     lastReviewed: "2026-06-05",
     status: "publicado",
     popularity: 70,
+    functionalMedicine: {
+      conventional:
+        "A medicina convencional usa 'disbiose' com cautela: reconhece que alterações da microbiota se associam a doenças, mas não a trata como um diagnóstico único e padronizado.",
+      functionalPerspective:
+        "Parte da medicina funcional interpreta a disbiose como um desequilíbrio a ser mapeado e corrigido, frequentemente organizando a conduta em etapas semelhantes às do Protocolo 5R.",
+      mechanisms:
+        "Propõe-se que alterações na composição e função da microbiota influenciem barreira intestinal, inflamação de baixo grau e o eixo intestino-cérebro.",
+      practices:
+        "Costumam ser associadas mudanças alimentares, prebióticos, probióticos e ajustes de estilo de vida.",
+      consistent:
+        "Há sustentação mais consistente para intervenções alimentares estruturadas e para probióticos por cepa em desfechos específicos.",
+      hypothesis:
+        "O uso de painéis comerciais de microbiota como guia de conduta permanece sem validação clínica robusta.",
+      divergences:
+        "A principal divergência é o quanto 'corrigir a disbiose' com produtos específicos altera desfechos clínicos — algo que a evidência ainda não sustenta.",
+    },
   },
   {
     slug: "lactose",
@@ -380,6 +396,22 @@ export const GLOSSARY: GlossaryEntry[] = [
     lastReviewed: "2026-06-09",
     status: "publicado",
     popularity: 63,
+    functionalMedicine: {
+      conventional:
+        "Na medicina convencional, a permeabilidade intestinal é um mecanismo estudado — não um diagnóstico clínico estabelecido nem causa comprovada de doenças sistêmicas.",
+      functionalPerspective:
+        "Parte da medicina funcional dá ao 'intestino permeável' um papel central, propondo-o como elo entre intestino e sintomas em outros sistemas.",
+      mechanisms:
+        "Propõe-se que o aumento da permeabilidade permita a passagem de substâncias que ativariam respostas imunes e inflamação.",
+      practices:
+        "Associam-se estratégias alimentares e compostos ditos 'reparadores' da mucosa.",
+      consistent:
+        "É plausível que dieta e estilo de vida influenciem a barreira; intervenções de melhor evidência priorizam padrão alimentar e o eixo intestino-cérebro.",
+      hypothesis:
+        "A ideia de 'permeabilidade' como causa universal de doenças, e os testes comerciais que a medem, permanecem sem validação para guiar conduta.",
+      divergences:
+        "A divergência central é transformar um mecanismo em diagnóstico e justificativa para 'stacks' de suplementos — o que a evidência não sustenta.",
+    },
   },
   {
     slug: "glutamina",
@@ -892,5 +924,58 @@ export const GLOSSARY: GlossaryEntry[] = [
     lastReviewed: "2026-05-14",
     status: "publicado",
     popularity: 59,
+  },
+  {
+    slug: "corebiome",
+    name: "COREBIOME",
+    type: "suplemento",
+    synonyms: ["core biome"],
+    short:
+      "Marca de produto voltado à microbiota, usada aqui como exemplo de verbete comercial. A presença no glossário não é recomendação individual.",
+    definition:
+      "COREBIOME é uma marca do universo da microbiota intestinal. Este verbete é comercial e serve de modelo de como o portal apresenta produtos: separando o que é apresentação comercial do que a ciência sustenta.",
+    gutRelation:
+      "Produtos dessa categoria costumam se posicionar no apoio à microbiota — o que, no Protocolo 5R, conversa sobretudo com a etapa Reinocular. A relevância real depende dos ativos e da evidência de cada um.",
+    rPrimary: "reinocular",
+    rSecondary: [
+      { r: "reparar", intensity: "fraca", rationale: "Alguns ativos da categoria são estudados na barreira intestinal." },
+    ],
+    classificationRationale:
+      "Classificado em Reinocular por ser um produto de apoio à microbiota. A força da relação depende de cada ingrediente — não do nome da marca.",
+    confidence: "baixa",
+    evidence: "C",
+    evidenceSuggests:
+      "Há evidência de níveis variados sobre ingredientes frequentemente associados a essa categoria (fibras prebióticas, probióticos por cepa). A evidência é sobre os ingredientes, avaliada caso a caso.",
+    notProven:
+      "Evidência sobre um ingrediente isolado não se transfere automaticamente para o produto final. O benefício clínico da formulação completa precisa de estudos próprios.",
+    cautions:
+      "A presença de uma marca no portal não representa recomendação individual, prescrição ou garantia de resultado. Uso deve ser avaliado por um profissional.",
+    sources: [
+      { label: "Consenso ISAPP sobre probióticos", type: "Consenso", year: 2014 },
+      { label: "Consenso ISAPP sobre prebióticos", type: "Consenso", year: 2017 },
+    ],
+    related: ["probiotico", "prebiotico", "akkermansia", "pos-biotico"],
+    lastReviewed: "2026-07-12",
+    status: "publicado",
+    popularity: 30,
+    commercial: {
+      isProduct: true,
+      manufacturer: "COREBIOME (marca-exemplo)",
+      category: "Apoio à microbiota",
+      composition: ["Fibras prebióticas", "Probióticos (cepas declaradas na embalagem)"],
+      commercialClaim: "Apresentado comercialmente como apoio ao equilíbrio da microbiota intestinal.",
+      ingredientEvidenceNote:
+        "Os ingredientes típicos da categoria (prebióticos, probióticos por cepa) têm evidência de níveis variados, avaliada individualmente.",
+      productEvidenceNote:
+        "Não há, neste modelo educacional, evidência clínica atribuída à formulação final específica — o que não é o mesmo que evidência dos ingredientes.",
+      commercialRelation: "Conteúdo institucional de exemplo. Relações comerciais reais serão identificadas de forma clara.",
+      brandedPageSlug: "corebiome",
+    },
+    evidenceLibrary: [
+      { label: "Consenso ISAPP sobre probióticos", scope: "ingrediente", ingredient: "Probióticos", grade: "A", type: "Consenso", year: 2014 },
+      { label: "Consenso ISAPP sobre prebióticos", scope: "ingrediente", ingredient: "Prebióticos", grade: "A", type: "Consenso", year: 2017 },
+      { label: "Meta-análise de probióticos por cepa na SII", scope: "categoria", grade: "B", type: "Meta-análise", year: 2025 },
+      { label: "Estudo de mecanismo sobre fibras fermentáveis e AGCC", scope: "mecanismo", grade: "C", type: "Revisão", year: 2022 },
+    ],
   },
 ];
