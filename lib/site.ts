@@ -47,5 +47,6 @@ export const NAV_FOOTER = {
     { label: "Política de Cookies", href: "/legal/cookies" },
     { label: "Aviso Educacional e Médico", href: "/legal/aviso-medico" },
     { label: "Política de Correções", href: "/legal/correcoes" },
+    { label: "Publicidade e Parcerias", href: "/legal/publicidade-parcerias" },
   ],
 } as const;

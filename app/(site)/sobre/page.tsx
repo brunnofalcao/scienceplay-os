@@ -92,27 +92,27 @@ export default function SobrePage() {
         <h2>Política de transparência</h2>
         <p>
           Transparência não é um slogan; é um método. Deixamos explícito de onde
-          vem a informação, como ela é avaliada, qual o grau de confiança da
-          evidência e onde estão os limites do que se pode afirmar. Somos claros
-          também sobre o papel da tecnologia: a inteligência artificial apoia a
-          triagem, o resumo e a linguagem, mas a classificação segue critérios
-          editoriais fixos e toda publicação passa por revisão humana. Não há, na
-          fase atual, publicação totalmente automática.
+          vem a informação, quais fontes sustentam cada publicação, qual o grau de
+          confiança da evidência e onde estão os limites do que se pode afirmar.
+          Somos claros também sobre as relações comerciais: quando um conteúdo
+          decorre de patrocínio, parceria ou apoio, isso é identificado de forma
+          visível, conforme a{" "}
+          <a href="/legal/publicidade-parcerias">Política de Publicidade e Parcerias</a>.
         </p>
         <p>
-          Quando encontramos um erro — ou quando você nos aponta um — corrigimos
-          de forma aberta e registrada. O detalhamento está na{" "}
+          Quando um erro é identificado — ou quando você nos aponta um —
+          corrigimos de forma aberta. O detalhamento está na{" "}
           <a href="/legal/correcoes">Política de Correções</a>.
         </p>
 
         <h2>Como o conhecimento é produzido</h2>
         <p>
           Cada conteúdo parte da literatura científica revisada por pares e de
-          documentos de sociedades e órgãos de saúde, passa por triagem, avaliação
-          e resumo, recebe uma classificação de evidência proporcional ao desenho
-          dos estudos e só então é revisado por uma pessoa antes de ser publicado.
-          O processo completo, incluindo os critérios de inclusão e exclusão e a
-          escala de evidência A–D, está descrito na{" "}
+          documentos de sociedades e órgãos de saúde. Os estudos são usados como
+          fontes para pautas editoriais originais, com linguagem proporcional ao
+          que as fontes sustentam e uma classificação de evidência que acompanha o
+          tema como referência secundária. O processo completo, incluindo os tipos
+          de fontes e a escala de evidência A–D, está descrito na{" "}
           <a href="/politica-editorial">Política editorial e científica</a>.
         </p>
 

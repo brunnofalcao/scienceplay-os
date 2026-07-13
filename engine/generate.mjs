@@ -124,7 +124,24 @@ export async function callAI(study) {
 // A notícia é conteúdo jornalístico-educativo em PORTUGUÊS claro, acolhedor e
 // preciso: explica o jargão, usa linguagem do dia a dia, e ao mesmo tempo é
 // honesta sobre limites e nível de evidência. Sem infantilizar, sem promessa.
-const SYSTEM_PROMPT = `Você é o redator do Protocolo 5R, um portal que TRADUZ ciência para a população brasileira.
+const SYSTEM_PROMPT = `Você é REPÓRTER de saúde do Protocolo 5R. Você NÃO escreve resenhas de artigos científicos: você escreve REPORTAGENS para a população brasileira, usando o estudo apenas como FONTE/ponto de partida. Pense em jornalismo de saúde maduro (padrão BBC News/BBC Future), não em abstract acadêmico.
+
+REGRAS DE OURO:
+- A MANCHETE nunca repete o título do estudo. Ela traduz a conexão humana mais relevante em uma promessa editorial clara (por que isso importa para a vida da pessoa). Sem clickbait, sem "cura", sem "alimento milagroso", sem medo sem contexto.
+- Comece pela situação humana, pela dúvida ou pela descoberta — não por "o estudo analisou" ou pelo nome do periódico.
+- Estruture como matéria: linha-fina, lead, subtítulos, contexto (o que já se sabia), o que a pesquisa acrescenta, o que isso significa no dia a dia, o que ainda não sabemos.
+- A linguagem deve respeitar o alcance da fonte: diferencie associação, hipótese, mecanismo e efeito clínico demonstrado. Nível D nunca afirma efeito clínico.
+- NÃO escreva blocos rígidos "Metodologia/Resultados/Limitações" como formato. Essas informações entram na narrativa apenas na proporção necessária.
+- Nada de promessa, prescrição, dose individual ou diagnóstico. Não substitui profissional.
+
+Para cada matéria, pense internamente em ~10 manchetes e 3 ângulos, e escolha a melhor combinação (relevância + clareza + precisão + interesse humano + consistência científica).
+
+RESPONDA APENAS JSON válido (sem markdown) nesta forma:
+{"headline":"(manchete jornalística)","subheadline":"(linha-fina que amplia o contexto)","category":"(ex.: Alimentação e sintomas)","lead":"(abertura jornalística, situação humana/pergunta/descoberta)","body":[{"heading":"(subtítulo)","paragraphs":["parágrafo","parágrafo"]}],"whatWeDontKnow":"(o que ainda não sabemos, honesto)","practical":"(o que isso significa na prática, educacional, nunca prescritivo, lembrar de procurar profissional)","rConnection":"(como se conecta ao Protocolo 5R, educativo)","rTags":["remover"],"terms":["low-fodmap"],"grade":"A|B|C|D","direction":"favoravel|desfavoravel|neutro|insuficiente"}
+
+NÃO deixe o grau de evidência dominar a manchete nem o texto — ele é uma camada secundária. Segue o antigo contexto de apoio abaixo, mas o formato é REPORTAGEM.
+---
+[apoio] Você TRADUZ ciência para a população brasileira.
 
 QUEM LÊ: uma pessoa comum, curiosa sobre saúde intestinal, sem formação médica. Ela quer entender o que um novo estudo significa para a vida dela — em português claro. Profissionais também leem, mas o texto é escrito para o público geral.
 
@@ -173,28 +190,25 @@ Lembre: manchete e texto em PORTUGUÊS claro para o público geral; explique o j
 // ---------------------------------------------------------------------
 export function fallbackDraft(study) {
   const grade = TYPE_TO_GRADE[study.study_type_slug] || "C";
-  const nota = "[Rascunho automático sem IA — precisa de redação popular e revisão editorial antes de publicar.]";
+  const nota = "[Rascunho automático sem redação — matéria jornalística a ser escrita antes de publicar.]";
   return {
-    title: `[A redigir] Estudo sobre ${study.journal || "saúde intestinal"} (${study.year || "s/d"})`,
-    quickAnswer: nota,
+    headline: `[A redigir] Pauta a partir de estudo em ${study.journal || "saúde intestinal"} (${study.year || "s/d"})`,
+    subheadline: nota,
     category: "Ciência e evidência",
-    studied: `Estudo a ser traduzido para linguagem acessível. Título original: "${study.title}". ${nota}`,
-    participants: "A extrair e traduzir da fonte (população, tamanho amostral, critérios).",
-    intervention: "A extrair e traduzir da fonte (intervenção ou exposição analisada).",
-    found: "A redigir em linguagem clara para o público, a partir dos achados da fonte.",
-    cannotConclude:
+    lead: `Pauta identificada a partir do estudo "${study.title}". A reportagem para o público ainda precisa ser escrita. ${nota}`,
+    body: [{ heading: "Contexto", paragraphs: ["A matéria será redigida a partir desta fonte, em linguagem acessível."] }],
+    whatWeDontKnow:
       grade === "D"
         ? "Evidência pré-clínica/mecanística: não permite concluir efeito clínico em pessoas."
-        : "Não permite generalizar além da população, dose e desfechos efetivamente estudados; a resposta é individual.",
-    relationTo5R: "Relação com o Protocolo 5R a ser definida na redação e na revisão editorial.",
+        : "A redigir a partir da fonte; a resposta tende a ser individual e limitada à população estudada.",
+    practical:
+      "Conteúdo educacional, não prescritivo. Decisões individuais pertencem a um profissional que avalie o caso.",
+    rConnection: "Conexão com o Protocolo 5R a ser definida na redação.",
     rTags: [],
     terms: [],
     grade,
     direction: "insuficiente",
-    limitations: "Rascunho automático a partir de metadados; redação popular (IA) e revisão humana pendentes.",
-    practical:
-      "Conteúdo educacional, não prescritivo. Decisões individuais pertencem a um profissional que avalie o caso.",
-    _needsPopularWriting: true,
+    _needsWriting: true,
   };
 }
 
@@ -204,42 +218,64 @@ export function fallbackDraft(study) {
 //   de publicação só existe quando um humano publicar).
 // ---------------------------------------------------------------------
 export function buildNewsArticle(draft, study, assessment) {
-  const slug = slugify(draft.title || study.title);
+  const slug = slugify(draft.headline || study.title);
   const now = new Date().toISOString();
+  const body = Array.isArray(draft.body) && draft.body.length
+    ? draft.body.map((b) => ({
+        heading: b && b.heading ? String(b.heading) : undefined,
+        paragraphs: Array.isArray(b && b.paragraphs) ? b.paragraphs.map(String) : [],
+      }))
+    : [{ paragraphs: [String(draft.lead || "")] }];
   return {
     slug,
-    title: draft.title || study.title,
-    quickAnswer: draft.quickAnswer || "",
+    headline: draft.headline || study.title,
+    subheadline: draft.subheadline || "",
     category: draft.category || "Ciência e evidência",
     rTags: Array.isArray(draft.rTags) ? draft.rTags : [],
     terms: Array.isArray(draft.terms) ? draft.terms : [],
-    studied: draft.studied || "",
-    participants: draft.participants || "",
-    intervention: draft.intervention || "",
-    found: draft.found || "",
-    cannotConclude: draft.cannotConclude || assessment.what_it_does_not_prove,
-    relationTo5R: draft.relationTo5R || "",
-    evidence: assessment.grade, // grau A/B/C/D já validado pelas travas
-    studyType: study.study_type_slug || draft.study_type || "artigo",
-    limitations: draft.limitations || assessment.limitations,
+    lead: draft.lead || "",
+    body,
+    whatWeDontKnow: draft.whatWeDontKnow || assessment.what_it_does_not_prove,
     practical: draft.practical || "",
-    source: {
-      journal: study.journal || "Fonte não informada",
-      authors: authorsLabel(study.authors),
-      doi: study.doi || undefined,
-      pmid: study.pmid || undefined,
-      year: study.year || new Date().getFullYear(),
-      url: study.doi ? `https://doi.org/${study.doi}` : study.source_url || undefined,
-      access: study.access || "pago",
-    },
-    // datas: reviewedAt/publishedAt reais só quando um humano agir.
+    rConnection: draft.rConnection || "",
+    evidence: assessment.grade, // grau A/B/C/D já validado pelas travas (camada secundária)
+    studyType: study.study_type_slug || "artigo",
+    sources: [
+      {
+        label: study.title || "Estudo-fonte",
+        type: STUDY_TYPE_LABEL_PT(study.study_type_slug),
+        journal: study.journal || undefined,
+        authors: authorsLabel(study.authors),
+        year: study.year || new Date().getFullYear(),
+        doi: study.doi || undefined,
+        pmid: study.pmid || undefined,
+        url: study.doi ? `https://doi.org/${study.doi}` : study.source_url || undefined,
+        access: study.access || "pago",
+      },
+    ],
+    author: "Redação Protocolo 5R",
+    // datas reais só quando um humano publicar.
     publishedAt: null,
-    reviewedAt: null,
-    reviewer: null,
+    updatedAt: null,
     related: [],
     featured: false,
-    _meta: { generatedAt: now, status: "em_revisao" },
+    _meta: { generatedAt: now, status: "em_revisao", needsWriting: !!draft._needsWriting },
   };
+}
+
+function STUDY_TYPE_LABEL_PT(slug) {
+  const map = {
+    "revisao-sistematica": "Revisão sistemática",
+    "meta-analise": "Meta-análise",
+    guideline: "Diretriz",
+    consenso: "Consenso",
+    "ensaio-clinico": "Ensaio clínico",
+    coorte: "Estudo de coorte",
+    observacional: "Estudo observacional",
+    "pre-clinico": "Estudo pré-clínico",
+    artigo: "Artigo científico",
+  };
+  return map[slug] || "Artigo científico";
 }
 
 function authorsLabel(authors) {

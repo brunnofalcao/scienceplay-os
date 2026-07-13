@@ -212,7 +212,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                   {news.map((n) => (
                     <li key={n.slug}>
                       <Link href={`/noticias/${n.slug}`} className="text-[14px] font-medium leading-snug hover:text-navy">
-                        {n.title}
+                        {n.headline}
                       </Link>
                     </li>
                   ))}

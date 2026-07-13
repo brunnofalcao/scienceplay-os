@@ -51,7 +51,7 @@ export async function getDashboard(): Promise<DashboardMetrics> {
     const today = newsOfTheDay();
     return {
       source,
-      publishedToday: today ? { title: today.title, slug: today.slug } : null,
+      publishedToday: today ? { title: today.headline, slug: today.slug } : null,
       nextInQueue: 0,
       pending: 0,
       duplicateCandidates: 0,
@@ -143,12 +143,12 @@ export async function getNewsQueue(): Promise<QueueItem[]> {
   // seed: notícias publicadas (demonstração)
   return NEWS.map((n) => ({
     slug: n.slug,
-    title: n.title,
+    title: n.headline,
     status: "publicado",
     evidence: n.evidence,
     rTags: n.rTags,
     publishedAt: n.publishedAt,
-    reviewer: n.reviewer,
+    reviewer: n.author,
     source: "seed" as const,
   }));
 }

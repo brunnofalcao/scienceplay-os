@@ -70,31 +70,28 @@ export default function Home() {
       <section className="border-y border-line bg-white">
         <div className="wrap grid gap-10 py-16 lg:grid-cols-[1.5fr_1fr]">
           <div>
-            <span className="kicker">Notícia científica do dia</span>
+            <span className="kicker">Matéria do dia</span>
             <Link href={`/noticias/${today.slug}`} className="group mt-3 block">
               <div className="mb-3 flex flex-wrap items-center gap-2">
-                <EvidenceBadge grade={today.evidence} />
+                <span className="text-[12px] text-muted">{today.category}</span>
                 {today.rTags.map((r) => (
                   <RChip key={r} rKey={r} />
                 ))}
               </div>
-              <h2 className="text-[27px] leading-tight group-hover:text-navy">{today.title}</h2>
-              <p className="prose-5r mt-3">{today.quickAnswer}</p>
-              <span className="mt-3 inline-block font-medium text-navy">Ler a análise completa →</span>
+              <h2 className="text-[27px] leading-tight group-hover:text-navy">{today.headline}</h2>
+              <p className="prose-5r mt-3">{today.subheadline}</p>
+              <span className="mt-3 inline-block font-medium text-navy">Ler a matéria completa →</span>
             </Link>
           </div>
 
           <div>
-            <span className="kicker">Conteúdos recentes</span>
+            <span className="kicker">Publicadas recentemente</span>
             <ul className="mt-4 divide-y divide-line">
               {recent.map((n) => (
                 <li key={n.slug} className="py-4">
                   <Link href={`/noticias/${n.slug}`} className="group block">
-                    <div className="mb-1.5 flex items-center gap-2">
-                      <EvidenceBadge grade={n.evidence} showLabel={false} />
-                      <span className="text-[12px] text-muted">{n.category}</span>
-                    </div>
-                    <p className="text-[15.5px] font-medium leading-snug text-ink group-hover:text-navy">{n.title}</p>
+                    <span className="mb-1 block text-[12px] text-muted">{n.category}</span>
+                    <p className="text-[15.5px] font-medium leading-snug text-ink group-hover:text-navy">{n.headline}</p>
                   </Link>
                 </li>
               ))}
@@ -163,22 +160,22 @@ export default function Home() {
       <section className="wrap py-16">
         <div className="grid gap-10 md:grid-cols-[1fr_1.3fr] md:items-start">
           <div>
-            <span className="kicker">Política de evidências</span>
+            <span className="kicker">Nossa linha editorial</span>
             <h2 className="mt-2 text-[28px]">Como este conteúdo é produzido</h2>
             <p className="prose-5r mt-2">
-              Um motor científico monitora a literatura (PubMed, Crossref, Europe PMC), remove duplicações
-              e avalia a qualidade. A inteligência artificial ajuda a resumir em linguagem acessível — mas
-              <strong> não é a fonte da classificação</strong>. Toda notícia passa por revisão editorial
-              antes de ir ao ar.
+              Partimos da literatura científica (PubMed, Crossref, Europe PMC) para encontrar temas
+              relevantes e transformá-los em <strong>reportagens</strong> acessíveis. A linguagem de cada
+              matéria respeita o alcance das fontes — diferenciando associação, hipótese, mecanismo e efeito
+              demonstrado. As fontes ficam sempre à vista.
             </p>
             <Link href="/politica-editorial" className="btn-ghost mt-5">Leia a política editorial</Link>
           </div>
           <ol className="grid gap-3 sm:grid-cols-2">
             {[
-              ["01", "Encontrar", "Busca agendada na literatura por temas da taxonomia 5R."],
-              ["02", "Filtrar", "Deduplicação por DOI e avaliação de qualidade mínima."],
-              ["03", "Traduzir", "Resumo popular com achados, limitações e o que não se pode concluir."],
-              ["04", "Revisar", "Revisão humana obrigatória. Sem estudo bom, não se publica."],
+              ["01", "Encontrar", "Identificar, na literatura, temas relevantes para a saúde intestinal."],
+              ["02", "Contextualizar", "Entender o que já se sabia e o que a nova pesquisa acrescenta."],
+              ["03", "Traduzir", "Escrever a matéria em linguagem de gente, com o que importa no dia a dia."],
+              ["04", "Rastrear", "Deixar visível o nível de evidência e as fontes originais."],
             ].map(([n, t, d]) => (
               <li key={n} className="card">
                 <span className="font-mono text-[12px] text-amber5r">{n}</span>

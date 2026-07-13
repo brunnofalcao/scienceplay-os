@@ -10,7 +10,7 @@ import { NEWS, getNews } from "@/content/news";
 import { getEntry } from "@/lib/search";
 import { STUDY_TYPE_LABEL, EVIDENCE_SCALE } from "@/lib/evidence";
 import { ENTITY_TYPE_LABEL } from "@/lib/glossary-types";
-import { pageMetadata, newsArticleLd, faqLd } from "@/lib/seo";
+import { pageMetadata, newsArticleLd } from "@/lib/seo";
 
 export function generateStaticParams() {
   return NEWS.map((n) => ({ slug: n.slug }));
@@ -21,22 +21,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const n = getNews(slug);
   if (!n) return {};
   return pageMetadata({
-    title: n.title,
-    description: n.quickAnswer,
+    title: n.headline,
+    description: n.subheadline,
     path: `/noticias/${n.slug}`,
     type: "article",
     publishedTime: n.publishedAt,
-    modifiedTime: n.reviewedAt,
+    modifiedTime: n.updatedAt,
   });
-}
-
-function Block({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="border-t border-line py-5">
-      <p className="font-mono text-[11px] uppercase tracking-wide text-amber5r">{label}</p>
-      <p className="mt-1.5 text-[15.5px] leading-relaxed text-ink/85">{children}</p>
-    </div>
-  );
 }
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
@@ -48,21 +39,14 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   const terms = n.terms.map(getEntry).filter(Boolean);
   const related = n.related.map(getNews).filter(Boolean);
 
-  const ld = [
-    newsArticleLd({
-      headline: n.title,
-      description: n.quickAnswer,
-      path: `/noticias/${n.slug}`,
-      datePublished: n.publishedAt,
-      dateModified: n.reviewedAt,
-      authorName: n.reviewer,
-    }),
-    faqLd([
-      { q: "O que foi estudado?", a: n.studied },
-      { q: "O que o estudo encontrou?", a: n.found },
-      { q: "O que o estudo não permite concluir?", a: n.cannotConclude },
-    ]),
-  ];
+  const ld = newsArticleLd({
+    headline: n.headline,
+    description: n.subheadline,
+    path: `/noticias/${n.slug}`,
+    datePublished: n.publishedAt,
+    dateModified: n.updatedAt,
+    authorName: n.author,
+  });
 
   return (
     <>
@@ -76,74 +60,108 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
           ]}
         />
 
-        <article className="mx-auto max-w-3xl">
+        <article className="mx-auto max-w-[720px]">
           <header>
             <div className="flex flex-wrap items-center gap-2">
               <span className="tag">{n.category}</span>
               {n.rTags.map((r) => <RChip key={r} rKey={r} />)}
             </div>
-            <h1 className="mt-4 text-[36px] leading-[1.1]">{n.title}</h1>
 
-            {/* Resposta rápida (AEO) */}
-            <div className="mt-5 rounded-xl border-l-[3px] border-amber5r bg-white p-5">
-              <p className="font-mono text-[11px] uppercase tracking-wide text-amber5r">Resposta rápida</p>
-              <p className="mt-1 text-[17px] leading-relaxed text-navy-deep">{n.quickAnswer}</p>
-            </div>
+            {/* Manchete jornalística */}
+            <h1 className="mt-4 font-serif text-[38px] font-medium leading-[1.08] md:text-[44px]">{n.headline}</h1>
 
-            <div className="mt-4 flex flex-wrap items-center gap-3 text-[13px] text-muted">
-              <EvidenceBadge grade={n.evidence} />
-              <span>{STUDY_TYPE_LABEL[n.studyType]}</span>
+            {/* Linha-fina */}
+            <p className="mt-4 text-[19px] leading-relaxed text-ink/75">{n.subheadline}</p>
+
+            {/* Assinatura */}
+            <div className="mt-5 flex flex-wrap items-center gap-2 border-y border-line py-3 text-[13px] text-muted">
+              <span className="font-medium text-ink">{n.author}</span>
               <span>·</span>
-              <time dateTime={n.publishedAt}>Publicado em {new Date(n.publishedAt).toLocaleDateString("pt-BR")}</time>
-              <span>·</span>
-              <span>Revisado em {new Date(n.reviewedAt).toLocaleDateString("pt-BR")}</span>
+              <time dateTime={n.publishedAt}>
+                {new Date(n.publishedAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}
+              </time>
+              {n.updatedAt !== n.publishedAt && (
+                <>
+                  <span>·</span>
+                  <span>atualizado em {new Date(n.updatedAt).toLocaleDateString("pt-BR")}</span>
+                </>
+              )}
             </div>
           </header>
 
-          {/* Estrutura editorial obrigatória (§8.5) */}
-          <div className="mt-8">
-            <Block label="O que foi estudado">{n.studied}</Block>
-            <Block label="Quem participou / qual modelo">{n.participants}</Block>
-            <Block label="Intervenção ou exposição analisada">{n.intervention}</Block>
-            <Block label="O que o estudo encontrou">{n.found}</Block>
-            <Block label="O que o estudo NÃO permite concluir">{n.cannotConclude}</Block>
-            <Block label="Relação possível com o Protocolo 5R">{n.relationTo5R}</Block>
-            <Block label="Limitações">{n.limitations}</Block>
-            <Block label="Aplicação prática (educacional)">{n.practical}</Block>
+          {/* Lead */}
+          <p className="mt-8 text-[19px] leading-relaxed text-ink first-letter:float-left first-letter:mr-2 first-letter:font-serif first-letter:text-[58px] first-letter:leading-[0.8] first-letter:text-navy">
+            {n.lead}
+          </p>
+
+          {/* Corpo narrativo */}
+          <div className="mt-6">
+            {n.body.map((block, i) => (
+              <section key={i}>
+                {block.heading && <h2 className="mb-2 mt-8 font-serif text-[24px] text-navy-deep">{block.heading}</h2>}
+                {block.paragraphs.map((p, j) => (
+                  <p key={j} className="mb-4 text-[17px] leading-[1.75] text-[#33373d]">{p}</p>
+                ))}
+              </section>
+            ))}
           </div>
 
-          {/* Nível de evidência explicado */}
-          <div className="mt-6 rounded-xl p-5" style={{ backgroundColor: `${lvl.color}12` }}>
-            <div className="flex items-center gap-2">
-              <EvidenceBadge grade={n.evidence} />
+          {/* O que isso significa na prática */}
+          <section className="mt-8 rounded-2xl border border-line bg-white p-6">
+            <h2 className="font-serif text-[22px] text-navy-deep">O que isso significa na prática</h2>
+            <p className="mt-2 text-[16.5px] leading-relaxed text-ink/85">{n.practical}</p>
+          </section>
+
+          {/* O que ainda não sabemos */}
+          <section className="mt-6">
+            <h2 className="font-serif text-[22px] text-navy-deep">O que ainda não sabemos</h2>
+            <p className="mt-2 text-[17px] leading-relaxed text-[#33373d]">{n.whatWeDontKnow}</p>
+          </section>
+
+          {/* Conexão com o Protocolo 5R */}
+          <section className="mt-8 rounded-2xl bg-mist/50 p-6">
+            <span className="kicker">No Protocolo 5R</span>
+            <p className="mt-2 text-[16.5px] leading-relaxed text-navy-deep">{n.rConnection}</p>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {n.rTags.map((r) => <RChip key={r} rKey={r} />)}
             </div>
-            <p className="mt-2 text-[14px] text-ink/80">{lvl.meaning}</p>
-            <p className="mt-1 text-[13px] text-ink/60">{lvl.ceiling}</p>
-          </div>
+          </section>
 
           {/* Aviso */}
-          <p className="mt-6 rounded-lg border border-line bg-white p-4 text-[13.5px] text-ink/70">
+          <p className="mt-8 rounded-lg border border-line bg-white p-4 text-[13.5px] text-ink/70">
             Este conteúdo é educacional e informativo. Não substitui a avaliação de um profissional de saúde,
             não faz diagnóstico e não indica tratamento individual.
           </p>
 
-          {/* Fonte */}
+          {/* Base científica (camada secundária, rastreável) */}
           <section className="mt-8 border-t border-line pt-6">
-            <h2 className="text-[20px]">Fonte original</h2>
-            <div className="mt-3 rounded-xl border border-line bg-white p-5 text-[14.5px]">
-              <p><strong>Periódico:</strong> {n.source.journal}</p>
-              <p><strong>Autores:</strong> {n.source.authors}</p>
-              <p><strong>Ano:</strong> {n.source.year} · <strong>Acesso:</strong> {n.source.access === "gratuito" ? "Gratuito (open access)" : "Restrito"}</p>
-              {n.source.doi && <p><strong>DOI:</strong> {n.source.doi}</p>}
-              {n.source.pmid && <p><strong>PMID:</strong> {n.source.pmid}</p>}
-              <SourceLink url={n.source.url} doi={n.source.doi} slug={n.slug} />
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="font-mono text-[12px] uppercase tracking-wide text-muted">Base científica</h2>
+              <EvidenceBadge grade={n.evidence} />
+              <span className="text-[12.5px] text-muted">{STUDY_TYPE_LABEL[n.studyType]}</span>
             </div>
+            <p className="mt-2 text-[13px] text-muted">{lvl.meaning}</p>
+            <ul className="mt-4 space-y-3">
+              {n.sources.map((s, i) => (
+                <li key={i} className="rounded-lg border border-line bg-white p-4 text-[14px]">
+                  <p className="font-medium text-ink">{s.label}</p>
+                  <p className="mt-1 text-[13px] text-muted">
+                    {s.type}
+                    {s.year ? ` · ${s.year}` : ""}
+                    {s.access ? ` · ${s.access === "gratuito" ? "acesso gratuito" : "acesso restrito"}` : ""}
+                    {s.doi ? ` · DOI: ${s.doi}` : ""}
+                    {s.pmid ? ` · PMID: ${s.pmid}` : ""}
+                  </p>
+                  <SourceLink url={s.url} doi={s.doi} slug={n.slug} />
+                </li>
+              ))}
+            </ul>
           </section>
 
           {/* Termos relacionados */}
           {terms.length > 0 && (
             <section className="mt-8">
-              <h2 className="text-[20px]">Termos do glossário nesta notícia</h2>
+              <h2 className="text-[18px]">Termos do glossário nesta matéria</h2>
               <div className="mt-3 flex flex-wrap gap-2">
                 {terms.map((t) => (
                   <Link key={t!.slug} href={`/glossario/${t!.slug}`} className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1.5 text-[13.5px] hover:border-navy">
@@ -156,20 +174,19 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
           )}
         </article>
 
-        <div className="mx-auto max-w-3xl">
+        <div className="mx-auto max-w-[720px]">
           <CertCTA intent="news" context={`noticia-${n.slug}`} />
         </div>
 
-        {/* Relacionadas */}
         {related.length > 0 && (
-          <section className="mx-auto mt-6 max-w-3xl">
-            <h2 className="text-[20px]">Conteúdos relacionados</h2>
+          <section className="mx-auto mt-6 max-w-[720px]">
+            <h2 className="text-[20px]">Continue lendo</h2>
             <ul className="mt-4 grid gap-4 sm:grid-cols-2">
               {related.map((r) => (
                 <li key={r!.slug}>
-                  <Link href={`/noticias/${r!.slug}`} className="card group block">
-                    <EvidenceBadge grade={r!.evidence} showLabel={false} />
-                    <p className="mt-2 font-serif text-[16px] leading-snug group-hover:text-navy">{r!.title}</p>
+                  <Link href={`/noticias/${r!.slug}`} className="card group block h-full">
+                    <span className="text-[12px] text-muted">{r!.category}</span>
+                    <p className="mt-1 font-serif text-[17px] leading-snug group-hover:text-navy">{r!.headline}</p>
                   </Link>
                 </li>
               ))}

@@ -43,7 +43,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const newsRoutes = NEWS.map((n) => ({
     url: `${base}/noticias/${n.slug}`,
-    lastModified: new Date(n.reviewedAt),
+    lastModified: new Date(n.updatedAt),
     changeFrequency: "monthly" as const,
     priority: 0.6,
   }));

@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { CertCTA } from "@/components/CertCTA";
-import { EvidenceBadge } from "@/components/EvidenceBadge";
 import { JsonLd } from "@/components/JsonLd";
 import { FIVE_RS, getR } from "@/lib/five-rs";
 import { getEntry, entriesByR } from "@/lib/search";
@@ -121,10 +120,8 @@ export default async function Page({ params }: { params: Promise<{ r: string }> 
                   {news.map((n) => (
                     <li key={n.slug}>
                       <Link href={`/noticias/${n.slug}`} className="group block">
-                        <div className="mb-1 flex items-center gap-1.5">
-                          <EvidenceBadge grade={n.evidence} showLabel={false} />
-                        </div>
-                        <p className="text-[14px] font-medium leading-snug group-hover:text-navy">{n.title}</p>
+                        <span className="mb-0.5 block text-[11px] text-muted">{n.category}</span>
+                        <p className="text-[14px] font-medium leading-snug group-hover:text-navy">{n.headline}</p>
                       </Link>
                     </li>
                   ))}

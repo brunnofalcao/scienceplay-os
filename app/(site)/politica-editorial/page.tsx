@@ -7,26 +7,30 @@ import { SITE } from "@/lib/site";
 export const metadata = pageMetadata({
   title: "Política editorial e científica",
   description:
-    "Como o Protocolo 5R encontra, seleciona, avalia, resume e classifica evidências científicas. O papel da inteligência artificial, a revisão humana obrigatória e a escala de evidência A–D.",
+    "Como o Protocolo 5R transforma temas científicos em notícias e conteúdos acessíveis: fontes utilizadas, uso de estudos como base para pautas originais, linguagem proporcional às fontes e a escala de evidência A–D.",
   path: "/politica-editorial",
 });
 
 const FAQS = [
   {
-    q: "A inteligência artificial decide a classificação de evidência?",
-    a: "Não. A IA interpreta, resume e traduz os estudos para uma linguagem acessível, mas não é a fonte primária da classificação. A escala de evidência é definida por critérios editoriais fixos e toda publicação passa por revisão humana antes de ir ao ar.",
+    q: "Qual é a diferença entre uma notícia e a Biblioteca Científica?",
+    a: "A notícia é uma pauta editorial original, escrita em linguagem acessível a partir de um ou mais estudos, com contexto e explicação. A Biblioteca Científica reúne verbetes e registros de referência sobre estudos e temas, organizados para consulta. O estudo é a fonte; a publicação é o produto editorial construído a partir dela.",
   },
   {
-    q: "Existe conteúdo publicado de forma totalmente automática?",
-    a: "Não. Na fase atual do projeto, nenhum conteúdo é publicado sem revisão humana. A automação apoia a triagem e o resumo, mas a decisão de publicar é sempre de uma pessoa responsável.",
+    q: "O Protocolo 5R apenas traduz ou resume estudos?",
+    a: "Não. Os estudos são utilizados como fontes para a construção de pautas editoriais originais. A publicação reúne, contextualiza e explica achados, sempre respeitando o alcance das fontes e diferenciando hipóteses, associações, mecanismos e efeitos clínicos demonstrados.",
   },
   {
     q: "O que significam as classificações A, B, C e D?",
-    a: "São graus de confiança na evidência disponível. A indica evidência forte (revisões sistemáticas, meta-análises, diretrizes); B, evidência moderada; C, evidência limitada; e D, evidência insuficiente. Cada grau tem um teto: não pode afirmar mais do que o desenho dos estudos permite.",
+    a: "São graus de confiança na evidência disponível. A indica evidência forte (revisões sistemáticas, meta-análises, diretrizes); B, evidência moderada; C, evidência limitada; e D, evidência insuficiente. Cada grau tem um teto: não afirma mais do que o desenho dos estudos permite. A classificação é uma referência secundária que acompanha o conteúdo, não um selo de recomendação.",
+  },
+  {
+    q: "Existe conteúdo comercial no portal?",
+    a: "Sim. O portal é mantido também por certificações, parcerias, patrocínios e conteúdos comerciais, incluindo Branded Pages. Toda relação comercial é identificada de forma clara e visível, e nunca é ocultada. Os detalhes estão na Política de Publicidade e Parcerias.",
   },
   {
     q: "Como reporto um erro que encontrei no portal?",
-    a: "Escreva para " + SITE.contactEmail + " descrevendo o conteúdo e o problema. Todo erro relevante é corrigido de forma transparente e registrado conforme a nossa Política de Correções.",
+    a: "Escreva para " + SITE.contactEmail + " descrevendo o conteúdo e o problema. O procedimento completo está descrito na Política de Correções.",
   },
   {
     q: "O conteúdo do Protocolo 5R substitui uma consulta profissional?",
@@ -50,23 +54,62 @@ export default function PoliticaEditorialPage() {
       <header className="mb-10 max-w-prose">
         <p className="kicker mb-3">Política editorial e científica</p>
         <h1 className="text-[40px] leading-[1.1] md:text-[46px]">
-          Como o Protocolo 5R trata a evidência
+          Como o Protocolo 5R trata a ciência
         </h1>
         <p className="prose-5r mt-5">
-          Este documento descreve, de forma aberta, como o portal encontra
-          estudos, decide o que entra, avalia a qualidade da evidência, resume os
-          achados e os classifica. A transparência sobre o método é parte do
-          compromisso do {SITE.name}: publicar informação de saúde com rigor,
-          cautela e honestidade sobre os próprios limites.
+          Este documento descreve, de forma aberta, o objetivo editorial do
+          portal, os temas que cobre, os tipos de fontes que utiliza e os
+          critérios que orientam a construção de cada publicação. A transparência
+          sobre o método é parte do compromisso do {SITE.name}: informar sobre
+          saúde com rigor, cautela e honestidade sobre os próprios limites.
         </p>
       </header>
 
       <div className="prose-5r">
-        <h2>Como os estudos são encontrados</h2>
+        <div
+          role="note"
+          className="not-prose my-6 rounded-xl border border-navy/20 bg-mist p-5 text-[15px] leading-relaxed text-navy-deep"
+        >
+          <p className="mb-2 font-serif text-[17px]">Premissa editorial</p>
+          <p>
+            O Protocolo 5R transforma temas científicos relacionados à saúde
+            intestinal, microbiota, alimentação, comportamento e estilo de vida
+            em notícias e conteúdos acessíveis para a população. Os estudos são
+            utilizados como fontes para a construção de pautas editoriais
+            originais. A linguagem de cada publicação deve respeitar o alcance
+            das fontes utilizadas, diferenciando hipóteses, associações,
+            mecanismos e efeitos clínicos demonstrados.
+          </p>
+        </div>
+
+        <h2>Objetivo editorial</h2>
         <p>
-          A base do portal é a literatura científica revisada por pares e os
-          documentos de referência de sociedades e órgãos reconhecidos. A busca é
-          contínua e combina fontes primárias e agregadores:
+          O {SITE.name} existe para tornar a ciência da saúde intestinal e do
+          eixo intestino-cérebro compreensível para o público em geral, sem
+          abrir mão do rigor. O objetivo não é apenas divulgar estudos, mas
+          construir pautas editoriais originais que expliquem, contextualizem e
+          conectem achados científicos ao cotidiano de quem lê — sempre dentro
+          dos limites do que a evidência sustenta.
+        </p>
+
+        <h2>Temas cobertos</h2>
+        <p>
+          O escopo editorial reúne os temas em torno dos quais o Protocolo 5R se
+          organiza:
+        </p>
+        <ul>
+          <li>saúde intestinal e funcionamento do trato digestivo;</li>
+          <li>microbiota e sua relação com a saúde;</li>
+          <li>alimentação, nutrientes e padrões alimentares;</li>
+          <li>comportamento, sono, estresse e eixo intestino-cérebro;</li>
+          <li>estilo de vida e hábitos com impacto sobre a saúde intestinal.</li>
+        </ul>
+
+        <h2>Tipos de fontes</h2>
+        <p>
+          A base do conteúdo é a literatura científica revisada por pares e os
+          documentos de referência de sociedades e órgãos reconhecidos. Entre as
+          fontes utilizadas estão:
         </p>
         <ul>
           <li>
@@ -79,8 +122,8 @@ export default function PoliticaEditorialPage() {
             como tal.
           </li>
           <li>
-            <strong>Crossref</strong> — metadados e DOIs para rastrear a origem,
-            a versão e as citações de cada publicação.
+            <strong>Crossref</strong> — metadados e DOIs para rastrear a origem, a
+            versão e as citações de cada publicação.
           </li>
           <li>
             <strong>Diretrizes (guidelines) e consensos</strong> de sociedades
@@ -94,109 +137,86 @@ export default function PoliticaEditorialPage() {
           </li>
         </ul>
         <p>
-          A prioridade é sempre a fonte primária. Agregadores e ferramentas de
-          busca ajudam a localizar o material, mas a leitura e a interpretação
-          partem do estudo original, não de resumos de terceiros.
+          A prioridade é sempre a fonte primária. Agregadores e bases de busca
+          ajudam a localizar o material, mas a leitura e a interpretação partem
+          do estudo original, não de resumos de terceiros.
         </p>
 
-        <h2>Critérios de inclusão e exclusão</h2>
+        <h2>Notícia e Biblioteca Científica</h2>
         <p>
-          Nem todo estudo publicado se torna conteúdo. Antes de entrar na base, um
-          estudo passa por uma triagem editorial com critérios explícitos.
-        </p>
-        <h3>Incluímos preferencialmente</h3>
-        <ul>
-          <li>Revisões sistemáticas, meta-análises e diretrizes atualizadas.</li>
-          <li>
-            Ensaios clínicos e coortes com desenho descrito, população definida e
-            desfechos claros.
-          </li>
-          <li>
-            Estudos relevantes ao escopo do Protocolo 5R: saúde intestinal,
-            microbiota e eixo intestino-cérebro.
-          </li>
-          <li>Publicações com fonte, metodologia e conflitos de interesse rastreáveis.</li>
-        </ul>
-        <h3>Excluímos ou sinalizamos com cautela</h3>
-        <ul>
-          <li>
-            Estudos sem revisão por pares apresentados como conclusivos, quando
-            usados fora do contexto de hipótese.
-          </li>
-          <li>
-            Resultados pré-clínicos ou mecanísticos apresentados como se fossem
-            efeito clínico comprovado.
-          </li>
-          <li>
-            Conteúdo promocional, opinião sem base metodológica ou fontes sem
-            rastreabilidade.
-          </li>
-          <li>
-            Trabalhos com conflito de interesse não declarado que comprometa a
-            leitura dos resultados.
-          </li>
-        </ul>
-
-        <h2>Como os estudos são avaliados</h2>
-        <p>
-          A avaliação considera o desenho do estudo, o tamanho e a
-          representatividade da amostra, a consistência com outros achados, a
-          qualidade metodológica e a aplicabilidade à prática. Um resultado
-          isolado, por mais chamativo, não altera sozinho a classificação de um
-          tema: o que pesa é o conjunto da evidência e a sua replicação.
-        </p>
-        <p>
-          Há uma trava de proporcionalidade em todo o processo: um nível de
-          evidência não pode declarar mais do que o seu desenho permite. Um
-          achado de laboratório sugere hipótese; não prova benefício em pessoas.
-        </p>
-
-        <h2>Como os estudos são resumidos</h2>
-        <p>
-          O resumo busca fidelidade ao estudo original e clareza para quem não é
-          especialista. Preservamos o que o estudo de fato mediu, a população
-          envolvida e as limitações reconhecidas pelos próprios autores. Evitamos
-          exageros, extrapolações e a transformação de associação em causa.
-        </p>
-
-        <h2>O papel da inteligência artificial</h2>
-        <p>
-          A inteligência artificial é uma ferramenta de apoio ao trabalho
-          editorial, não a autoridade final. Ela ajuda a triar volumes grandes de
-          literatura, a resumir textos técnicos e a gerar uma linguagem mais
-          acessível. Deixamos explícitos os seus limites:
+          O portal publica em dois formatos complementares, com propósitos
+          distintos:
         </p>
         <ul>
           <li>
-            A IA <strong>interpreta, resume e traduz</strong> os estudos para uma
-            linguagem clara.
+            <strong>Notícia:</strong> pauta editorial original, escrita em
+            linguagem acessível a partir de uma ou mais fontes científicas.
+            Explica, contextualiza e conecta achados ao interesse do público.
           </li>
           <li>
-            A IA <strong>não é a fonte primária da classificação</strong> de
-            evidência. A escala A–D segue critérios editoriais fixos.
-          </li>
-          <li>
-            A IA <strong>não publica sozinha</strong>. Toda saída passa por
-            conferência humana.
+            <strong>Biblioteca Científica:</strong> conjunto de verbetes e
+            registros de referência sobre estudos e temas, organizados para
+            consulta e para dar rastreabilidade às pautas.
           </li>
         </ul>
 
-        <h2>O papel da revisão humana</h2>
+        <h2>O estudo é fonte, não produto</h2>
         <p>
-          A revisão humana é obrigatória antes de qualquer publicação. Na fase
-          atual do projeto <strong>não existe publicação 100% automática</strong>:
-          uma pessoa responsável confere se o resumo é fiel à fonte, se a
-          classificação de evidência é proporcional ao desenho dos estudos e se a
-          linguagem respeita a voz educacional e cautelosa do portal. A decisão de
-          publicar é sempre humana.
+          Um artigo científico não é publicado como se fosse o conteúdo final. Ele
+          é a <strong>fonte</strong> a partir da qual se constrói uma pauta
+          original. Isso significa reunir o que o estudo de fato mediu, a
+          população envolvida, as limitações reconhecidas pelos autores e o
+          contexto de outros trabalhos sobre o tema. O produto editorial é a
+          explicação — não o resumo mecânico de um único artigo.
         </p>
 
-        <h2>Classificação de evidência</h2>
+        <h2>Critérios de precisão</h2>
         <p>
-          Cada tema recebe um grau que comunica a confiança da evidência
-          disponível. A escala é adaptada de padrões de evidência reconhecidos,
-          com uma trava importante: cada grau tem um teto — aquilo que ele
-          <em> não</em> autoriza afirmar. O nível D nunca declara efeito clínico.
+          Cada publicação busca fidelidade ao que as fontes sustentam. Preservamos
+          o que o estudo mediu, a população estudada e as limitações declaradas.
+          Evitamos exageros, extrapolações e a transformação de associação em
+          causa. Um resultado isolado, por mais chamativo, não altera sozinho o
+          entendimento de um tema: o que pesa é o conjunto da evidência e a sua
+          replicação.
+        </p>
+
+        <h2>Linguagem proporcional às fontes</h2>
+        <p>
+          A linguagem de cada publicação respeita o alcance das fontes utilizadas.
+          Há uma trava de proporcionalidade em todo o conteúdo: um texto não pode
+          declarar mais do que o desenho dos estudos permite. Por isso, diferentes
+          níveis de afirmação recebem palavras diferentes:
+        </p>
+        <ul>
+          <li>
+            <strong>Associação:</strong> dois fatores aparecem relacionados nos
+            dados, sem que isso demonstre que um cause o outro.
+          </li>
+          <li>
+            <strong>Hipótese:</strong> uma explicação plausível ainda em
+            investigação, que precisa de confirmação.
+          </li>
+          <li>
+            <strong>Mecanismo:</strong> um caminho biológico que explica como algo
+            poderia acontecer, muitas vezes observado em laboratório ou modelos.
+          </li>
+          <li>
+            <strong>Efeito clínico demonstrado:</strong> um benefício ou dano
+            medido em pessoas, em estudos de desenho adequado e, idealmente,
+            replicado.
+          </li>
+        </ul>
+        <p>
+          Confundir esses níveis é a origem mais comum da desinformação em saúde.
+          Mantê-los separados é um critério editorial central do portal.
+        </p>
+
+        <h2>Classificação de evidência A–D</h2>
+        <p>
+          Como referência secundária, os temas podem receber um grau que comunica
+          a confiança da evidência disponível. A escala é adaptada de padrões de
+          evidência reconhecidos e cada grau tem um teto — aquilo que ele{" "}
+          <em>não</em> autoriza afirmar. O nível D nunca declara efeito clínico.
         </p>
 
         <div className="not-prose my-6 grid gap-4 sm:grid-cols-2">
@@ -233,42 +253,66 @@ export default function PoliticaEditorialPage() {
           })}
         </div>
 
+        <h2>Conteúdo comercial e Branded Pages</h2>
+        <p>
+          O {SITE.name} é uma iniciativa da {SITE.legalName} e pode ser mantido
+          por receitas de certificações, empresas parceiras, patrocinadores,
+          projetos especiais e conteúdos comerciais. Isso inclui conteúdo
+          patrocinado e <strong>Branded Pages</strong> — páginas produzidas em
+          relação comercial com uma marca. A existência de uma relação comercial
+          nunca é ocultada: esses conteúdos são identificados de forma clara e
+          visível. A presença de uma marca, produto ou serviço no portal não
+          representa recomendação individual. As regras completas estão na{" "}
+          <a href="/legal/publicidade-parcerias">Política de Publicidade e Parcerias</a>.
+        </p>
+
         <h2>Conflitos de interesse</h2>
         <p>
           Buscamos identificar e sinalizar conflitos de interesse relevantes nos
           estudos citados — financiamento, vínculos comerciais ou patrocínio que
-          possam influenciar a leitura dos resultados. O {SITE.name} é um projeto
-          editorial da {SITE.legalName} e não vende os produtos ou intervenções
-          discutidos no conteúdo. Quando houver qualquer relação que possa
-          configurar conflito, ela será declarada de forma visível.
+          possam influenciar a leitura dos resultados. Da mesma forma, quando o
+          próprio conteúdo do portal decorre de uma relação comercial, essa
+          relação é declarada de forma visível.
         </p>
 
-        <h2>Atualização</h2>
+        <h2>Patrocínios</h2>
         <p>
-          A ciência muda. Um tema classificado hoje pode ser reavaliado quando
-          surgem novas revisões, diretrizes ou ensaios relevantes. O conteúdo é
-          revisado periodicamente e a classificação de evidência pode subir ou
-          descer conforme o conjunto de estudos evolui. A data de atualização
-          acompanha os conteúdos que dependem do estado atual da literatura.
+          Patrocínios sustentam parte da operação do portal e são sempre
+          sinalizados. Um patrocínio não altera a proporcionalidade entre a
+          linguagem e as fontes: mesmo em conteúdo apoiado comercialmente, os
+          critérios de precisão e a distinção entre associação, hipótese,
+          mecanismo e efeito clínico continuam valendo. A separação entre
+          conteúdo editorial e conteúdo comercial é detalhada na{" "}
+          <a href="/legal/publicidade-parcerias">Política de Publicidade e Parcerias</a>.
         </p>
 
         <h2>Correções</h2>
         <p>
-          Erros acontecem e são corrigidos de forma aberta. Se você encontrar uma
-          imprecisão, escreva para{" "}
+          Se você encontrar uma imprecisão, escreva para{" "}
           <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>. O
-          procedimento completo — como reportar, como corrigimos e como
-          registramos as mudanças — está descrito na{" "}
+          procedimento completo — como reportar, como os relatos são avaliados e
+          como as mudanças são registradas — está descrito na{" "}
           <a href="/legal/correcoes">Política de Correções</a>.
         </p>
 
-        <h2>Fontes</h2>
+        <h2>Atualizações</h2>
         <p>
-          As fontes primárias do portal são a literatura científica revisada por
-          pares indexada em PubMed/MEDLINE e Europe PMC, os metadados de
-          publicação do Crossref e os documentos de diretrizes e consensos de
-          sociedades científicas e órgãos de saúde. Sempre que possível, o
-          conteúdo remete à publicação original.
+          A ciência muda. Um tema tratado hoje pode ser reavaliado quando surgem
+          novas revisões, diretrizes ou ensaios relevantes. O conteúdo pode ser
+          atualizado e a classificação de evidência pode subir ou descer conforme
+          o conjunto de estudos evolui. A data de atualização acompanha os
+          conteúdos que dependem do estado atual da literatura.
+        </p>
+
+        <h2>Autoria e colaboradores</h2>
+        <p>
+          A autoria padrão das publicações é da <strong>Redação Protocolo 5R</strong>,
+          que responde editorialmente pelo conteúdo. Nomes de autores, revisores
+          ou colaboradores aparecem apenas quando a participação é real e
+          confirmada — o portal não atribui conteúdo a pessoas ou especialistas
+          que não tenham efetivamente contribuído. Quando um conselho científico
+          ou colaboradores forem formalizados, serão identificados de forma
+          nominal.
         </p>
 
         <h2>Limites da informação</h2>
@@ -280,6 +324,13 @@ export default function PoliticaEditorialPage() {
           habilitado. A decisão clínica pertence ao profissional que avalia cada
           pessoa individualmente. Consulte também o{" "}
           <a href="/legal/aviso-medico">Aviso Educacional e Médico</a>.
+        </p>
+
+        <h2>Contato</h2>
+        <p>
+          Dúvidas sobre esta política, sugestões de pauta e contatos institucionais
+          podem ser enviados para{" "}
+          <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>.
         </p>
 
         <h2>Perguntas frequentes</h2>
