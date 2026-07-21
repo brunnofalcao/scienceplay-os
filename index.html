@@ -164,6 +164,16 @@ body { font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-seri
 .pop-kb-card.late { border-left:3px solid var(--red); }
 .pop-kb-title { font-size:12.5px; font-weight:600; line-height:1.35; }
 @media (max-width: 900px) { .pop-kanban { grid-template-columns:repeat(2, minmax(160px, 1fr)); } }
+.pop-cron-month { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; color:var(--purple); margin:16px 0 6px; }
+.pop-cron-month:first-child { margin-top:0; }
+.pop-cron-row { display:flex; align-items:center; gap:10px; padding:7px 4px; border-bottom:1px solid var(--border); font-size:13px; }
+.pop-cron-row:last-child { border-bottom:none; }
+.pop-cron-row.late .pop-cron-title { color:var(--red); }
+.pop-cron-row.done { opacity:0.55; }
+.pop-cron-row.done .pop-cron-title { text-decoration:line-through; }
+.pop-cron-date { font-weight:700; white-space:nowrap; min-width:78px; }
+.pop-cron-off { font-size:10px; background:var(--purple-light); color:var(--purple-dark); padding:1px 7px; border-radius:6px; white-space:nowrap; }
+.pop-cron-title { flex:1; min-width:0; }
 .kpi-card { background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius); padding:24px; box-shadow:var(--card-shadow); transition:all var(--duration) var(--ease); }
 .kpi-card:hover { box-shadow:var(--card-shadow-hover); transform:translateY(-1px); }
 .kpi-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px; }
@@ -1120,7 +1130,7 @@ const state = {
   dataLoading: false, dataLoadError: false, lastDataLoadAt: null, collectionSources: {},
   suppliers: [], supplierCategories: [], supplierCatLinks: [], venues: [], venueSuppliers: [],
   eventSuppliers: [], taskDocuments: [], popModules: [], popFilters: { module: '', status: '', resp: '', search: '' },
-  taskDeps: [], popView: 'lista',
+  taskDeps: [], popView: 'lista', popLessons: [],
 };
 
 
@@ -3797,6 +3807,7 @@ async function loadAllData() {
     sb.from('task_documents').select('*'),
     sb.from('pop_modules').select('*').order('sort_order'),
     sb.from('task_dependencies').select('*'),
+    sb.from('pop_lessons').select('*').order('created_at', { ascending: false }),
   ]);
   // Falha em consulta crítica NUNCA pode virar zero silencioso:
   // sinaliza erro para o dashboard exibir estado de erro com retry.
@@ -3826,6 +3837,7 @@ async function loadAllData() {
   state.taskDocuments = gd(results[18]);
   state.popModules = gd(results[19]);
   state.taskDeps = gd(results[20]);
+  state.popLessons = gd(results[21]);
   await loadCollections();
   await autoFinalizeEvents();
   state.dataLoading = false;
@@ -6631,8 +6643,10 @@ function renderEventPop(ev, container) {
   const mods = [...new Set(all.map(t => t.module_key))].sort((a,b) => popModuleSort(a) - popModuleSort(b));
   html += '<div class="filters-bar" style="justify-content:space-between;"><div style="display:flex;gap:8px;">' +
     '<button class="btn btn-sm ' + (state.popView === 'lista' ? 'btn-primary' : 'btn-outline') + '" onclick="state.popView=\'lista\';popRerender()">☰ Lista</button>' +
-    '<button class="btn btn-sm ' + (state.popView === 'kanban' ? 'btn-primary' : 'btn-outline') + '" onclick="state.popView=\'kanban\';popRerender()">▦ Kanban</button></div>' +
-    '<button class="btn btn-outline btn-sm" onclick="popExportCsv(\'' + ev.id + '\')">⬇ Exportar CSV</button></div>';
+    '<button class="btn btn-sm ' + (state.popView === 'kanban' ? 'btn-primary' : 'btn-outline') + '" onclick="state.popView=\'kanban\';popRerender()">▦ Kanban</button>' +
+    '<button class="btn btn-sm ' + (state.popView === 'cronograma' ? 'btn-primary' : 'btn-outline') + '" onclick="state.popView=\'cronograma\';popRerender()">🗓 Cronograma</button></div>' +
+    '<div style="display:flex;gap:8px;"><button class="btn btn-outline btn-sm" onclick="popExecReport(\'' + ev.id + '\')">🖨 Relatório Executivo</button>' +
+    '<button class="btn btn-outline btn-sm" onclick="popExportCsv(\'' + ev.id + '\')">⬇ Exportar CSV</button></div></div>';
   html += '<div class="filters-bar">' +
     '<select class="filter-select" onchange="state.popFilters.module=this.value;popRerender()"><option value="">Todos os módulos</option>' + mods.map(m => '<option value="' + m + '"' + (f.module === m ? ' selected' : '') + '>' + escHtml(popModuleName(m)) + '</option>').join('') + '</select>' +
     '<select class="filter-select" onchange="state.popFilters.status=this.value;popRerender()"><option value="">Todos os status</option>' + POP_STATUSES.map(s => '<option value="' + s[0] + '"' + (f.status === s[0] ? ' selected' : '') + '>' + s[1] + '</option>').join('') + '</select>' +
@@ -6673,6 +6687,32 @@ function renderEventPop(ev, container) {
     }).join('') + '</div>';
     const hidden = filtered.length - kbTasks.length;
     if (hidden > 0) html += '<div class="chart-note">' + hidden + ' tarefa(s) não aplicáveis/canceladas ocultas no Kanban.</div>';
+  } else if (state.popView === 'cronograma') {
+    // Cronograma: tarefas agrupadas por mês, ordem cronológica
+    const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const dated = filtered.filter(t => t.due_date && t.pop_status !== 'nao_aplicavel' && t.pop_status !== 'cancelada')
+      .sort((a,b) => a.due_date < b.due_date ? -1 : 1);
+    const undated = filtered.filter(t => !t.due_date && t.pop_status !== 'nao_aplicavel' && t.pop_status !== 'cancelada');
+    let curMonth = '';
+    html += '<div class="card" style="margin-bottom:20px;"><div class="card-body">';
+    if (!dated.length) html += '<div class="list-empty">Nenhuma tarefa com prazo definido nos filtros atuais.</div>';
+    dated.forEach(t => {
+      const m = t.due_date.slice(0, 7);
+      if (m !== curMonth) {
+        curMonth = m;
+        const [y, mo] = m.split('-');
+        html += '<div class="pop-cron-month">' + monthNames[parseInt(mo) - 1] + ' ' + y + '</div>';
+      }
+      const eff = getEffectiveStatus(t);
+      html += '<div class="pop-cron-row' + (eff === 'atrasada' ? ' late' : '') + (t.pop_status === 'concluida' ? ' done' : '') + '">' +
+        '<span class="pop-cron-date">' + formatDate(t.due_date) + '</span>' +
+        '<span class="pop-cron-off">D' + (t.day_offset >= 0 ? '+' + t.day_offset : t.day_offset) + '</span>' +
+        '<span class="pop-cron-title">' + escHtml(t.title) + (t.criticality === 'critica' ? ' <b style="color:var(--red);">•</b>' : '') + '</span>' +
+        '<span class="crit-sub">' + escHtml(popModuleName(t.module_key)) + '</span>' +
+        '<span class="badge badge-' + popStatusColor(t.pop_status) + '" style="font-size:10px;">' + popStatusLabel(t.pop_status) + '</span></div>';
+    });
+    if (undated.length) html += '<div class="chart-note">' + undated.length + ' tarefa(s) sem prazo definido — não aparecem no cronograma (tarefa sem prazo não está "em dia").</div>';
+    html += '</div></div>';
   } else {
     mods.forEach(mk => {
       const mtasks = filtered.filter(t => t.module_key === mk).sort((a,b) => (a.due_date || '9999') < (b.due_date || '9999') ? -1 : 1);
@@ -6699,7 +6739,134 @@ function renderEventPop(ev, container) {
       '<div class="chart-note">Estágios distintos: cotação não é despesa realizada; contrato não é pagamento. Lançamentos no DRE são feitos por tarefa.</div></div></div>';
   }
 
+  // ---- Pós-mortem: lições aprendidas → evolução do POP ----
+  const lessons = state.popLessons.filter(l => l.event_id === ev.id);
+  const isPos = ev.status === 'pos-evento' || ev.status === 'encerrado';
+  if (isPos || lessons.length) {
+    const approved = lessons.filter(l => l.status === 'aprovada');
+    html += '<div class="card" style="margin-bottom:20px;"><div class="card-header"><h3>🎓 Lições Aprendidas (Pós-mortem)</h3>' +
+      (can('pop.edit') ? '<button class="btn btn-outline btn-sm" onclick="popOpenLesson(\'' + ev.id + '\')">+ Registrar lição</button>' : '') + '</div>' +
+      '<div class="card-body">' +
+      (lessons.length ? lessons.map(l =>
+        '<div class="crit-row"><div style="flex:1;"><div class="crit-title">' + escHtml(l.lesson) + '</div>' +
+        (l.proposal ? '<div class="crit-sub">Proposta de alteração do POP: ' + escHtml(l.proposal) + '</div>' : '') + '</div>' +
+        '<div style="display:flex;gap:6px;align-items:center;">' +
+        (can('pop.approve') && l.status === 'registrada'
+          ? '<button class="btn btn-outline btn-sm" onclick="popLessonStatus(\'' + l.id + '\',\'aprovada\')">Aprovar</button><button class="btn btn-outline btn-sm" onclick="popLessonStatus(\'' + l.id + '\',\'descartada\')">Descartar</button>'
+          : '<span class="badge badge-' + (l.status === 'aprovada' ? 'green' : l.status === 'aplicada' ? 'purple' : 'gray') + '" style="font-size:10px;">' + l.status + '</span>') +
+        '</div></div>').join('')
+      : '<div class="list-empty">Nenhuma lição registrada ainda.</div>') +
+      (approved.length && can('pop.templates.manage')
+        ? '<div style="margin-top:14px;"><button class="btn btn-primary btn-sm" onclick="popCreateTemplateVersion()">Gerar nova versão do POP Mestre com ' + approved.length + ' lição(ões) aprovada(s)</button>' +
+          '<div class="chart-note">Cria uma nova versão em rascunho — o POP Mestre atual e os eventos existentes não são alterados.</div></div>' : '') +
+      '</div></div>';
+  }
+
   container.innerHTML = html;
+}
+
+function popOpenLesson(eventId) {
+  openModal('Registrar Lição Aprendida',
+    '<div class="form-group"><label>Lição aprendida</label><textarea class="form-control" id="lesson-text" placeholder="O que aprendemos nesta edição?"></textarea></div>' +
+    '<div class="form-group"><label>Proposta de alteração do POP (opcional)</label><textarea class="form-control" id="lesson-proposal" placeholder="Como o Template Mestre deveria mudar?"></textarea></div>',
+    '<button class="btn btn-outline" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="popSaveLesson(\'' + eventId + '\')">Registrar</button>');
+}
+async function popSaveLesson(eventId) {
+  const lesson = $('lesson-text').value.trim();
+  if (!lesson) { alert('Descreva a lição aprendida.'); return; }
+  const { data, error } = await sb.from('pop_lessons').insert({ event_id: eventId, lesson: lesson, proposal: $('lesson-proposal').value.trim() || null, created_by: state.user?.id || null }).select().single();
+  if (error) { alert('Erro: ' + error.message); return; }
+  state.popLessons.unshift(data);
+  logAudit('pop.lesson.create', 'pop_lessons', data.id, { lesson: lesson });
+  closeModal(); popRerender();
+}
+async function popLessonStatus(lessonId, status) {
+  const { error } = await sb.from('pop_lessons').update({ status: status }).eq('id', lessonId);
+  if (error) { alert('Erro: ' + error.message); return; }
+  const l = state.popLessons.find(x => x.id === lessonId);
+  if (l) l.status = status;
+  logAudit('pop.lesson.' + status, 'pop_lessons', lessonId, null);
+  popRerender();
+}
+
+// Nova versão do Template Mestre a partir das lições aprovadas.
+// A versão anterior é preservada; a nova nasce em rascunho.
+async function popCreateTemplateVersion() {
+  if (!can('pop.templates.manage')) return;
+  const master = state.templates.filter(t => t.template_kind === 'master' && t.status === 'publicado').sort((a,b) => (b.version||1) - (a.version||1))[0];
+  if (!master) { alert('Nenhum Template Mestre publicado encontrado.'); return; }
+  const approved = state.popLessons.filter(l => l.status === 'aprovada');
+  if (!confirm('Criar a versão v' + ((master.version||1) + 1) + ' do "' + master.name + '" em rascunho, com changelog das ' + approved.length + ' lições aprovadas?')) return;
+  const newVersion = (master.version || 1) + 1;
+  const baseName = master.name.replace(/ · v\d+$/, '');
+  const changelog = approved.map(l => '- ' + l.lesson + (l.proposal ? ' → ' + l.proposal : '')).join('\n');
+  const { data: nt, error } = await sb.from('templates').insert({
+    name: baseName + ' · v' + newVersion, event_type: master.event_type, description: master.description,
+    template_kind: 'master', version: newVersion, status: 'rascunho', changelog: changelog,
+  }).select().single();
+  if (error) { alert('Erro ao criar versão: ' + error.message); return; }
+  // Copia módulos, atividades e gates da versão anterior
+  const mods = state.popModules.filter(m => m.template_id === master.id).map(m => ({ template_id: nt.id, module_key: m.module_key, name: m.name, objective: m.objective, sort_order: m.sort_order }));
+  if (mods.length) await sb.from('pop_modules').insert(mods);
+  const tts = state.templateTasks.filter(t => t.template_id === master.id).map(t => {
+    const c = Object.assign({}, t, { template_id: nt.id }); delete c.id; delete c.created_at; return c;
+  });
+  if (tts.length) await sb.from('template_tasks').insert(tts);
+  const cts = state.checkpointTemplates.filter(c => c.template_id === master.id).map(c => {
+    const x = Object.assign({}, c, { template_id: nt.id }); delete x.id; delete x.created_at; return x;
+  });
+  if (cts.length) await sb.from('checkpoint_templates').insert(cts);
+  for (const l of approved) await sb.from('pop_lessons').update({ status: 'aplicada' }).eq('id', l.id);
+  approved.forEach(l => { l.status = 'aplicada'; });
+  logAudit('pop.template.new_version', 'templates', nt.id, { from: master.id, version: newVersion, lessons: approved.length });
+  alert('Versão v' + newVersion + ' criada em rascunho.\n\nRevise as atividades em Templates POP e publique quando estiver pronta (somente a versão publicada é usada em novos eventos). As alterações propostas pelas lições devem ser aplicadas manualmente na nova versão — nada foi alterado automaticamente.');
+  await loadAllData();
+}
+
+// Relatório executivo do POP — janela imprimível (PDF via imprimir do navegador)
+function popExecReport(eventId) {
+  const ev = state.events.find(e => e.id === eventId);
+  if (!ev) return;
+  const all = state.tasks.filter(t => t.event_id === eventId && t.module_key);
+  const prog = popProgress(all);
+  const overdue = all.filter(t => getEffectiveStatus(t) === 'atrasada');
+  const blocked = all.filter(t => t.pop_status === 'bloqueada');
+  const critOpen = all.filter(t => t.criticality === 'critica' && !['concluida','nao_aplicavel','cancelada'].includes(t.pop_status));
+  const decisions = all.filter(t => popIsConditionParent(eventId, t) && !t.decision_value);
+  const cps = state.checkpoints.filter(c => c.event_id === eventId && c.status === 'pendente')
+    .map(c => ({ c: c, d: ev.event_date ? addDays(ev.event_date, c.deadline_offset || 0) : null }))
+    .sort((a,b) => (a.d || '9999') < (b.d || '9999') ? -1 : 1).slice(0, 8);
+  const contracted = all.filter(t => t.supplier_id && t.pop_status === 'contratada');
+  const mods = [...new Set(all.map(t => t.module_key))].sort((a,b) => popModuleSort(a) - popModuleSort(b));
+  const cost = (arr, k) => arr.reduce((s,t) => s + (parseFloat(t[k]) || 0), 0);
+  const money = v => 'R$ ' + (v || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  const li = arr => arr.length ? '<ul>' + arr.join('') + '</ul>' : '<p class="ok">Nenhum item.</p>';
+  const w = window.open('', '_blank');
+  if (!w) { alert('Permita pop-ups para gerar o relatório.'); return; }
+  w.document.write('<html><head><title>Relatório Executivo do POP — ' + escHtml(ev.name) + '</title><style>' +
+    'body{font-family:Inter,Arial,sans-serif;margin:32px;color:#1A1225;font-size:13px;}h1{font-size:20px;}h2{font-size:15px;margin-top:24px;border-bottom:1px solid #ddd;padding-bottom:4px;}' +
+    'table{border-collapse:collapse;width:100%;}td,th{border:1px solid #ddd;padding:6px 8px;text-align:left;font-size:12px;}th{background:#F3EEFF;}' +
+    '.kpis{display:flex;gap:16px;flex-wrap:wrap;margin:12px 0;}.kpi{border:1px solid #ddd;border-radius:8px;padding:10px 14px;}.kpi b{font-size:18px;display:block;}' +
+    '.ok{color:#059669;}ul{margin:6px 0;padding-left:18px;}li{margin:3px 0;}.muted{color:#777;font-size:11px;}@media print{body{margin:12mm;}}</style></head><body>' +
+    '<h1>Relatório Executivo do POP — ' + escHtml(ev.name) + '</h1>' +
+    '<p class="muted">Gerado em ' + new Date().toLocaleString('pt-BR') + ' · Evento em ' + (ev.event_date ? formatDate(ev.event_date) : 'sem data') + ' · Fonte: Supabase (dados reais)</p>' +
+    '<div class="kpis"><div class="kpi"><b>' + prog.pct + '%</b>Progresso (' + prog.done + '/' + prog.total + ')</div>' +
+    '<div class="kpi"><b>' + prog.pctW + '%</b>Ponderado</div><div class="kpi"><b>' + overdue.length + '</b>Atrasadas</div>' +
+    '<div class="kpi"><b>' + blocked.length + '</b>Bloqueadas</div><div class="kpi"><b>' + critOpen.length + '</b>Críticas em aberto</div>' +
+    '<div class="kpi"><b>' + decisions.length + '</b>Decisões pendentes</div></div>' +
+    '<h2>Riscos — tarefas atrasadas</h2>' + li(overdue.slice(0, 15).map(t => '<li>' + escHtml(t.title) + ' (' + escHtml(popModuleName(t.module_key)) + ', prazo ' + formatDate(t.due_date) + ')</li>')) +
+    (overdue.length > 15 ? '<p class="muted">+ ' + (overdue.length - 15) + ' outras.</p>' : '') +
+    '<h2>Decisões pendentes (condicionais)</h2>' + li(decisions.map(t => '<li>' + escHtml(t.title) + '</li>')) +
+    '<h2>Próximos marcos (Go/No-Go)</h2>' + li(cps.map(x => '<li>' + escHtml(x.c.name) + ' — ' + (x.d ? formatDate(x.d) : 'sem data') + ' (decisor: ' + escHtml(x.c.decisor || '—') + ')</li>')) +
+    '<h2>Fornecedores contratados</h2>' + li(contracted.map(t => '<li>' + escHtml((state.suppliers.find(s => s.id === t.supplier_id) || {}).name || '') + ' — ' + escHtml(t.title) + (t.cost_contracted ? ' (' + money(parseFloat(t.cost_contracted)) + ')' : '') + '</li>')) +
+    '<h2>Orçamento por módulo</h2><table><tr><th>Módulo</th><th>Previsto</th><th>Contratado</th><th>Realizado</th><th>Pago</th></tr>' +
+    mods.map(mk => { const mt = all.filter(t => t.module_key === mk);
+      if (!cost(mt,'cost_planned') && !cost(mt,'cost_contracted') && !cost(mt,'cost_actual') && !cost(mt,'cost_paid')) return '';
+      return '<tr><td>' + escHtml(popModuleName(mk)) + '</td><td>' + money(cost(mt,'cost_planned')) + '</td><td>' + money(cost(mt,'cost_contracted')) + '</td><td>' + money(cost(mt,'cost_actual')) + '</td><td>' + money(cost(mt,'cost_paid')) + '</td></tr>'; }).join('') +
+    '</table><p class="muted">Cotação não é despesa realizada; contrato não é pagamento. Imprima com Ctrl/Cmd+P para gerar PDF.</p>' +
+    '</body></html>');
+  w.document.close();
+  logAudit('pop.report.executive', 'tasks', eventId, null);
 }
 
 function popTaskRow(ev, t) {
@@ -6910,11 +7077,25 @@ async function popLaunchDre(taskId) {
   closeModal(); popRerender();
 }
 
+function popDocLink(d) {
+  // Documentos no Storage têm url 'storage:<path>' e abrem via URL assinada
+  if ((d.url || '').startsWith('storage:')) {
+    return '<a href="#" onclick="popOpenStorageDoc(\'' + d.id + '\');return false;">' + escHtml(d.name) + ' <span class="badge badge-purple" style="font-size:9px;">arquivo</span></a>';
+  }
+  return '<a href="' + escHtml(d.url) + '" target="_blank" rel="noopener">' + escHtml(d.name) + '</a>';
+}
+async function popOpenStorageDoc(docId) {
+  const d = state.taskDocuments.find(x => x.id === docId); if (!d) return;
+  const path = d.url.slice('storage:'.length);
+  const { data, error } = await sb.storage.from('event-docs').createSignedUrl(path, 3600);
+  if (error || !data?.signedUrl) { alert('Não foi possível abrir o arquivo: ' + (error?.message || 'sem URL')); return; }
+  window.open(data.signedUrl, '_blank');
+}
 function popOpenDocs(taskId) {
   const t = state.tasks.find(x => x.id === taskId); if (!t) return;
   const docs = popTaskDocs(taskId);
   const list = docs.length ? docs.map(d =>
-    '<div class="crit-row"><div><div class="crit-title"><a href="' + escHtml(d.url) + '" target="_blank" rel="noopener">' + escHtml(d.name) + '</a></div><div class="crit-sub">' + escHtml(d.doc_type || 'documento') + '</div></div>' +
+    '<div class="crit-row"><div><div class="crit-title">' + popDocLink(d) + '</div><div class="crit-sub">' + escHtml(d.doc_type || 'documento') + '</div></div>' +
     (can('event.documents.edit') ? '<button class="btn btn-outline btn-sm" onclick="popDeleteDoc(\'' + d.id + '\',\'' + taskId + '\')">Excluir</button>' : '') + '</div>').join('')
     : '<div class="list-empty">Nenhum documento vinculado.</div>';
   openModal('Documentos — ' + escHtml(t.title),
@@ -6922,22 +7103,40 @@ function popOpenDocs(taskId) {
     (can('event.documents.edit') ?
     '<div class="form-row" style="margin-top:14px;"><div class="form-group"><label>Nome</label><input class="form-control" id="doc-name" placeholder="Contrato assinado"></div>' +
     '<div class="form-group"><label>Tipo</label><select class="form-control" id="doc-type"><option>proposta</option><option>contrato</option><option>nota fiscal</option><option>licença</option><option>alvará</option><option>certificado</option><option>comprovante</option><option>planta</option><option>briefing</option><option>arte</option><option>foto de conferência</option><option>outro</option></select></div></div>' +
-    '<div class="form-group"><label>Link (Drive, Dropbox...)</label><input class="form-control" id="doc-url" placeholder="https://..."></div>' : ''),
+    '<div class="form-group"><label>Link (Drive, Dropbox...)</label><input class="form-control" id="doc-url" placeholder="https://..."></div>' +
+    '<div class="form-group"><label>ou envie um arquivo (até 25MB)</label><input type="file" class="form-control" id="doc-file"></div>' : ''),
     '<button class="btn btn-outline" onclick="closeModal()">Fechar</button>' +
-    (can('event.documents.edit') ? '<button class="btn btn-primary" onclick="popAddDoc(\'' + taskId + '\')">Adicionar</button>' : ''));
+    (can('event.documents.edit') ? '<button class="btn btn-primary" id="doc-add-btn" onclick="popAddDoc(\'' + taskId + '\')">Adicionar</button>' : ''));
 }
 async function popAddDoc(taskId) {
   const t = state.tasks.find(x => x.id === taskId); if (!t) return;
-  const name = $('doc-name').value.trim(); const url = $('doc-url').value.trim();
-  if (!name || !url) { alert('Preencha nome e link do documento.'); return; }
+  const name = $('doc-name').value.trim();
+  const link = $('doc-url').value.trim();
+  const file = $('doc-file') && $('doc-file').files.length ? $('doc-file').files[0] : null;
+  if (!name) { alert('Dê um nome ao documento.'); return; }
+  if (!link && !file) { alert('Informe um link ou envie um arquivo.'); return; }
+  let url = link;
+  if (file) {
+    if (file.size > 25 * 1024 * 1024) { alert('Arquivo acima de 25MB. Use um link externo.'); return; }
+    const btn = $('doc-add-btn'); if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
+    const path = t.event_id + '/' + taskId + '/' + Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9._-]+/g, '_');
+    const { error: upErr } = await sb.storage.from('event-docs').upload(path, file);
+    if (btn) { btn.disabled = false; btn.textContent = 'Adicionar'; }
+    if (upErr) { alert('Falha no upload: ' + upErr.message); return; }
+    url = 'storage:' + path;
+  }
   const { data, error } = await sb.from('task_documents').insert({ event_id: t.event_id, task_id: taskId, doc_type: $('doc-type').value, name: name, url: url, uploaded_by: state.user?.id || null }).select().single();
   if (error) { alert('Erro ao salvar documento: ' + error.message); return; }
   state.taskDocuments.push(data);
-  logAudit('pop.document.add', 'task_documents', data.id, { task_id: taskId, name: name });
+  logAudit('pop.document.add', 'task_documents', data.id, { task_id: taskId, name: name, storage: !!file });
   popOpenDocs(taskId); popRerender();
 }
 async function popDeleteDoc(docId, taskId) {
   if (!confirm('Excluir este documento?')) return;
+  const d = state.taskDocuments.find(x => x.id === docId);
+  if (d && (d.url || '').startsWith('storage:')) {
+    await sb.storage.from('event-docs').remove([d.url.slice('storage:'.length)]);
+  }
   await sb.from('task_documents').delete().eq('id', docId);
   state.taskDocuments = state.taskDocuments.filter(d => d.id !== docId);
   logAudit('pop.document.delete', 'task_documents', docId, null);

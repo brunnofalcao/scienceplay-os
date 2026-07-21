@@ -155,7 +155,7 @@ Sistema de POP em 3 camadas, integrado a eventos, tarefas, fornecedores, documen
 
 **Fase 2a (entregue em 21/07/2026)**: visão **Kanban** por status na aba POP; **dependências entre tarefas** (13 vínculos da spec seedados na instância NB 2026 e criados automaticamente em novas gerações; concluir tarefa com dependência aberta é bloqueado com a lista de bloqueadores, responsável e prazo); **exportação CSV** do POP completo.
 
-**Fase 2b (pendente)**: cronograma/calendário, upload nativo (Supabase Storage), relatório executivo em PDF, fluxo de pós-mortem → nova versão do template.
+**Fase 2b (entregue em 21/07/2026)**: visão **Cronograma** (tarefas por mês com chips D-offset); **upload nativo de arquivos** no bucket privado `event-docs` do Supabase Storage (policies por permissão; abertura via URL assinada de 1h; links externos continuam suportados; migração `migration-v10-storage-lessons.sql`); **Relatório Executivo** imprimível/PDF (progresso, riscos, decisões pendentes, marcos Go/No-Go, fornecedores contratados, orçamento por módulo); **fluxo de pós-mortem**: lições aprendidas em `pop_lessons` (registrar → aprovar/descartar → aplicar), com geração de **nova versão do POP Mestre em rascunho** a partir das lições aprovadas — versões anteriores preservadas, changelog automático, e somente versão publicada é usada em novos eventos.
 
 ---
 
