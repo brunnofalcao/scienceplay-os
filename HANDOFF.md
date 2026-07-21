@@ -1,6 +1,6 @@
 # HANDOFF — Science Play OS
 
-**Última atualização:** 09/07/2026 · **Status:** em produção, funcional, dados limpos para operação real
+**Última atualização:** 21/07/2026 · **Status:** em produção; `main` mergeada e alinhada com o que está no ar (PR #1)
 
 Este documento explica o que é o sistema, como ele funciona por dentro, o que foi feito na recuperação/melhoria de julho/2026 e como operar e evoluir a partir daqui.
 
@@ -91,7 +91,7 @@ Regras de honestidade implementadas:
 3. **Migração v8** (`migration-v8-collections.sql`) → `app_collections` + backfill de datas (§2, §4).
 4. **Limpeza de dados fictícios (autorizada)**: removidos 10 eventos de projeção/demo com 444 tarefas, 201 lançamentos (195 projeções de template + 6 em eventos apagados), deals/CS/DD de demonstração. **Mantidos** os 4 eventos realizados com DRE real: Balneário Camboriú, Belo Horizonte, Palestre-se Brasília T14 e Golden Naturaltech. Seeds de demonstração removidos do código — dado fictício não volta.
 
-Todo o trabalho está no branch **`claude/scienceplay-os-recovery-sitqxm`** (pendente de merge na `main` — ver §7).
+Todo o trabalho foi mergeado na **`main`** via PR #1 em 21/07/2026 — a `main` é a fonte oficial e alinhada com a produção.
 
 ---
 
@@ -99,10 +99,10 @@ Todo o trabalho está no branch **`claude/scienceplay-os-recovery-sitqxm`** (pen
 
 ### Publicar uma alteração no site
 
-O deploy atual baixa os arquivos do GitHub no build (`build.js` aponta para um commit específico). Fluxo recomendado:
+O deploy baixa os arquivos do GitHub no build (`build.js` aponta para a **`main`**). Fluxo:
 
-1. Editar `index.html` no branch → merge na `main`.
-2. Redeploy na Vercel (painel do projeto → Redeploy), ou pedir ao Claude.
+1. Editar `index.html` em branch → merge na `main`.
+2. **Redeploy** na Vercel (painel do projeto → botão Redeploy) — o build puxa a `main` mais recente automaticamente — ou pedir ao Claude.
 3. **Melhoria recomendada**: conectar o repositório GitHub ao projeto Vercel (Settings → Git) para todo push na `main` publicar sozinho — elimina o passo manual.
 
 ### Verificar mudanças antes de publicar
@@ -122,7 +122,7 @@ Não há suíte formal, mas existe um harness usado nesta recuperação (Playwri
 
 | Prioridade | Item | Detalhe |
 |---|---|---|
-| 🔴 | **Merge do branch na `main`** | `claude/scienceplay-os-recovery-sitqxm` contém tudo descrito aqui; a `main` ainda tem o código antigo (com o bug do `isAdmin`). Enquanto não houver merge, um redeploy a partir da `main` regride o site. |
+| ✅ | ~~Merge do branch na `main`~~ | Feito em 21/07/2026 (PR #1). |
 | 🔴 | **Conectar GitHub ↔ Vercel** | Deploy automático por push; elimina o `build.js` manual. |
 | 🟠 | Verificar domínio `scienceplay-os.vercel.app` | Confirmar no painel Vercel que o domínio está atribuído ao projeto da conta atual (os aliases do projeto usam o sufixo `-falcao-2727s-projects`). |
 | 🟠 | Módulo de caixa | Contas a pagar/receber e inadimplência — devolveria Burn/Runway ao dashboard com lastro real. |
