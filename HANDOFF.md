@@ -153,7 +153,9 @@ Sistema de POP em 3 camadas, integrado a eventos, tarefas, fornecedores, documen
 
 **Rollback**: as tabelas novas podem ser dropadas sem afetar o legado (`pop_modules`, `suppliers*`, `venues*`, `event_suppliers`, `supplier_quotes`, `task_documents`, `task_dependencies`); as colunas novas em `templates/template_tasks/tasks` são aditivas e ignoradas pelo código antigo. Backup geral continua em `backup_20260709`.
 
-**Fase 2 (pendente)**: Kanban/cronograma/calendário, upload nativo (Supabase Storage), relatórios PDF/CSV do POP, dependências entre tarefas (tabela `task_dependencies` já criada), fluxo de pós-mortem → nova versão do template.
+**Fase 2a (entregue em 21/07/2026)**: visão **Kanban** por status na aba POP; **dependências entre tarefas** (13 vínculos da spec seedados na instância NB 2026 e criados automaticamente em novas gerações; concluir tarefa com dependência aberta é bloqueado com a lista de bloqueadores, responsável e prazo); **exportação CSV** do POP completo.
+
+**Fase 2b (pendente)**: cronograma/calendário, upload nativo (Supabase Storage), relatório executivo em PDF, fluxo de pós-mortem → nova versão do template.
 
 ---
 

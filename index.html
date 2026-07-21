@@ -157,6 +157,13 @@ body { font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-seri
 .pop-fin-table { width:100%; border-collapse:collapse; font-size:12.5px; }
 .pop-fin-table th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); padding:8px 10px; border-bottom:1px solid var(--border-strong); }
 .pop-fin-table td { padding:8px 10px; border-bottom:1px solid var(--border); }
+.pop-kanban { display:grid; grid-template-columns:repeat(6, minmax(180px, 1fr)); gap:10px; overflow-x:auto; margin-bottom:20px; align-items:start; }
+.pop-kb-col { background:var(--bg); border-radius:var(--radius); padding:10px; min-height:120px; }
+.pop-kb-head { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-secondary); margin-bottom:8px; }
+.pop-kb-card { background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:10px; margin-bottom:8px; box-shadow:var(--card-shadow); }
+.pop-kb-card.late { border-left:3px solid var(--red); }
+.pop-kb-title { font-size:12.5px; font-weight:600; line-height:1.35; }
+@media (max-width: 900px) { .pop-kanban { grid-template-columns:repeat(2, minmax(160px, 1fr)); } }
 .kpi-card { background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius); padding:24px; box-shadow:var(--card-shadow); transition:all var(--duration) var(--ease); }
 .kpi-card:hover { box-shadow:var(--card-shadow-hover); transform:translateY(-1px); }
 .kpi-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px; }
@@ -1113,6 +1120,7 @@ const state = {
   dataLoading: false, dataLoadError: false, lastDataLoadAt: null, collectionSources: {},
   suppliers: [], supplierCategories: [], supplierCatLinks: [], venues: [], venueSuppliers: [],
   eventSuppliers: [], taskDocuments: [], popModules: [], popFilters: { module: '', status: '', resp: '', search: '' },
+  taskDeps: [], popView: 'lista',
 };
 
 
@@ -3788,6 +3796,7 @@ async function loadAllData() {
     sb.from('event_suppliers').select('*'),
     sb.from('task_documents').select('*'),
     sb.from('pop_modules').select('*').order('sort_order'),
+    sb.from('task_dependencies').select('*'),
   ]);
   // Falha em consulta crítica NUNCA pode virar zero silencioso:
   // sinaliza erro para o dashboard exibir estado de erro com retry.
@@ -3816,6 +3825,7 @@ async function loadAllData() {
   state.eventSuppliers = gd(results[17]);
   state.taskDocuments = gd(results[18]);
   state.popModules = gd(results[19]);
+  state.taskDeps = gd(results[20]);
   await loadCollections();
   await autoFinalizeEvents();
   state.dataLoading = false;
@@ -5482,8 +5492,23 @@ async function saveEvent() {
       source_layer: tt.source_layer || null, template_version: tt.task_key ? tplVersion : null,
       finance_category: tt.finance_category || null,
     }));
-    if (taskInserts.length > 0) await sb.from('tasks').insert(taskInserts);
+    let insertedTasks = [];
+    if (taskInserts.length > 0) {
+      const ins = await sb.from('tasks').insert(taskInserts).select();
+      insertedTasks = ins.data || [];
+    }
     logAudit('pop.generate','tasks',data.id,{template_id: templateId, overlay_id: overlayId || null, tasks: taskInserts.length});
+
+    // Dependências padrão do POP (por task_key)
+    const byKey = {};
+    insertedTasks.forEach(t => { if (t.task_key) byKey[t.task_key] = t.id; });
+    const depRows = POP_DEPENDENCY_PAIRS
+      .filter(p => byKey[p[0]] && byKey[p[1]])
+      .map(p => ({ task_id: byKey[p[0]], depends_on_task_id: byKey[p[1]] }));
+    if (depRows.length) {
+      const dres = await sb.from('task_dependencies').insert(depRows).select();
+      (dres.data || depRows).forEach(d => state.taskDeps.push(d));
+    }
 
     // Fornecedores credenciados do local do overlay
     const overlayTpl = state.templates.find(t => t.id === overlayId);
@@ -6546,6 +6571,30 @@ function popProgress(tasks) {
 }
 
 function popTaskDocs(taskId) { return state.taskDocuments.filter(d => d.task_id === taskId); }
+
+// Dependências padrão do POP Mestre (por task_key) — aplicadas na geração da instância
+const POP_DEPENDENCY_PAIRS = [
+  ['cv.portal.produce','cv.portal.art'],
+  ['av.led.contract','av.led.measurements'],
+  ['speakers.flights.buy','speakers.confirm'],
+  ['speakers.hotels.reserve','speakers.confirm'],
+  ['mkt.speakers.promote','speakers.confirm'],
+  ['mkt.speakers.promote','speakers.photo.receive'],
+  ['mkt.speakers.promote','speakers.bio.receive'],
+  ['postevent.dre.close','postevent.contracts.check'],
+  ['postevent.dre.close','postevent.invoices.receive'],
+  ['postevent.dre.close','postevent.payments.execute'],
+  ['ops.exhibitors.release','expo.assembly.track'],
+  ['cred.badges.produce','cred.headcount.estimate'],
+  ['golden.credentials.produce','cred.headcount.estimate'],
+];
+
+// Bloqueadores em aberto de uma tarefa (dependências não concluídas)
+function popOpenBlockers(t) {
+  return state.taskDeps.filter(d => d.task_id === t.id)
+    .map(d => state.tasks.find(x => x.id === d.depends_on_task_id))
+    .filter(b => b && b.pop_status !== 'concluida' && b.pop_status !== 'nao_aplicavel' && b.pop_status !== 'cancelada');
+}
 function popChildrenOf(evId, parentKey) { return state.tasks.filter(t => t.event_id === evId && t.conditional_parent_key === parentKey); }
 function popIsConditionParent(evId, t) { return t.task_key && state.tasks.some(x => x.event_id === evId && x.conditional_parent_key === t.task_key); }
 
@@ -6577,9 +6626,13 @@ function renderEventPop(ev, container) {
     kpiCard('Contratado', formatCurrency(cost('cost_contracted')), '', 'previsto ' + formatCurrency(cost('cost_planned'))) +
     '</div>';
 
-  // ---- Filtros ----
+  // ---- Filtros + visão + export ----
   const f = state.popFilters;
   const mods = [...new Set(all.map(t => t.module_key))].sort((a,b) => popModuleSort(a) - popModuleSort(b));
+  html += '<div class="filters-bar" style="justify-content:space-between;"><div style="display:flex;gap:8px;">' +
+    '<button class="btn btn-sm ' + (state.popView === 'lista' ? 'btn-primary' : 'btn-outline') + '" onclick="state.popView=\'lista\';popRerender()">☰ Lista</button>' +
+    '<button class="btn btn-sm ' + (state.popView === 'kanban' ? 'btn-primary' : 'btn-outline') + '" onclick="state.popView=\'kanban\';popRerender()">▦ Kanban</button></div>' +
+    '<button class="btn btn-outline btn-sm" onclick="popExportCsv(\'' + ev.id + '\')">⬇ Exportar CSV</button></div>';
   html += '<div class="filters-bar">' +
     '<select class="filter-select" onchange="state.popFilters.module=this.value;popRerender()"><option value="">Todos os módulos</option>' + mods.map(m => '<option value="' + m + '"' + (f.module === m ? ' selected' : '') + '>' + escHtml(popModuleName(m)) + '</option>').join('') + '</select>' +
     '<select class="filter-select" onchange="state.popFilters.status=this.value;popRerender()"><option value="">Todos os status</option>' + POP_STATUSES.map(s => '<option value="' + s[0] + '"' + (f.status === s[0] ? ' selected' : '') + '>' + s[1] + '</option>').join('') + '</select>' +
@@ -6594,15 +6647,43 @@ function renderEventPop(ev, container) {
   if (f.resp) filtered = filtered.filter(t => t.assigned_to === f.resp);
   if (f.search) { const q = f.search.toLowerCase(); filtered = filtered.filter(t => (t.title || '').toLowerCase().includes(q) || (t.task_key || '').includes(q)); }
 
-  mods.forEach(mk => {
-    const mtasks = filtered.filter(t => t.module_key === mk).sort((a,b) => (a.due_date || '9999') < (b.due_date || '9999') ? -1 : 1);
-    if (!mtasks.length) return;
-    const mprog = popProgress(state.tasks.filter(t => t.event_id === ev.id && t.module_key === mk));
-    html += '<div class="card" style="margin-bottom:14px;"><div class="card-header" style="cursor:pointer;" onclick="this.parentElement.classList.toggle(\'pop-collapsed\')">' +
-      '<h3>' + escHtml(popModuleName(mk)) + ' <span class="badge badge-gray" style="font-size:11px;">' + mprog.done + '/' + mprog.total + '</span></h3>' +
-      '<div class="pop-mod-bar"><div class="pop-mod-fill" style="width:' + mprog.pct + '%;"></div></div></div>' +
-      '<div class="card-body pop-mod-body" style="padding-top:0;">' + mtasks.map(t => popTaskRow(ev, t)).join('') + '</div></div>';
-  });
+  if (state.popView === 'kanban') {
+    const KANBAN_COLS = [
+      { label: 'Não iniciada', statuses: ['nao_iniciada'] },
+      { label: 'Planejamento & Cotação', statuses: ['planejamento','cotacao'] },
+      { label: 'Aguardando', statuses: ['aguardando_fornecedor','aguardando_aprovacao'] },
+      { label: 'Contratada & Execução', statuses: ['contratada','em_execucao'] },
+      { label: 'Bloqueada', statuses: ['bloqueada'] },
+      { label: 'Concluída', statuses: ['concluida'] },
+    ];
+    const kbTasks = filtered.filter(t => t.pop_status !== 'nao_aplicavel' && t.pop_status !== 'cancelada');
+    html += '<div class="pop-kanban">' + KANBAN_COLS.map(col => {
+      const ct = kbTasks.filter(t => col.statuses.includes(t.pop_status)).sort((a,b) => (a.due_date || '9999') < (b.due_date || '9999') ? -1 : 1);
+      return '<div class="pop-kb-col"><div class="pop-kb-head">' + col.label + ' <span class="badge badge-gray" style="font-size:10px;">' + ct.length + '</span></div>' +
+        ct.map(t => {
+          const eff = getEffectiveStatus(t);
+          const opts = POP_STATUSES.map(s => '<option value="' + s[0] + '"' + (t.pop_status === s[0] ? ' selected' : '') + '>' + s[1] + '</option>').join('');
+          return '<div class="pop-kb-card' + (eff === 'atrasada' ? ' late' : '') + '">' +
+            '<div class="pop-kb-title">' + escHtml(t.title) + '</div>' +
+            '<div class="crit-sub">' + escHtml(popModuleName(t.module_key)) + (t.due_date ? ' · ' + formatDate(t.due_date) : '') +
+            (t.criticality === 'critica' ? ' · <b style="color:var(--red);">crítica</b>' : '') + '</div>' +
+            (can('pop.edit') || can('pop.complete') ? '<select class="pop-mini-select" style="margin-top:6px;max-width:100%;" onchange="popSetStatus(\'' + t.id + '\', this.value)">' + opts + '</select>' : '') +
+            '</div>';
+        }).join('') + '</div>';
+    }).join('') + '</div>';
+    const hidden = filtered.length - kbTasks.length;
+    if (hidden > 0) html += '<div class="chart-note">' + hidden + ' tarefa(s) não aplicáveis/canceladas ocultas no Kanban.</div>';
+  } else {
+    mods.forEach(mk => {
+      const mtasks = filtered.filter(t => t.module_key === mk).sort((a,b) => (a.due_date || '9999') < (b.due_date || '9999') ? -1 : 1);
+      if (!mtasks.length) return;
+      const mprog = popProgress(state.tasks.filter(t => t.event_id === ev.id && t.module_key === mk));
+      html += '<div class="card" style="margin-bottom:14px;"><div class="card-header" style="cursor:pointer;" onclick="this.parentElement.classList.toggle(\'pop-collapsed\')">' +
+        '<h3>' + escHtml(popModuleName(mk)) + ' <span class="badge badge-gray" style="font-size:11px;">' + mprog.done + '/' + mprog.total + '</span></h3>' +
+        '<div class="pop-mod-bar"><div class="pop-mod-fill" style="width:' + mprog.pct + '%;"></div></div></div>' +
+        '<div class="card-body pop-mod-body" style="padding-top:0;">' + mtasks.map(t => popTaskRow(ev, t)).join('') + '</div></div>';
+    });
+  }
 
   // ---- Financeiro por módulo (previsto × contratado × realizado × pago) ----
   if (can('finance.view')) {
@@ -6631,6 +6712,9 @@ function popTaskRow(ev, t) {
     const parent = state.tasks.find(x => x.event_id === ev.id && x.task_key === t.conditional_parent_key);
     return parent && parent.decision_value !== t.condition_value;
   })();
+  const blockers = popOpenBlockers(t);
+  const depBadge = blockers.length && t.pop_status !== 'concluida' && t.pop_status !== 'nao_aplicavel' && t.pop_status !== 'cancelada'
+    ? '<span class="badge badge-yellow" style="font-size:10px;" title="' + escHtml(blockers.map(b => b.title + ' (' + popStatusLabel(b.pop_status) + (b.due_date ? ' · ' + formatDate(b.due_date) : '') + ')').join(' | ')) + '">⛓ aguarda ' + blockers.length + '</span>' : '';
   const critBadge = t.criticality === 'critica' ? '<span class="badge badge-red" style="font-size:10px;">crítica</span>' : (t.criticality === 'alta' ? '<span class="badge badge-yellow" style="font-size:10px;">alta</span>' : '');
   const srcBadge = t.source_layer === 'overlay' ? '<span class="badge badge-purple" style="font-size:10px;" title="Atividade específica do overlay desta edição">overlay</span>' : '';
   const lateBadge = eff === 'atrasada' ? '<span class="badge badge-red" style="font-size:10px;">atrasada</span>' : '';
@@ -6677,10 +6761,34 @@ function popTaskRow(ev, t) {
   const docBtn = '<button class="btn btn-outline btn-sm" onclick="popOpenDocs(\'' + t.id + '\')">📎 ' + docs.length + '</button>';
 
   return '<div class="pop-task' + (t.pop_status === 'nao_aplicavel' || t.pop_status === 'cancelada' ? ' pop-task-na' : '') + '">' +
-    '<div class="pop-task-main"><div class="pop-task-title">' + escHtml(t.title) + ' ' + critBadge + ' ' + srcBadge + ' ' + lateBadge + '</div>' +
+    '<div class="pop-task-main"><div class="pop-task-title">' + escHtml(t.title) + ' ' + critBadge + ' ' + srcBadge + ' ' + lateBadge + ' ' + depBadge + '</div>' +
     '<div class="pop-task-meta"><code class="pop-key">' + escHtml(t.task_key || '') + '</code> · ' + dueInput + ' · ' + respSel + '</div>' +
     decisionUi + '</div>' +
     '<div class="pop-task-actions">' + supBtn + costBtn + docBtn + controls + '</div></div>';
+}
+
+// Exportação CSV do POP (separador ; e BOM para Excel pt-BR)
+function popExportCsv(eventId) {
+  const ev = state.events.find(e => e.id === eventId);
+  const rows = state.tasks.filter(t => t.event_id === eventId && t.module_key);
+  const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const header = ['Módulo','Chave','Atividade','Status','Tipo','Criticidade','Responsável (função)','Responsável (usuário)','Prazo','Origem','Fornecedor','Previsto','Cotado','Contratado','Realizado','Pago','Decisão','Justificativa'];
+  const lines = rows.sort((a,b) => popModuleSort(a.module_key) - popModuleSort(b.module_key) || ((a.due_date || '9999') < (b.due_date || '9999') ? -1 : 1))
+    .map(t => [
+      popModuleName(t.module_key), t.task_key, t.title, popStatusLabel(t.pop_status), t.task_type || '',
+      t.criticality || '', t.responsible_role || '', (state.members.find(m => m.id === t.assigned_to) || {}).name || '',
+      t.due_date || '', t.source_layer || '', (state.suppliers.find(s => s.id === t.supplier_id) || {}).name || '',
+      t.cost_planned || '', t.cost_quoted || '', t.cost_contracted || '', t.cost_actual || '', t.cost_paid || '',
+      t.decision_value || '', t.decision_reason || '',
+    ].map(esc).join(';'));
+  const csv = '﻿' + header.map(esc).join(';') + '\n' + lines.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'pop-' + (ev ? ev.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'evento') + '.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  logAudit('pop.export', 'tasks', eventId, { rows: rows.length });
 }
 
 function popRerender() {
@@ -6699,6 +6807,18 @@ async function popUpdateTask(taskId, patch, auditAction) {
 }
 
 function popSetStatus(taskId, status) {
+  const t = state.tasks.find(x => x.id === taskId);
+  if (t && status === 'concluida') {
+    const blockers = popOpenBlockers(t);
+    if (blockers.length) {
+      alert('Esta tarefa não pode ser concluída: depende de\n\n' + blockers.map(b =>
+        '• ' + b.title + ' — ' + popStatusLabel(b.pop_status) +
+        ' (resp.: ' + ((state.members.find(m => m.id === b.assigned_to) || {}).name || b.responsible_role || '—') +
+        (b.due_date ? ' · prazo ' + formatDate(b.due_date) : '') + ')').join('\n'));
+      popRerender();
+      return;
+    }
+  }
   const patch = { pop_status: status };
   if (status === 'concluida') { patch.done = true; patch.completed_at = new Date().toISOString(); }
   else { patch.done = false; patch.completed_at = null; }
