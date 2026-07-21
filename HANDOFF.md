@@ -72,7 +72,7 @@ Regras de honestidade implementadas:
 - **Falha de carga nunca vira zero**: se o Supabase não responder, aparece "Não foi possível carregar os dados" com botão de retry (antes, o painel mostrava R$ 0 como se fosse verdade).
 - Variação sem base de comparação mostra "—", não um percentual enganoso.
 - Dado vindo de cache local (não sincronizado) ganha badge "⚠️ local".
-- KPIs sem lastro real (EBITDA, Burn Rate, Runway) foram **removidos** até existir módulo de caixa.
+- KPIs sem lastro real (EBITDA) removidos. **Burn Rate e Runway voltaram** ao dashboard (jul/2026) agora com lastro no módulo de Caixa — e só aparecem quando o caixa está configurado (senão exibem "configure o caixa", nunca um número falso).
 
 ---
 
@@ -159,11 +159,26 @@ Sistema de POP em 3 camadas, integrado a eventos, tarefas, fornecedores, documen
 
 ---
 
+## 10. Módulo de Caixa (contas a pagar/receber) — adicionado em 21/07/2026
+
+Fluxo de caixa real, distinto do DRE (`finances` é competência/reconhecimento; caixa é movimento de dinheiro no tempo). Migração `migration-v11-cashflow.sql`.
+
+- **Tabelas** (RLS reusando `finance.view`/`finance.edit`, realtime): `cash_accounts` (saldo inicial + data — o lastro do Runway; consolidado por padrão, suporta múltiplas contas), `payables` (contas a pagar), `receivables` (contas a receber). Status: pagar `previsto/a_pagar/pago/cancelado`; receber `previsto/a_receber/recebido/cancelado`.
+- **Página Fluxo de Caixa** (menu Financeiro): onboarding do saldo inicial; KPIs Caixa Atual, A Pagar/A Receber em aberto, Projeção 30 dias, Burn Rate e Runway; abas de contas a pagar/receber com liquidar (Pagar/Receber), editar, excluir; vencidas destacadas.
+- **Cálculos**: Caixa Atual = saldo inicial + recebidos − pagos. Burn = saída líquida acumulada (pagos − recebidos) ÷ meses desde a abertura; Runway = caixa ÷ burn. Sem `opening_date`, Burn/Runway mostram "—" (não inventam). Caixa positivo no período → Runway ∞.
+- **Semiautomático com o POP**: tarefa `contratada` com custo oferece "💸 Conta a pagar" (você confirma valor/vencimento/fornecedor); depois de gerada vira badge "lançada" (sem duplicar).
+- **Dashboard**: Burn/Runway de volta à linha contextual do Command Center, com lastro real e gated (sem caixa configurado → "configure o caixa").
+- **Auditoria**: criar/editar/liquidar/excluir contas e configurar caixa gravam em `audit_logs`.
+
+---
+
 ## 8. Referências no repositório
 
 - `AUDITORIA-DASHBOARD.md` — auditoria completa do dashboard (metodologia Command Center).
 - `RECOVERY.md` — diagnóstico da recuperação do site.
-- `migration-v9-pop.sql` + `seed-pop-mestre-v1.sql` — POP operacional (últimas migrações aplicadas)
+- `migration-v11-cashflow.sql` — módulo de caixa (última migração aplicada)
+- `migration-v10-storage-lessons.sql` — Storage de documentos + pós-mortem
+- `migration-v9-pop.sql` + `seed-pop-mestre-v1.sql` — POP operacional
 - `migration-v8-collections.sql` — coleções compartilhadas (as anteriores: `migration-fix.sql` a `migration-v7-security.sql`).
 - `supabase-schema-v4.sql` — schema base das tabelas centrais.
 - Seeds/templates SQL (`seed-*.sql`) — **histórico**; não executar em produção (foi justamente a origem dos dados fictícios).
