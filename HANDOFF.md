@@ -131,10 +131,37 @@ Não há suíte formal, mas existe um harness usado nesta recuperação (Playwri
 
 ---
 
+## 9. POP Operacional por Evento (adicionado em 21/07/2026)
+
+Sistema de POP em 3 camadas, integrado a eventos, tarefas, fornecedores, documentos e DRE:
+
+| Camada | Onde vive | Exemplo |
+|---|---|---|
+| 1. Template Mestre | `templates` (`template_kind='master'`) + `pop_modules` + `template_tasks` | "Congresso Science Play · POP Mestre" — 12 módulos, 252 atividades com `task_key` único, prazos D-365..D+45, responsáveis por função, condicionais |
+| 2. Overlay específico | `templates` (`template_kind='overlay'`, `parent_template_id`, `venue_id`) | "Nutrição Brasil Brasília · Ulysses Guimarães" — 31 atividades que sobrescrevem/detalham o mestre pelo mesmo `task_key` |
+| 3. Instância do evento | `tasks` (com `module_key`, `task_key`, `pop_status`, custos por estágio, `source_layer`, `template_version`) | "Nutrição Brasil Brasília 2026" — 252 tarefas geradas (dedup automático; overlay prevalece), 15 checkpoints executivos, 11 fornecedores credenciados vinculados |
+
+**Regras de geração**: ao criar evento com Template Mestre + overlay, o merge dedup por `task_key` (overlay vence, origem preservada em `source_layer`), datas calculadas de `event_date + day_offset` (editar prazo trava com `due_locked` — não é recalculado). Alterar evento nunca altera o template; alterar template nunca altera eventos criados (`template_version` registra a versão usada).
+
+**Aba "POP & Operação"** (detalhe do evento): progresso quantitativo + ponderado (crítica×3, alta×2 — nunca 100% com crítica bloqueada), 11 estados de atividade, decisões condicionais (Sim/Não/Em análise; "Não" exige justificativa e marca filhas como Não aplicável sem excluí-las), responsáveis (função sugerida → usuário real), fornecedores por tarefa, custos por estágio (previsto/cotado/aprovado/contratado/realizado/pago) com "Lançar no DRE", documentos por link, tabela de custos por módulo.
+
+**Fornecedores**: diretório global (menu Fornecedores) com categorias N:N (LOBL e Mobicom em Cenografia + Mobiliário, sem duplicidade), credenciamento por local (`venue_suppliers` — Ulysses Guimarães), vínculo a eventos/tarefas (`event_suppliers`), contatos ausentes = NULL exibidos como "Não informado".
+
+**Permissões novas**: `pop.view/edit/assign/complete/approve/templates.manage`, `suppliers.*`, `event.documents.*` — aplicadas no RBAC do banco (RLS) e no frontend.
+
+**Arquivos**: `migration-v9-pop.sql` (DDL + RLS + permissões) e `seed-pop-mestre-v1.sql` (seed idempotente completo). Ambos aplicados em produção.
+
+**Rollback**: as tabelas novas podem ser dropadas sem afetar o legado (`pop_modules`, `suppliers*`, `venues*`, `event_suppliers`, `supplier_quotes`, `task_documents`, `task_dependencies`); as colunas novas em `templates/template_tasks/tasks` são aditivas e ignoradas pelo código antigo. Backup geral continua em `backup_20260709`.
+
+**Fase 2 (pendente)**: Kanban/cronograma/calendário, upload nativo (Supabase Storage), relatórios PDF/CSV do POP, dependências entre tarefas (tabela `task_dependencies` já criada), fluxo de pós-mortem → nova versão do template.
+
+---
+
 ## 8. Referências no repositório
 
 - `AUDITORIA-DASHBOARD.md` — auditoria completa do dashboard (metodologia Command Center).
 - `RECOVERY.md` — diagnóstico da recuperação do site.
-- `migration-v8-collections.sql` — última migração aplicada (as anteriores: `migration-fix.sql` a `migration-v7-security.sql`).
+- `migration-v9-pop.sql` + `seed-pop-mestre-v1.sql` — POP operacional (últimas migrações aplicadas)
+- `migration-v8-collections.sql` — coleções compartilhadas (as anteriores: `migration-fix.sql` a `migration-v7-security.sql`).
 - `supabase-schema-v4.sql` — schema base das tabelas centrais.
 - Seeds/templates SQL (`seed-*.sql`) — **histórico**; não executar em produção (foi justamente a origem dos dados fictícios).
